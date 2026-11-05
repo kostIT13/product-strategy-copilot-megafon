@@ -100,3 +100,7 @@ psa critic-pack demo
 ### MCP adapter
 
 MCP integration is optional. Install with `python -m pip install -e ".[mcp]"`, launch `psa-mcp` as a local stdio process, and configure that command in the target host. See [docs/mcp.md](docs/mcp.md) for available tools, host configuration, and the SDK v2 API choice.
+
+### Учёт использования
+
+Добавляйте usage от провайдера без содержимого запросов и сводите его через `psa usage add` / `psa usage report`. Неизвестные данные остаются неизвестными, оценочная и измеренная стоимость показываются отдельно. Подробности: [docs/usage.md](docs/usage.md).
