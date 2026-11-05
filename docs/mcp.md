@@ -35,7 +35,7 @@ Use the Python executable from the environment where `product-strategy-agent[mcp
 
 ## Exposed tools
 
-- `psa_init`, `psa_status`, `psa_next`
+- `psa_init`, `psa_status`, `psa_next`, `psa_mode_set`
 - `psa_add_source`, `psa_fetch_source`, `psa_list_sources`
 - `psa_add_claim`, `psa_add_gap`, `psa_add_option`, `psa_add_decision`
 - `psa_approve_stage`

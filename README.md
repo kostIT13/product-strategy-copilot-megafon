@@ -104,3 +104,7 @@ MCP integration is optional. Install with `python -m pip install -e ".[mcp]"`, l
 ### Учёт использования
 
 Добавляйте usage от провайдера без содержимого запросов и сводите его через `psa usage add` / `psa usage report`. Неизвестные данные остаются неизвестными, оценочная и измеренная стоимость показываются отдельно. Подробности: [docs/usage.md](docs/usage.md).
+
+### Режимы глубины
+
+`psa mode show <id>` показывает активный режим, `psa mode set <id> quick_scan|decision_grade|deep_research --by ... --reason ...` переключает глубину с аудитом автора и причины. Режимы не расширяют доступы; правила описаны в [docs/modes.md](docs/modes.md).
