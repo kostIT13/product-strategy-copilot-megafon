@@ -32,7 +32,8 @@ Complete a row only after a live connection and the parity scenario have been ob
 
 | Host | Host version | Environment | Connection | Parity | Evidence / limitation |
 |---|---|---|---|---|---|
-| Codex | — | Current workspace; FastMCP unavailable | Not run | Not run | Needs dependency and a live configured host session |
+| Local MCP SDK client (not an IDE host) | MCP Python SDK 2.3.0 | Windows; Python 3.12; FastMCP 4.1.6 | Pass; 20 tools discovered over stdio | Partial: revisit mutation via MCP; validate, verify, and revisit readout matched through CLI | `projects/mcp-host-smoke-20261106/`; 2026-11-06. Does not establish Codex UI integration |
+| Codex | — | Current workspace; FastMCP 4.1.6 installed in local `.venv` | Not run | Not run | Requires a live configured Codex host session |
 | Qwen Coder | — | Not available in this workspace | Not run | Not run | Requires access to target host |
 | SourceCraft | — | Not available in this workspace | Not run | Not run | Requires access to target host |
 

@@ -20,3 +20,6 @@ projects/*/sources/
 
 # Reproducible synthetic source revision demo
 !projects/revisit-demo-20261106/sources/
+
+# Reproducible local MCP stdio acceptance scenario
+!projects/mcp-host-smoke-20261106/sources/
