@@ -205,12 +205,13 @@ psa gap add projects/<id> --question ...
 psa decision add projects/<id> --option ... --owner ...
 psa gate approve projects/<id> --stage ... --by ...
 psa render projects/<id>
+psa usage add <id> --provider ... --model ... --operation ... --stage ...
+psa usage report <id>
 psa source add projects/<id> --uri <url>
-psa fetch projects/<id> --source <source-id>
+psa source fetch <id> <url>
+psa option add <id> --name ... --role status_quo|stop|change --description ...
 psa critic-pack projects/<id> --output <path>
-psa usage-report projects/<id>
-psa resume projects/<id>
-psa revisit projects/<id> --source <path-or-url>
+psa resume <id>
 ```
 
 `init` создаёт структуру атомарно; `status/next` показывают состояние и следующий разрешённый шаг; `validate` проверяет схему, обязательные артефакты, ссылки, ID и покрытие: каждый проверяемый тезис и внешнее обещание в strategy/communication должен иметь `[C-ID]` либо явный тип `[HYPOTHESIS]`, `[COMMITMENT]` или `[OPEN QUESTION]`; обещание сопоставляется с реестром возможностей продукта, несоответствие блокирует gate; `verify` проверяет цитаты по извлечённым материалам; `claim/gap/decision add` и `gate approve` — штатный путь записи, а не ручное редактирование JSONL; `render` строит Markdown из канонических реестров; `source add/fetch` регистрирует и извлекает материал с хэшированием, соблюдая доступы; `critic-pack` создаёт автономный пакет для независимого критика в чистом контексте; `usage-report` агрегирует телеметрию; `resume/revisit` показывают затронутые материалы и предлагаемые действия.
@@ -257,6 +258,8 @@ RAG — опциональное расширение. Первая версия
 ## 12. Прозрачность, лимиты и стоимость
 
 `usage.jsonl` фиксирует доступные поля: время UTC, проект, этап, провайдер/модель, тип операции, токены входа/выхода или статус недоступности этих данных, число повторов, задержку, оценочную/подтверждённую стоимость и причину оценки. Не записывать секреты и содержимое материалов.
+
+CLI `psa usage add` добавляет provider-отчёт или явную оценку, а `psa usage report` агрегирует время и токены и показывает measured/estimated стоимость отдельно по валюте. CLI не перехватывает usage из API автоматически; неизвестные значения остаются null.
 
 Для каждой задачи задаются режим (`quick_scan`, `decision_grade`, `deep_research`), лимит времени/вызовов/денег и разрешённые источники. Система предупреждает при приближении к лимиту, но не расширяет его сама. Тарифы фиксируются с датой и валютой. При API без надёжного usage endpoint показывать оценку с формулой/предпосылками.
 
