@@ -1,0 +1,256 @@
+"""Command-line entry point for the product strategy agent."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any
+
+from product_strategy_agent import __version__
+from product_strategy_agent.ledger import add_claim, add_decision, add_gap
+from product_strategy_agent.sources import add_local_source, fetch_web_source
+from product_strategy_agent.validation import validate_project, verify_project
+
+STAGES = (
+    "intake",
+    "research_plan",
+    "source_collection",
+    "evidence_review",
+    "options",
+    "strategy",
+    "validation",
+    "completed",
+)
+
+
+def utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+
+
+def project_path(project_id: str, projects_dir: Path) -> Path:
+    if not re.fullmatch(r"[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}", project_id):
+        raise ValueError("project id must be 1-64 letters, numbers, '-' or '_' and start with a letter or number")
+    return projects_dir / project_id
+
+
+def state_file(project_id: str, projects_dir: Path) -> Path:
+    return project_path(project_id, projects_dir) / "state.json"
+
+
+def load_state(project_id: str, projects_dir: Path) -> dict[str, Any]:
+    path = state_file(project_id, projects_dir)
+    if not path.is_file():
+        raise FileNotFoundError(f"Project '{project_id}' was not found at {path}")
+    state = json.loads(path.read_text(encoding="utf-8"))
+    if state.get("schema_version") != 1 or state.get("project_id") != project_id:
+        raise ValueError(f"Unsupported or invalid project state: {path}")
+    return state
+
+
+def init_project(project_id: str, projects_dir: Path) -> Path:
+    path = project_path(project_id, projects_dir)
+    path.mkdir(parents=True, exist_ok=True)
+    state_path = path / "state.json"
+    if state_path.exists():
+        raise FileExistsError(f"Project '{project_id}' already exists at {path}")
+
+    now = utc_now()
+    state = {
+        "schema_version": 1,
+        "project_id": project_id,
+        "created_at": now,
+        "updated_at": now,
+        "status": "intake",
+        "stages": {stage: ("in_progress" if stage == "intake" else "not_started") for stage in STAGES},
+        "next_action": "Заполнить бриф в 01_brief.md",
+        "open_questions": [],
+    }
+    (path / "state.json").write_text(json.dumps(state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    (path / "01_brief.md").write_text(
+        f"# Бриф: {project_id}\n\n"
+        "## Вопрос решения\n\n"
+        "## Желаемый результат и критерии успеха\n\n"
+        "## Кто принимает решение и к какому сроку\n\n"
+        "## Ограничения и разрешённые данные\n\n"
+        "## Доступные материалы\n",
+        encoding="utf-8",
+    )
+    for name in ("sources.jsonl", "claims.jsonl", "gaps.jsonl", "decision-log.jsonl", "usage.jsonl"):
+        (path / name).write_text("", encoding="utf-8")
+    (path / "sources").mkdir(exist_ok=True)
+    return path
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(prog="psa", description="Evidence-based product strategy workflow")
+    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
+    commands = parser.add_subparsers(dest="command", required=True)
+
+    init = commands.add_parser("init", help="create a new project workspace")
+    init.add_argument("project_id")
+    init.add_argument("--projects-dir", type=Path, default=Path("projects"))
+
+    for command, help_text in (
+        ("status", "show the current project stage"),
+        ("next", "show the next action for the project"),
+        ("resume", "continue from the saved project state"),
+    ):
+        sub = commands.add_parser(command, help=help_text)
+        sub.add_argument("project_id")
+        sub.add_argument("--projects-dir", type=Path, default=Path("projects"))
+
+    source = commands.add_parser("source", help="manage project sources")
+    source_commands = source.add_subparsers(dest="source_command", required=True)
+    for action, help_text in (("add", "import a local text or HTML file"), ("fetch", "fetch a web page and extract its text")):
+        sub = source_commands.add_parser(action, help=help_text)
+        sub.add_argument("project_id")
+        sub.add_argument("value", help="local file path" if action == "add" else "http(s) URL")
+        sub.add_argument("--title")
+        sub.add_argument("--projects-dir", type=Path, default=Path("projects"))
+    source_list = source_commands.add_parser("list", help="list registered sources")
+    source_list.add_argument("project_id")
+    source_list.add_argument("--projects-dir", type=Path, default=Path("projects"))
+
+    claim = commands.add_parser("claim", help="record a typed claim in the project ledger")
+    claim_commands = claim.add_subparsers(dest="claim_command", required=True)
+    claim_add = claim_commands.add_parser("add", help="append a claim")
+    claim_add.add_argument("project_id")
+    claim_add.add_argument("--text", required=True)
+    claim_add.add_argument("--type", required=True, choices=("fact", "interpretation", "hypothesis", "forecast", "synthetic"))
+    claim_add.add_argument("--source", action="append", default=[], help="source id; repeat in the same order as --locator")
+    claim_add.add_argument("--locator", action="append", default=[], help="page, paragraph, sheet, or other source locator")
+    claim_add.add_argument("--quote", action="append", default=[], help="exact source text; repeat once per cited source")
+    claim_add.add_argument("--confidence", choices=("low", "medium", "high", "unknown"), default="unknown")
+    claim_add.add_argument("--reasoning-note", default="")
+    claim_add.add_argument("--contradicts", action="append", default=[])
+    claim_add.add_argument("--decision-impact", default="")
+    claim_add.add_argument("--supersedes")
+    claim_add.add_argument("--projects-dir", type=Path, default=Path("projects"))
+
+    gap = commands.add_parser("gap", help="record a research gap")
+    gap_add = gap.add_subparsers(dest="gap_command", required=True).add_parser("add", help="append a gap")
+    gap_add.add_argument("project_id")
+    gap_add.add_argument("--question", required=True)
+    gap_add.add_argument("--why-it-matters", default="")
+    gap_add.add_argument("--method", default="")
+    gap_add.add_argument("--priority", choices=("low", "medium", "high"), default="medium")
+    gap_add.add_argument("--projects-dir", type=Path, default=Path("projects"))
+
+    decision = commands.add_parser("decision", help="append a human-owned decision")
+    decision_add = decision.add_subparsers(dest="decision_command", required=True).add_parser("add", help="record a decision")
+    decision_add.add_argument("project_id")
+    decision_add.add_argument("--option", required=True)
+    decision_add.add_argument("--owner", required=True)
+    decision_add.add_argument("--rationale", default="")
+    decision_add.add_argument("--claim", action="append", default=[])
+    decision_add.add_argument("--reject", action="append", default=[])
+    decision_add.add_argument("--assumption", action="append", default=[])
+    decision_add.add_argument("--risk", action="append", default=[])
+    decision_add.add_argument("--revisit-when", default="")
+    decision_add.add_argument("--projects-dir", type=Path, default=Path("projects"))
+
+    for name, help_text in (("validate", "validate project files and ledger references"),
+                            ("verify", "verify source hashes and quoted citations locally")):
+        check = commands.add_parser(name, help=help_text)
+        check.add_argument("project_id")
+        check.add_argument("--projects-dir", type=Path, default=Path("projects"))
+    return parser
+
+
+def main() -> None:
+    args = build_parser().parse_args()
+    try:
+        if args.command == "init":
+            path = init_project(args.project_id, args.projects_dir)
+            print(f"Created project '{args.project_id}' at {path}")
+            print(f"Next: fill in {path / '01_brief.md'}")
+            return
+
+        if args.command == "source":
+            project_dir = project_path(args.project_id, args.projects_dir)
+            if args.source_command == "add":
+                record = add_local_source(project_dir, Path(args.value), args.title)
+                print(f"Imported {record['source_id']}: {record['title']}")
+                print(f"Extracted text: {project_dir / record['extracted_text_path']}")
+            elif args.source_command == "fetch":
+                record = fetch_web_source(project_dir, args.value, args.title)
+                print(f"Fetched {record['source_id']}: {record['title']}")
+                print(f"Extracted text: {project_dir / record['extracted_text_path']}")
+            else:
+                registry = project_dir / "sources.jsonl"
+                if not registry.is_file():
+                    raise FileNotFoundError(f"Project '{args.project_id}' was not found at {project_dir}")
+                for line in registry.read_text(encoding="utf-8").splitlines():
+                    if line.strip():
+                        record = json.loads(line)
+                        print(f"{record['source_id']} [{record['status']}] {record['title']} — {record['uri_or_path']}")
+            return
+
+        if args.command in {"claim", "gap", "decision"}:
+            project_dir = project_path(args.project_id, args.projects_dir)
+            if not (project_dir / "state.json").is_file():
+                raise FileNotFoundError(f"Project '{args.project_id}' was not found at {project_dir}")
+            if args.command == "claim":
+                record = add_claim(
+                    project_dir,
+                    text=args.text,
+                    claim_type=args.type,
+                    source_ids=args.source,
+                    source_locators=args.locator,
+                    quotes=args.quote,
+                    confidence=args.confidence,
+                    reasoning_note=args.reasoning_note,
+                    contradicts=args.contradicts,
+                    decision_impact=args.decision_impact,
+                    supersedes=args.supersedes,
+                )
+                print(f"Recorded {record['claim_id']} [{record['type']}]: {record['text']}")
+            elif args.command == "gap":
+                record = add_gap(project_dir, args.question, args.why_it_matters, args.method, args.priority)
+                print(f"Recorded {record['gap_id']} [{record['priority']}]: {record['question']}")
+            else:
+                record = add_decision(project_dir, args.option, args.owner, args.rationale, args.claim,
+                                      args.reject, args.assumption, args.risk, args.revisit_when)
+                print(f"Recorded {record['decision_id']}: {record['chosen_option']} (owner: {record['owner']})")
+            return
+
+        if args.command in {"validate", "verify"}:
+            project_dir = project_path(args.project_id, args.projects_dir)
+            if args.command == "validate":
+                errors = validate_project(project_dir)
+                warnings: list[str] = []
+            else:
+                errors, warnings = verify_project(project_dir)
+            for error in errors:
+                print(f"ERROR: {error}")
+            for warning in warnings:
+                print(f"WARNING: {warning}")
+            if errors:
+                print(f"{args.command}: failed with {len(errors)} error(s)")
+                raise SystemExit(1)
+            print(f"{args.command}: passed" + (f" with {len(warnings)} warning(s)" if warnings else ""))
+            return
+
+        state = load_state(args.project_id, args.projects_dir)
+        stage = state["status"]
+        if args.command == "status":
+            print(f"Project: {args.project_id}\nStage: {stage}\nNext action: {state['next_action']}")
+            if state["open_questions"]:
+                print("Open questions:")
+                for question in state["open_questions"]:
+                    print(f"- {question}")
+        elif args.command == "next":
+            print(f"Stage: {stage}\nNext action: {state['next_action']}")
+        else:
+            print(f"Resuming '{args.project_id}' at stage '{stage}'.")
+            print(f"Next action: {state['next_action']}")
+            print(f"Brief: {project_path(args.project_id, args.projects_dir) / '01_brief.md'}")
+    except (FileExistsError, FileNotFoundError, ValueError, OSError, json.JSONDecodeError) as error:
+        raise SystemExit(f"psa: error: {error}") from error
+
+
+if __name__ == "__main__":
+    main()
