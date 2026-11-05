@@ -237,17 +237,27 @@ def verify_project(project_dir: Path) -> tuple[list[str], list[str]]:
             if not isinstance(locator, str) or not isinstance(quote, str) or not quote.strip():
                 warnings.append(f"{claim_id}: citation {source_id} has no usable locator or quote")
                 continue
+            text = source_texts[source_id]
+            range_match = re.fullmatch(r"lines:(\d+)-(\d+)", locator.strip(), re.IGNORECASE)
             match = re.fullmatch(r"(?:paragraph|p|line):(\d+)", locator.strip(), re.IGNORECASE)
-            if not match:
+            if range_match:
+                start, end = (int(value) for value in range_match.groups())
+                lines = text.splitlines()
+                if start < 1 or end < start or end > len(lines):
+                    errors.append(f"{claim_id}: locator {locator!r} is outside source {source_id}")
+                    continue
+                excerpt = "\n".join(lines[start - 1:end])
+            elif match:
+                position = int(match.group(1))
+                lines = text.splitlines() if locator.lower().startswith("line:") else [line for line in text.splitlines() if line.strip()]
+                if position < 1 or position > len(lines):
+                    errors.append(f"{claim_id}: locator {locator!r} is outside source {source_id}")
+                    continue
+                excerpt = lines[position - 1]
+            else:
                 warnings.append(f"{claim_id}: locator {locator!r} is not supported for plain text verification")
                 continue
-            position = int(match.group(1))
-            text = source_texts[source_id]
-            lines = text.splitlines() if locator.lower().startswith("line:") else [line for line in text.splitlines() if line.strip()]
-            if position < 1 or position > len(lines):
-                errors.append(f"{claim_id}: locator {locator!r} is outside source {source_id}")
-                continue
-            if _normalize_quote(quote) not in _normalize_quote(lines[position - 1]):
+            if _normalize_quote(quote) not in _normalize_quote(excerpt):
                 errors.append(f"{claim_id}: quote does not match {source_id} at {locator}")
     errors.extend(registry_errors)
     return errors, warnings
