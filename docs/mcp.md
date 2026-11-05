@@ -40,6 +40,7 @@ Use the Python executable from the environment where `product-strategy-agent[mcp
 - `psa_add_claim`, `psa_add_gap`, `psa_add_option`, `psa_add_decision`
 - `psa_approve_stage`
 - `psa_validate`, `psa_verify`, `psa_render`, `psa_critic_pack`
+- `psa_usage_add`, `psa_usage_report`
 
 `psa_fetch_source` performs a network request only when explicitly called. Tools write only inside the selected project workspace, except for caller-supplied input/output paths. The server has no delete, shell, or arbitrary command tool.
 
