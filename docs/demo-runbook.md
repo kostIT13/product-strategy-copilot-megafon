@@ -21,7 +21,7 @@ python -m product_strategy_agent.cli source add $projectId $demoInput --title 'S
 
 ```powershell
 $sourceId = 'S-ID-ИЗ-ВЫВОДА-КОМАНДЫ'
-python -m product_strategy_agent.cli claim add $projectId --text 'В источнике указано renewed=10.' --type fact --source $sourceId --locator line:2 --quote 'renewed,10' --confidence medium --reasoning-note 'Учебная строка CSV.'
+python -m product_strategy_agent.cli claim add $projectId --text 'The source reports renewed=10.' --type fact --source $sourceId --locator line:2 --quote 'renewed,10' --confidence medium --reasoning-note 'Synthetic CSV row.'
 python -m product_strategy_agent.cli option add $projectId --name Keep --role status_quo --description 'Keep the current action after review.' --claim C-001
 python -m product_strategy_agent.cli option add $projectId --name Stop --role stop --description 'Stop if evidence no longer supports the action.' --claim C-001
 python -m product_strategy_agent.cli option add $projectId --name Test --role change --description 'Run a limited controlled test after review.' --claim C-001
@@ -41,7 +41,7 @@ python -m product_strategy_agent.cli revisit list $projectId
 ## Зафиксировать review
 
 ```powershell
-python -m product_strategy_agent.cli revisit resolve $projectId SRC-REV-0001 --by 'Демо-владелец' --reason 'Проверены связанные вывод и решение; цитата и вывод не изменились' --reviewed-claim C-001 --reviewed-decision D-001
+python -m product_strategy_agent.cli revisit resolve $projectId SRC-REV-0001 --by demo-owner --reason 'Reviewed the linked claim and decision; the quote and conclusion still hold.' --reviewed-claim C-001 --reviewed-decision D-001
 python -m product_strategy_agent.cli revisit list $projectId
 python -m product_strategy_agent.cli verify $projectId
 ```

@@ -118,8 +118,3 @@ MCP integration is optional. Install with `python -m pip install -e ".[mcp]"`, l
 
 - [Runbook пересмотра изменённого источника](docs/demo-runbook.md).
 - [Нейтральный A/B-пакет для независимой оценки](evals/demo/blind-review/reviewer-brief.md); ключ владельца не передавать рецензенту.
-
-## Материалы приёмки MVP
-
-- [Runbook пересмотра изменённого источника](docs/demo-runbook.md).
-- [Нейтральный A/B-пакет для независимой оценки](evals/demo/blind-review/reviewer-brief.md); ключ владельца не передавать рецензенту.
