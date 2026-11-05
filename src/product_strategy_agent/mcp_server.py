@@ -15,6 +15,7 @@ from product_strategy_agent.sources import add_local_source, fetch_web_source
 from product_strategy_agent.validation import validate_project, verify_project
 from product_strategy_agent.workflow import MODE_PROFILES, approve_stage, set_project_mode
 from product_strategy_agent.usage import add_usage, usage_report
+from product_strategy_agent.revisit import build_revisit_report, resolve_source_revision
 
 
 def create_server() -> Any:
@@ -70,6 +71,20 @@ def create_server() -> Any:
                      projects_dir: str = "projects") -> dict[str, Any]:
         """Set the research depth; this does not change tools or access permissions."""
         return set_project_mode(workspace(project_id, projects_dir), mode, changed_by, reason)
+
+    @server.tool()
+    def psa_revisit(project_id: str, projects_dir: str = "projects") -> dict[str, Any]:
+        """List revised sources and dependent claims/decisions that need human review."""
+        return build_revisit_report(workspace(project_id, projects_dir))
+
+    @server.tool()
+    def psa_revisit_resolve(project_id: str, revision_event_id: str, reviewed_by: str, reason: str,
+                            reviewed_claim_ids: list[str] | None = None,
+                            reviewed_decision_ids: list[str] | None = None,
+                            projects_dir: str = "projects") -> dict[str, Any]:
+        """Record human review of all claims and decisions affected by a source revision."""
+        return resolve_source_revision(workspace(project_id, projects_dir), revision_event_id,
+                                       reviewed_by, reason, reviewed_claim_ids, reviewed_decision_ids)
 
     @server.tool()
     def psa_add_source(project_id: str, file_path: str, title: str = "", projects_dir: str = "projects") -> dict[str, Any]:

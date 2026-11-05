@@ -17,6 +17,7 @@ from product_strategy_agent.sources import add_local_source, fetch_web_source
 from product_strategy_agent.validation import validate_project, verify_project
 from product_strategy_agent.usage import add_usage, usage_report
 from product_strategy_agent.workflow import MODE_PROFILES, NEXT_ACTIONS, WORK_STAGES, approve_stage, set_project_mode
+from product_strategy_agent.revisit import build_revisit_report, resolve_source_revision
 
 STAGES = (
     "intake",
@@ -236,6 +237,20 @@ def build_parser() -> argparse.ArgumentParser:
     mode_set.add_argument("--by", required=True)
     mode_set.add_argument("--reason", default="")
     mode_set.add_argument("--projects-dir", type=Path, default=Path("projects"))
+
+    revisit = commands.add_parser("revisit", help="review downstream work after a source revision")
+    revisit_commands = revisit.add_subparsers(dest="revisit_command", required=True)
+    revisit_list = revisit_commands.add_parser("list", help="list source changes and dependent work")
+    revisit_list.add_argument("project_id")
+    revisit_list.add_argument("--projects-dir", type=Path, default=Path("projects"))
+    revisit_resolve = revisit_commands.add_parser("resolve", help="record that all dependent claims and decisions were reviewed")
+    revisit_resolve.add_argument("project_id")
+    revisit_resolve.add_argument("revision_event_id")
+    revisit_resolve.add_argument("--by", required=True)
+    revisit_resolve.add_argument("--reason", required=True)
+    revisit_resolve.add_argument("--reviewed-claim", action="append", default=[])
+    revisit_resolve.add_argument("--reviewed-decision", action="append", default=[])
+    revisit_resolve.add_argument("--projects-dir", type=Path, default=Path("projects"))
     return parser
 
 
@@ -254,10 +269,14 @@ def main() -> None:
                 record = add_local_source(project_dir, Path(args.value), args.title)
                 print(f"Imported {record['source_id']}: {record['title']}")
                 print(f"Extracted text: {project_dir / record['extracted_text_path']}")
+                if record.get("source_revision_event"):
+                    print(f"Source changed; review dependent work with: psa revisit list {args.project_id}")
             elif args.source_command == "fetch":
                 record = fetch_web_source(project_dir, args.value, args.title)
                 print(f"Fetched {record['source_id']}: {record['title']}")
                 print(f"Extracted text: {project_dir / record['extracted_text_path']}")
+                if record.get("source_revision_event"):
+                    print(f"Source changed; review dependent work with: psa revisit list {args.project_id}")
             else:
                 registry = project_dir / "sources.jsonl"
                 if not registry.is_file():
@@ -371,6 +390,18 @@ def main() -> None:
                     raise ValueError(f"Unknown project mode: {mode_name}")
                 profile = MODE_PROFILES[mode_name]
                 print(f"Mode: {mode_name}\nPurpose: {profile['description']}\nGuidance: {profile['guidance']}")
+            return
+
+        if args.command == "revisit":
+            project_dir = project_path(args.project_id, args.projects_dir)
+            if not (project_dir / "state.json").is_file():
+                raise FileNotFoundError(f"Project '{args.project_id}' was not found at {project_dir}")
+            if args.revisit_command == "list":
+                print(json.dumps(build_revisit_report(project_dir), ensure_ascii=False, indent=2))
+            else:
+                event = resolve_source_revision(project_dir, args.revision_event_id, args.by, args.reason,
+                                                args.reviewed_claim, args.reviewed_decision)
+                print(f"Reviewed source revision {event['revision_event_id']} by {event['reviewed_by']}")
             return
 
         state = load_state(args.project_id, args.projects_dir)
