@@ -113,3 +113,13 @@ MCP integration is optional. Install with `python -m pip install -e ".[mcp]"`, l
 ### Режимы глубины
 
 `psa mode show <id>` показывает активный режим, `psa mode set <id> quick_scan|decision_grade|deep_research --by ... --reason ...` переключает глубину с аудитом автора и причины. Режимы не расширяют доступы; правила описаны в [docs/modes.md](docs/modes.md).
+
+## Материалы приёмки MVP
+
+- [Runbook пересмотра изменённого источника](docs/demo-runbook.md).
+- [Нейтральный A/B-пакет для независимой оценки](evals/demo/blind-review/reviewer-brief.md); ключ владельца не передавать рецензенту.
+
+## Материалы приёмки MVP
+
+- [Runbook пересмотра изменённого источника](docs/demo-runbook.md).
+- [Нейтральный A/B-пакет для независимой оценки](evals/demo/blind-review/reviewer-brief.md); ключ владельца не передавать рецензенту.
