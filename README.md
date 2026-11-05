@@ -54,3 +54,17 @@ psa verify demo-retention
 psa claim add demo-retention --type fact --text "..." --source S-0123456789AB --locator "paragraph:4" --quote "Точный текст выдержки"
 ```
 
+
+### Варианты и сборка результатов
+
+Добавляйте варианты с ролями `status_quo` (оставить как есть), `stop` (закрыть) и `change` (изменить/расширить):
+
+```powershell
+psa option add demo-retention --name "Оставить как есть" --role status_quo --description "Сохранить текущий подход"
+psa option add demo-retention --name "Закрыть направление" --role stop --description "Прекратить развитие и поддержать текущих пользователей"
+psa option add demo-retention --name "Пилот для сегмента A" --role change --description "Проверить новое предложение на ограниченном сегменте" --benefits "Ниже риск" --costs "Команда пилота" --risks "Малый охват"
+```
+
+Свяжите решение с выбранным вариантом: `psa decision add ... --option-id O-003`. `psa validate` проверяет наличие минимум трёх вариантов с тремя обязательными ролями, если варианты уже начали записывать.
+
+`psa render demo-retention` создаёт `03_evidence.md`, `04_options.md`, `decision.md`, `05_strategy.md` и `06_validation-plan.md`. Для продуктовой, коммуникационной стратегии и плана проверки команда создаёт исходные черновики в `drafts/`; повторный `render` читает их, но не меняет. Сгенерированные Markdown-файлы пересобираются при каждом запуске.
