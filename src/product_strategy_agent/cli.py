@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from product_strategy_agent import __version__
+from product_strategy_agent.critic import write_critic_pack
 from product_strategy_agent.ledger import add_claim, add_decision, add_gap, add_option
 from product_strategy_agent.rendering import render_project
 from product_strategy_agent.sources import add_local_source, fetch_web_source
@@ -184,6 +185,10 @@ def build_parser() -> argparse.ArgumentParser:
     render = commands.add_parser("render", help="generate readable artifacts from ledgers and drafts")
     render.add_argument("project_id")
     render.add_argument("--projects-dir", type=Path, default=Path("projects"))
+    critic = commands.add_parser("critic-pack", help="build a review bundle for an independent critic")
+    critic.add_argument("project_id")
+    critic.add_argument("--out", type=Path, help="output Markdown path (default: <project>/reviews/critic-pack.md)")
+    critic.add_argument("--projects-dir", type=Path, default=Path("projects"))
 
     gate = commands.add_parser("gate", help="approve a workflow stage and advance the project")
     gate_commands = gate.add_subparsers(dest="gate_command", required=True)
@@ -287,6 +292,14 @@ def main() -> None:
                 raise FileNotFoundError(f"Project '{args.project_id}' was not found at {project_dir}")
             for output in render_project(project_dir):
                 print(f"Rendered {output}")
+            return
+
+        if args.command == "critic-pack":
+            project_dir = project_path(args.project_id, args.projects_dir)
+            if not (project_dir / "state.json").is_file():
+                raise FileNotFoundError(f"Project '{args.project_id}' was not found at {project_dir}")
+            output = write_critic_pack(project_dir, args.out)
+            print(f"Created independent review pack: {output}")
             return
 
         if args.command == "gate":
