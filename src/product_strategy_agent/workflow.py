@@ -9,6 +9,26 @@ from typing import Any
 from product_strategy_agent.sources import utc_now
 
 WORK_STAGES = ("intake", "research_plan", "source_collection", "evidence_review", "options", "strategy", "validation")
+MODE_PROFILES = {
+    "quick_scan": {
+        "description": "Быстрая первичная ориентация; выводы остаются предварительными.",
+        "minimum_sources": 1,
+        "source_shortage_exception": False,
+        "guidance": "Сосредоточьтесь на вопросах, которые могут изменить направление; явно перечислите неизвестное.",
+    },
+    "decision_grade": {
+        "description": "Стандартная подготовка решения с основаниями, вариантами и планом проверки.",
+        "minimum_sources": 2,
+        "source_shortage_exception": True,
+        "guidance": "Подкрепите ключевые факты цитатами; сравните три варианта и зафиксируйте условие пересмотра. Стремитесь к двум источникам; при нехватке зафиксируйте открытый пробел высокого приоритета.",
+    },
+    "deep_research": {
+        "description": "Расширенное исследование с сопоставлением нескольких источников и альтернативных объяснений.",
+        "minimum_sources": 4,
+        "source_shortage_exception": True,
+        "guidance": "Ищите не менее четырёх различных источников, проверяйте их независимость, ищите противоречия; при нехватке источников добавьте открытый пробел высокого приоритета.",
+    },
+}
 NEXT_ACTIONS = {
     "intake": "Заполнить 01_brief.md и утвердить бриф",
     "research_plan": "Подготовить 02_research-plan.md и утвердить план исследования",
@@ -38,7 +58,7 @@ def _substantive_text(path: Path) -> bool:
     return len(body) >= 40
 
 
-def _check_stage(project_dir: Path, stage: str) -> None:
+def _check_stage(project_dir: Path, stage: str, mode: str) -> None:
     if stage == "intake":
         required = project_dir / "01_brief.md"
         if not _substantive_text(required):
@@ -47,8 +67,12 @@ def _check_stage(project_dir: Path, stage: str) -> None:
         if not _substantive_text(project_dir / "02_research-plan.md"):
             raise ValueError("Create a substantive 02_research-plan.md before approving research_plan")
     elif stage == "source_collection":
-        if not _load_records(project_dir / "sources.jsonl"):
-            raise ValueError("Add at least one source before approving source_collection")
+        source_count = len(_load_records(project_dir / "sources.jsonl"))
+        profile = MODE_PROFILES[mode]
+        if source_count < profile["minimum_sources"]:
+            high_priority_gaps = [gap for gap in _load_records(project_dir / "gaps.jsonl") if gap.get("status") == "open" and gap.get("priority") == "high"]
+            if not (profile["source_shortage_exception"] and source_count > 0 and high_priority_gaps):
+                raise ValueError(f"Mode '{mode}' requires at least {profile['minimum_sources']} sources before approving source_collection")
     elif stage == "evidence_review":
         if not _load_records(project_dir / "claims.jsonl"):
             raise ValueError("Record at least one claim before approving evidence_review")
@@ -85,7 +109,10 @@ def approve_stage(project_dir: Path, stage: str, approved_by: str, reason: str =
     approved_by = approved_by.strip()
     if not approved_by:
         raise ValueError("Approval requires a person or role in --by")
-    _check_stage(project_dir, stage)
+    mode = state.get("mode", "decision_grade")
+    if not isinstance(mode, str) or mode not in MODE_PROFILES:
+        raise ValueError(f"Unknown project mode: {mode}")
+    _check_stage(project_dir, stage, mode)
 
     sequence = WORK_STAGES.index(stage)
     next_stage = WORK_STAGES[sequence + 1] if sequence + 1 < len(WORK_STAGES) else "completed"
@@ -105,6 +132,48 @@ def approve_stage(project_dir: Path, stage: str, approved_by: str, reason: str =
         "next_stage": next_stage,
     }
     approvals.append(event)
+    state_path.write_text(json.dumps(state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    with (project_dir / "events.jsonl").open("a", encoding="utf-8", newline="\n") as stream:
+        stream.write(json.dumps(event, ensure_ascii=False, sort_keys=True) + "\n")
+    return event
+
+
+def set_project_mode(project_dir: Path, mode: str, changed_by: str, reason: str = "") -> dict[str, Any]:
+    if not isinstance(mode, str) or mode not in MODE_PROFILES:
+        raise ValueError(f"Mode must be one of: {', '.join(MODE_PROFILES)}")
+    changed_by = changed_by.strip()
+    if not changed_by:
+        raise ValueError("Mode change requires a person or role in --by")
+    state_path = project_dir / "state.json"
+    if not state_path.is_file():
+        raise FileNotFoundError(f"Not a project workspace: {project_dir}")
+    state = json.loads(state_path.read_text(encoding="utf-8"))
+    if state.get("status") == "completed":
+        raise ValueError("Cannot change the mode of a completed project")
+    previous = state.get("mode", "decision_grade")
+    if previous == mode:
+        raise ValueError(f"Project already uses mode '{mode}'")
+    if state.get("stages", {}).get("source_collection") == "done":
+        profile = MODE_PROFILES[mode]
+        source_count = len(_load_records(project_dir / "sources.jsonl"))
+        high_priority_gaps = [gap for gap in _load_records(project_dir / "gaps.jsonl") if gap.get("status") == "open" and gap.get("priority") == "high"]
+        shortage_allowed = profile["source_shortage_exception"] and source_count > 0 and high_priority_gaps
+        if source_count < profile["minimum_sources"] and not shortage_allowed:
+            raise ValueError(f"Mode '{mode}' requires at least {profile['minimum_sources']} sources or an open high-priority gap before switching")
+    history = state.setdefault("mode_history", [])
+    event = {
+        "schema_version": 1,
+        "event_id": f"MODE-{len(history) + 1:03d}",
+        "event_type": "mode_changed",
+        "from": previous,
+        "to": mode,
+        "changed_by": changed_by,
+        "changed_at": utc_now(),
+        "reason": reason.strip(),
+    }
+    history.append(event)
+    state["mode"] = mode
+    state["updated_at"] = utc_now()
     state_path.write_text(json.dumps(state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     with (project_dir / "events.jsonl").open("a", encoding="utf-8", newline="\n") as stream:
         stream.write(json.dumps(event, ensure_ascii=False, sort_keys=True) + "\n")

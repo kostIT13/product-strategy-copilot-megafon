@@ -6,6 +6,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from product_strategy_agent.workflow import MODE_PROFILES
+
 
 def _read_records(project_dir: Path, filename: str) -> list[dict[str, Any]]:
     path = project_dir / filename
@@ -33,6 +35,10 @@ def build_critic_pack(project_dir: Path) -> str:
     options = _read_records(project_dir, "options.jsonl")
     decisions = _read_records(project_dir, "decision-log.jsonl")
     latest = decisions[-1] if decisions else None
+    state = json.loads((project_dir / "state.json").read_text(encoding="utf-8"))
+    mode = state.get("mode", "decision_grade")
+    if not isinstance(mode, str) or mode not in MODE_PROFILES:
+        raise ValueError(f"Unknown project mode: {mode}")
 
     lines = [
         "# Независимый пакет критики",
@@ -44,6 +50,8 @@ def build_critic_pack(project_dir: Path) -> str:
         (project_dir / "01_brief.md").read_text(encoding="utf-8").strip() if (project_dir / "01_brief.md").is_file() else "_Бриф отсутствует._",
         "",
         "## Кандидат решения",
+        "",
+        f"Режим анализа: `{mode}` — {MODE_PROFILES[mode]['description']}",
         "",
     ]
     if latest:

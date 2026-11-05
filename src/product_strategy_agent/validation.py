@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from product_strategy_agent.ledger import CLAIM_TYPES, CONFIDENCE_LEVELS
+from product_strategy_agent.workflow import MODE_PROFILES
 
 REGISTRIES = {
     "sources.jsonl": ("source_id", "S"),
@@ -64,6 +65,9 @@ def validate_project(project_dir: Path) -> list[str]:
         return ["state.json: top-level value must be an object"]
     if state.get("schema_version") != 1:
         errors.append("state.json: schema_version must be 1")
+    mode = state.get("mode", "decision_grade")
+    if not isinstance(mode, str) or mode not in MODE_PROFILES:
+        errors.append("state.json: mode must be quick_scan, decision_grade, or deep_research")
     if not isinstance(state.get("status"), str) or state.get("status") not in STAGES:
         errors.append(f"state.json: unknown status {state.get('status')!r}")
     stages = state.get("stages")

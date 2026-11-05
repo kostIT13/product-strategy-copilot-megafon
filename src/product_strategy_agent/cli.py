@@ -16,7 +16,7 @@ from product_strategy_agent.rendering import render_project
 from product_strategy_agent.sources import add_local_source, fetch_web_source
 from product_strategy_agent.validation import validate_project, verify_project
 from product_strategy_agent.usage import add_usage, usage_report
-from product_strategy_agent.workflow import NEXT_ACTIONS, WORK_STAGES, approve_stage
+from product_strategy_agent.workflow import MODE_PROFILES, NEXT_ACTIONS, WORK_STAGES, approve_stage, set_project_mode
 
 STAGES = (
     "intake",
@@ -68,6 +68,8 @@ def init_project(project_id: str, projects_dir: Path) -> Path:
         "created_at": now,
         "updated_at": now,
         "status": "intake",
+        "mode": "decision_grade",
+        "mode_history": [],
         "stages": {stage: ("in_progress" if stage == "intake" else "not_started") for stage in STAGES},
         "next_action": NEXT_ACTIONS["intake"],
         "open_questions": [],
@@ -222,6 +224,18 @@ def build_parser() -> argparse.ArgumentParser:
     approve.add_argument("--by", required=True, help="person or role making the approval")
     approve.add_argument("--reason", default="")
     approve.add_argument("--projects-dir", type=Path, default=Path("projects"))
+
+    mode = commands.add_parser("mode", help="set or show research depth for a project")
+    mode_commands = mode.add_subparsers(dest="mode_command", required=True)
+    mode_show = mode_commands.add_parser("show", help="show the active mode and guidance")
+    mode_show.add_argument("project_id")
+    mode_show.add_argument("--projects-dir", type=Path, default=Path("projects"))
+    mode_set = mode_commands.add_parser("set", help="change the project research mode")
+    mode_set.add_argument("project_id")
+    mode_set.add_argument("mode", choices=tuple(MODE_PROFILES))
+    mode_set.add_argument("--by", required=True)
+    mode_set.add_argument("--reason", default="")
+    mode_set.add_argument("--projects-dir", type=Path, default=Path("projects"))
     return parser
 
 
@@ -345,18 +359,42 @@ def main() -> None:
             print(f"Next action: {NEXT_ACTIONS[event['next_stage']]}")
             return
 
+        if args.command == "mode":
+            project_dir = project_path(args.project_id, args.projects_dir)
+            if args.mode_command == "set":
+                event = set_project_mode(project_dir, args.mode, args.by, args.reason)
+                print(f"Mode changed from {event['from']} to {event['to']} by {event['changed_by']}")
+            else:
+                state = load_state(args.project_id, args.projects_dir)
+                mode_name = state.get("mode", "decision_grade")
+                if not isinstance(mode_name, str) or mode_name not in MODE_PROFILES:
+                    raise ValueError(f"Unknown project mode: {mode_name}")
+                profile = MODE_PROFILES[mode_name]
+                print(f"Mode: {mode_name}\nPurpose: {profile['description']}\nGuidance: {profile['guidance']}")
+            return
+
         state = load_state(args.project_id, args.projects_dir)
         stage = state["status"]
         if args.command == "status":
-            print(f"Project: {args.project_id}\nStage: {stage}\nNext action: {state['next_action']}")
+            mode_name = state.get("mode", "decision_grade")
+            if not isinstance(mode_name, str) or mode_name not in MODE_PROFILES:
+                raise ValueError(f"Unknown project mode: {mode_name}")
+            print(f"Project: {args.project_id}\nStage: {stage}\nMode: {mode_name}\nNext action: {state['next_action']}")
             if state["open_questions"]:
                 print("Open questions:")
                 for question in state["open_questions"]:
                     print(f"- {question}")
         elif args.command == "next":
-            print(f"Stage: {stage}\nNext action: {state['next_action']}")
+            mode_name = state.get("mode", "decision_grade")
+            if not isinstance(mode_name, str) or mode_name not in MODE_PROFILES:
+                raise ValueError(f"Unknown project mode: {mode_name}")
+            print(f"Stage: {stage}\nMode guidance: {MODE_PROFILES[mode_name]['guidance']}\nNext action: {state['next_action']}")
         else:
             print(f"Resuming '{args.project_id}' at stage '{stage}'.")
+            mode_name = state.get("mode", "decision_grade")
+            if not isinstance(mode_name, str) or mode_name not in MODE_PROFILES:
+                raise ValueError(f"Unknown project mode: {mode_name}")
+            print(f"Mode: {mode_name}")
             print(f"Next action: {state['next_action']}")
             print(f"Brief: {project_path(args.project_id, args.projects_dir) / '01_brief.md'}")
             approvals = state.get("approvals", [])

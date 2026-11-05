@@ -29,6 +29,7 @@ def _bullets(values: list[str]) -> str:
 
 
 def render_project(project_dir: Path) -> list[Path]:
+    state = json.loads((project_dir / "state.json").read_text(encoding="utf-8"))
     sources = _records(project_dir, "sources.jsonl")
     claims = _records(project_dir, "claims.jsonl")
     gaps = _records(project_dir, "gaps.jsonl")
@@ -37,7 +38,7 @@ def render_project(project_dir: Path) -> list[Path]:
     source_map = {item.get("source_id"): item for item in sources}
     outputs: list[Path] = []
 
-    evidence = ["# Реестр доказательств", "", "## Источники", ""]
+    evidence = ["# Реестр доказательств", "", f"Режим исследования: `{state.get('mode', 'decision_grade')}`", "", "## Источники", ""]
     if sources:
         for item in sources:
             evidence.extend([f"### {item.get('source_id', 'S-?')} — {item.get('title', 'Без названия')}",

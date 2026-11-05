@@ -13,7 +13,7 @@ from product_strategy_agent.ledger import add_claim, add_decision, add_gap, add_
 from product_strategy_agent.rendering import render_project
 from product_strategy_agent.sources import add_local_source, fetch_web_source
 from product_strategy_agent.validation import validate_project, verify_project
-from product_strategy_agent.workflow import approve_stage
+from product_strategy_agent.workflow import MODE_PROFILES, approve_stage, set_project_mode
 from product_strategy_agent.usage import add_usage, usage_report
 
 
@@ -48,14 +48,28 @@ def create_server() -> Any:
     def psa_status(project_id: str, projects_dir: str = "projects") -> dict[str, Any]:
         """Read the current workflow stage, next action, and pending questions."""
         state = load_state(project_id, Path(projects_dir))
-        return {"project_id": project_id, "status": state["status"], "next_action": state["next_action"],
+        mode = state.get("mode", "decision_grade")
+        if not isinstance(mode, str) or mode not in MODE_PROFILES:
+            raise ValueError(f"Unknown project mode: {mode}")
+        return {"project_id": project_id, "status": state["status"], "mode": mode,
+                "mode_guidance": MODE_PROFILES[mode]["guidance"], "next_action": state["next_action"],
                 "open_questions": state.get("open_questions", []), "approvals": state.get("approvals", [])}
 
     @server.tool()
     def psa_next(project_id: str, projects_dir: str = "projects") -> dict[str, str]:
         """Read the next action for the project's saved stage."""
         state = load_state(project_id, Path(projects_dir))
-        return {"stage": state["status"], "next_action": state["next_action"]}
+        mode = state.get("mode", "decision_grade")
+        if not isinstance(mode, str) or mode not in MODE_PROFILES:
+            raise ValueError(f"Unknown project mode: {mode}")
+        return {"stage": state["status"], "mode": mode, "guidance": MODE_PROFILES[mode]["guidance"],
+                "next_action": state["next_action"]}
+
+    @server.tool()
+    def psa_mode_set(project_id: str, mode: str, changed_by: str, reason: str = "",
+                     projects_dir: str = "projects") -> dict[str, Any]:
+        """Set the research depth; this does not change tools or access permissions."""
+        return set_project_mode(workspace(project_id, projects_dir), mode, changed_by, reason)
 
     @server.tool()
     def psa_add_source(project_id: str, file_path: str, title: str = "", projects_dir: str = "projects") -> dict[str, Any]:
