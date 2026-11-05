@@ -15,6 +15,8 @@ The equivalent module command is `python -m product_strategy_agent.mcp_server`. 
 
 The repository tracks only the SDK major line (`mcp>=2,<3`). The official SDK v2 renamed its server class from `FastMCP` to `MCPServer`; this adapter uses the v2 import and keeps the same decorator-based tool style. See the [official Python SDK](https://github.com/modelcontextprotocol/python-sdk) and its [v2 migration guide](https://github.com/modelcontextprotocol/python-sdk/blob/main/docs/migration.md).
 
+This describes the current MVP implementation. The full-project plan selects the separate [FastMCP framework](https://gofastmcp.com/) (planned `fastmcp>=4,<5`) as its MCP-server framework; migration and host parity checks are tracked in M8.
+
 ## Host configuration
 
 For hosts that accept the common `mcpServers` JSON shape, configure a local process:
