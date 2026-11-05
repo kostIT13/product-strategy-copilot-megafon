@@ -14,3 +14,6 @@ projects/*/sources/
 
 # Keep the reproducible synthetic demo corpus
 !projects/demo/sources/
+
+# Reproducible extracted text for the synthetic CSV case
+!projects/table-demo/sources/
