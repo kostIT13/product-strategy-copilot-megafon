@@ -10,8 +10,12 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = []
 
+[project.optional-dependencies]
+mcp = ["mcp>=2,<3"]
+
 [project.scripts]
 psa = "product_strategy_agent.cli:main"
+psa-mcp = "product_strategy_agent.mcp_server:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
