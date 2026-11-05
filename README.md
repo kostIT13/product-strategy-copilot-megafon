@@ -119,3 +119,4 @@ MCP integration is optional. Install with `python -m pip install -e ".[mcp]"`, l
 - [Runbook пересмотра изменённого источника](docs/demo-runbook.md).
 - [Приёмка FastMCP-хостов и CLI/MCP parity](docs/mcp-host-acceptance.md).
 - [Нейтральный A/B-пакет для независимой оценки](evals/demo/blind-review/reviewer-brief.md); ключ владельца не передавать рецензенту.
+- [Шаблон записи равноусловного запуска M6](evals/demo/blind-review/run-record-template.md).
