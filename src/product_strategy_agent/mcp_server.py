@@ -19,11 +19,11 @@ from product_strategy_agent.usage import add_usage, usage_report
 
 def create_server() -> Any:
     try:
-        from mcp.server.mcpserver import MCPServer
+        from fastmcp import FastMCP
     except ImportError as error:
         raise RuntimeError('MCP support is optional. Install it with: python -m pip install -e ".[mcp]"') from error
 
-    server = MCPServer(
+    server = FastMCP(
         "product-strategy-agent",
         version=__version__,
         instructions=(
@@ -181,7 +181,7 @@ def create_server() -> Any:
 
 
 def main() -> None:
-    create_server().run()
+    create_server().run(transport="stdio")
 
 
 if __name__ == "__main__":
