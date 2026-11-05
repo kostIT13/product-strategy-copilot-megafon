@@ -96,3 +96,7 @@ psa critic-pack demo
 Методика и текущая предварительная оценка находятся в [docs/evaluation](docs/evaluation/README.md) и [evals/demo](evals/demo/comparison.md). Самооценка неслепая и не заменяет независимого рецензента.
 
 Для первого запуска нужны Python 3.11+ и `python -m pip install -e .`. CLI не требует Docker, базы данных или внешнего API для локального процесса; `source fetch` — отдельная команда для явного сетевого импорта. Runtime-пакет использует только стандартную библиотеку Python.
+
+### MCP adapter
+
+MCP integration is optional. Install with `python -m pip install -e ".[mcp]"`, launch `psa-mcp` as a local stdio process, and configure that command in the target host. See [docs/mcp.md](docs/mcp.md) for available tools, host configuration, and the SDK v2 API choice.
