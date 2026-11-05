@@ -83,9 +83,10 @@ def validate_project(project_dir: Path) -> list[str]:
         loaded[filename] = records
         if id_field:
             seen: set[str] = set()
+            id_pattern = rf"{prefix}-[A-F0-9]{{12}}" if prefix == "S" else rf"{prefix}-\d+"
             for line_number, record in enumerate(records, 1):
                 record_id = record.get(id_field)
-                if not isinstance(record_id, str) or not re.fullmatch(rf"{prefix}-\d+", record_id):
+                if not isinstance(record_id, str) or not re.fullmatch(id_pattern, record_id):
                     errors.append(f"{filename}:{line_number}: invalid {id_field}")
                 else:
                     if record_id in seen:

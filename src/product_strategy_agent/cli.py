@@ -14,6 +14,7 @@ from product_strategy_agent.ledger import add_claim, add_decision, add_gap, add_
 from product_strategy_agent.rendering import render_project
 from product_strategy_agent.sources import add_local_source, fetch_web_source
 from product_strategy_agent.validation import validate_project, verify_project
+from product_strategy_agent.workflow import NEXT_ACTIONS, WORK_STAGES, approve_stage
 
 STAGES = (
     "intake",
@@ -66,7 +67,7 @@ def init_project(project_id: str, projects_dir: Path) -> Path:
         "updated_at": now,
         "status": "intake",
         "stages": {stage: ("in_progress" if stage == "intake" else "not_started") for stage in STAGES},
-        "next_action": "Заполнить бриф в 01_brief.md",
+        "next_action": NEXT_ACTIONS["intake"],
         "open_questions": [],
     }
     (path / "state.json").write_text(json.dumps(state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -79,7 +80,14 @@ def init_project(project_id: str, projects_dir: Path) -> Path:
         "## Доступные материалы\n",
         encoding="utf-8",
     )
-    for name in ("sources.jsonl", "claims.jsonl", "gaps.jsonl", "options.jsonl", "decision-log.jsonl", "usage.jsonl"):
+    (path / "02_research-plan.md").write_text(
+        "# План исследования\n\n"
+        "## Вопросы исследования\n\n"
+        "## Методы и источники\n\n"
+        "## Критерии достаточности\n",
+        encoding="utf-8",
+    )
+    for name in ("sources.jsonl", "claims.jsonl", "gaps.jsonl", "options.jsonl", "decision-log.jsonl", "usage.jsonl", "events.jsonl"):
         (path / name).write_text("", encoding="utf-8")
     (path / "sources").mkdir(exist_ok=True)
     return path
@@ -176,6 +184,15 @@ def build_parser() -> argparse.ArgumentParser:
     render = commands.add_parser("render", help="generate readable artifacts from ledgers and drafts")
     render.add_argument("project_id")
     render.add_argument("--projects-dir", type=Path, default=Path("projects"))
+
+    gate = commands.add_parser("gate", help="approve a workflow stage and advance the project")
+    gate_commands = gate.add_subparsers(dest="gate_command", required=True)
+    approve = gate_commands.add_parser("approve", help="approve the current stage")
+    approve.add_argument("project_id")
+    approve.add_argument("--stage", choices=(*WORK_STAGES,), required=True)
+    approve.add_argument("--by", required=True, help="person or role making the approval")
+    approve.add_argument("--reason", default="")
+    approve.add_argument("--projects-dir", type=Path, default=Path("projects"))
     return parser
 
 
@@ -272,6 +289,13 @@ def main() -> None:
                 print(f"Rendered {output}")
             return
 
+        if args.command == "gate":
+            project_dir = project_path(args.project_id, args.projects_dir)
+            event = approve_stage(project_dir, args.stage, args.by, args.reason)
+            print(f"Approved {event['stage']} by {event['approved_by']}; next stage: {event['next_stage']}")
+            print(f"Next action: {NEXT_ACTIONS[event['next_stage']]}")
+            return
+
         state = load_state(args.project_id, args.projects_dir)
         stage = state["status"]
         if args.command == "status":
@@ -286,6 +310,10 @@ def main() -> None:
             print(f"Resuming '{args.project_id}' at stage '{stage}'.")
             print(f"Next action: {state['next_action']}")
             print(f"Brief: {project_path(args.project_id, args.projects_dir) / '01_brief.md'}")
+            approvals = state.get("approvals", [])
+            if approvals:
+                latest = approvals[-1]
+                print(f"Last approved: {latest['stage']} by {latest['approved_by']} at {latest['approved_at']}")
     except (FileExistsError, FileNotFoundError, ValueError, OSError, json.JSONDecodeError) as error:
         raise SystemExit(f"psa: error: {error}") from error
 

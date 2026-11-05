@@ -117,7 +117,8 @@ def _store(project_dir: Path, uri: str, kind: str, data: bytes, content_type: st
     source_id = "S-" + sha256(uri.encode("utf-8"))[:12].upper()
     extracted_path = Path("sources") / f"{source_id}.txt"
     saved_text = text + "\n"
-    (project_dir / extracted_path).write_text(saved_text, encoding="utf-8")
+    extracted_bytes = saved_text.encode("utf-8")
+    (project_dir / extracted_path).write_bytes(extracted_bytes)
     record = {
         "schema_version": 1,
         "source_id": source_id,
@@ -131,7 +132,7 @@ def _store(project_dir: Path, uri: str, kind: str, data: bytes, content_type: st
         "reliability": "unassessed",
         "limitations": [],
         "status": "extracted",
-        "content_hash": sha256(saved_text.encode("utf-8")),
+        "content_hash": sha256(extracted_bytes),
         "extracted_text_path": extracted_path.as_posix(),
     }
     _append_or_replace(_registry(project_dir), record)
@@ -148,7 +149,11 @@ def add_local_source(project_dir: Path, source_path: Path, title: str | None = N
         raise ValueError("Source file exceeds the 10 MiB limit")
     data = source_path.read_bytes()
     publisher = source_path.parent.name or None
-    return _store(project_dir, str(source_path), "local_text", data, "text/html" if source_path.suffix.lower() in {".html", ".htm"} else "text/plain", source_path.suffix, title, publisher)
+    try:
+        uri = source_path.relative_to(project_dir.resolve()).as_posix()
+    except ValueError:
+        uri = str(source_path)
+    return _store(project_dir, uri, "local_text", data, "text/html" if source_path.suffix.lower() in {".html", ".htm"} else "text/plain", source_path.suffix, title, publisher)
 
 
 def fetch_web_source(project_dir: Path, url: str, title: str | None = None) -> dict[str, Any]:
