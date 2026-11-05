@@ -17,3 +17,6 @@ projects/*/sources/
 
 # Reproducible extracted text for the synthetic CSV case
 !projects/table-demo/sources/
+
+# Reproducible synthetic source revision demo
+!projects/revisit-demo-20261106/sources/

@@ -1,0 +1,4 @@
+metric,value
+renewed,10
+eligible,20
+other,1

@@ -22,8 +22,10 @@ python -m product_strategy_agent.cli source add $projectId $demoInput --title 'S
 ```powershell
 $sourceId = 'S-ID-ИЗ-ВЫВОДА-КОМАНДЫ'
 python -m product_strategy_agent.cli claim add $projectId --text 'В источнике указано renewed=10.' --type fact --source $sourceId --locator line:2 --quote 'renewed,10' --confidence medium --reasoning-note 'Учебная строка CSV.'
-python -m product_strategy_agent.cli option add $projectId --name 'Сохранить гипотезу' --role status_quo --description 'Оставить предварительную гипотезу до анализа.' --claim C-001
-python -m product_strategy_agent.cli decision add $projectId --option 'Сохранить гипотезу' --option-id O-001 --owner 'Демо-владелец' --rationale 'Значение рассматривается как предварительное.' --claim C-001 --revisit-when 'После пересмотра изменённого источника'
+python -m product_strategy_agent.cli option add $projectId --name Keep --role status_quo --description 'Keep the current action after review.' --claim C-001
+python -m product_strategy_agent.cli option add $projectId --name Stop --role stop --description 'Stop if evidence no longer supports the action.' --claim C-001
+python -m product_strategy_agent.cli option add $projectId --name Test --role change --description 'Run a limited controlled test after review.' --claim C-001
+python -m product_strategy_agent.cli decision add $projectId --option Keep --option-id O-001 --owner demo-owner --rationale 'The source claim remains supported.' --claim C-001 --revisit-when 'After reviewing the changed source'
 ```
 
 ## Изменить тот же источник и проверить зависимости
