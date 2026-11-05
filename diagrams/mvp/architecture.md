@@ -5,7 +5,7 @@ flowchart LR
     U[Пользователь / рабочая среда агента]
     CLI[CLI psa]
     HOST[MCP host]
-    MCP[MCPServer из официального Python SDK v2<br/>stdio, optional]
+    MCP[FastMCP 4.x<br/>stdio, optional]
 
     subgraph CORE[Общее Python-ядро]
         WF[workflow.py<br/>этапы, approvals, режимы]

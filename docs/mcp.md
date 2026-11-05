@@ -13,9 +13,7 @@ psa-mcp
 
 The equivalent module command is `python -m product_strategy_agent.mcp_server`. The server uses stdio and waits for an MCP host; it does not print a startup banner to stdout. Logs belong on stderr so they cannot corrupt the protocol stream.
 
-The repository tracks only the SDK major line (`mcp>=2,<3`). The official SDK v2 renamed its server class from `FastMCP` to `MCPServer`; this adapter uses the v2 import and keeps the same decorator-based tool style. See the [official Python SDK](https://github.com/modelcontextprotocol/python-sdk) and its [v2 migration guide](https://github.com/modelcontextprotocol/python-sdk/blob/main/docs/migration.md).
-
-This describes the current MVP implementation. The full-project plan selects the separate [FastMCP framework](https://gofastmcp.com/) (planned `fastmcp>=4,<5`) as its MCP-server framework; migration and host parity checks are tracked in M8.
+The optional dependency installs the standalone [FastMCP framework](https://gofastmcp.com/) from the `fastmcp>=4,<5` major line. The adapter creates a `FastMCP` server and runs it explicitly over stdio. The CLI and Python core remain usable without FastMCP.
 
 ## Host configuration
 
@@ -48,4 +46,4 @@ Use the Python executable from the environment where `product-strategy-agent[mcp
 
 ## Current limits
 
-MCP is optional and the core CLI has no MCP dependency. The adapter is stdio-only; it does not start an HTTP service. The SDK is versioned by major line rather than a lock file because the default setup remains dependency-free. Host compatibility still needs a live connection check in each target IDE before relying on that host for a demo.
+MCP is optional and the core CLI has no MCP dependency. The adapter is stdio-only; it does not start an HTTP service. FastMCP is constrained to major version 4; the default setup remains dependency-free. Host compatibility still needs a live connection check in each target IDE before relying on that host for a demo.

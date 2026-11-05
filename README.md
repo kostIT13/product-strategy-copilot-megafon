@@ -99,7 +99,7 @@ psa critic-pack demo
 
 ### MCP adapter
 
-MCP integration is optional. Install with `python -m pip install -e ".[mcp]"`, launch `psa-mcp` as a local stdio process, and configure that command in the target host. See [docs/mcp.md](docs/mcp.md) for available tools, host configuration, and the SDK v2 API choice.
+MCP integration is optional. Install with `python -m pip install -e ".[mcp]"`, launch `psa-mcp` as a local stdio process, and configure that command in the target host. The adapter uses the standalone FastMCP 4.x framework. See [docs/mcp.md](docs/mcp.md) for available tools and host configuration.
 
 ### Учёт использования
 

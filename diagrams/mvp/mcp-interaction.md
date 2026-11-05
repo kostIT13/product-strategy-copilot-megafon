@@ -4,7 +4,7 @@
 sequenceDiagram
     actor User as Пользователь
     participant Host as MCP host / агент
-    participant Server as MCPServer (SDK v2)
+    participant Server as FastMCP 4.x
     participant Core as Общая функция Python-ядра
     participant Files as Файлы выбранного проекта
 
