@@ -15,6 +15,7 @@ flowchart LR
         RND[rendering.py<br/>генерация Markdown]
         CRIT[critic.py<br/>пакет независимой критики]
         USE[usage.py<br/>учёт использования]
+        REV[revisit.py<br/>зависимости и аудит пересмотра]
     end
 
     FS[(Каталог проекта<br/>state.json, JSONL, источники,<br/>черновики и артефакты)]
@@ -30,6 +31,7 @@ flowchart LR
     MCP --> RND
     MCP --> CRIT
     MCP --> USE
+    MCP --> REV
     CLI --> WF
     CLI --> SRC
     CLI --> LED
@@ -37,6 +39,7 @@ flowchart LR
     CLI --> RND
     CLI --> CRIT
     CLI --> USE
+    CLI --> REV
     WF <--> FS
     SRC <--> FS
     LED <--> FS
@@ -44,6 +47,7 @@ flowchart LR
     RND --> FS
     CRIT --> FS
     USE <--> FS
+    REV <--> FS
     SRC -. explicit HTTP request .-> NET
     U -. separate agent invocation, not implemented by package .-> MODEL
 ```

@@ -101,6 +101,11 @@ psa critic-pack demo
 
 MCP integration is optional. Install with `python -m pip install -e ".[mcp]"`, launch `psa-mcp` as a local stdio process, and configure that command in the target host. The adapter uses the standalone FastMCP 4.x framework. See [docs/mcp.md](docs/mcp.md) for available tools and host configuration.
 
+### Пересмотр после изменения источника
+
+Повторный импорт того же источника с новым содержимым сохраняет старую локальную версию и добавляет событие в `events.jsonl`. Команда `psa revisit list <id>` показывает claims и решения, которые нужно проверить; после рассмотрения всех зависимостей можно записать аудит через `psa revisit resolve`.
+Подробный порядок и формат аудита описаны в [docs/revisit.md](docs/revisit.md).
+
 ### Учёт использования
 
 Добавляйте usage от провайдера без содержимого запросов и сводите его через `psa usage add` / `psa usage report`. Неизвестные данные остаются неизвестными, оценочная и измеренная стоимость показываются отдельно. Подробности: [docs/usage.md](docs/usage.md).
