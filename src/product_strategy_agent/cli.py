@@ -15,6 +15,7 @@ from product_strategy_agent.ledger import add_claim, add_decision, add_gap, add_
 from product_strategy_agent.rendering import render_project
 from product_strategy_agent.sources import add_local_source, fetch_web_source
 from product_strategy_agent.validation import validate_project, verify_project
+from product_strategy_agent.usage import add_usage, usage_report
 from product_strategy_agent.workflow import NEXT_ACTIONS, WORK_STAGES, approve_stage
 
 STAGES = (
@@ -190,6 +191,29 @@ def build_parser() -> argparse.ArgumentParser:
     critic.add_argument("--out", type=Path, help="output Markdown path (default: <project>/reviews/critic-pack.md)")
     critic.add_argument("--projects-dir", type=Path, default=Path("projects"))
 
+    usage = commands.add_parser("usage", help="record and summarize provider usage")
+    usage_commands = usage.add_subparsers(dest="usage_command", required=True)
+    usage_add = usage_commands.add_parser("add", help="append a usage event")
+    usage_add.add_argument("project_id")
+    usage_add.add_argument("--provider", required=True)
+    usage_add.add_argument("--model", required=True)
+    usage_add.add_argument("--operation", required=True)
+    usage_add.add_argument("--stage", required=True, choices=(*WORK_STAGES,))
+    usage_add.add_argument("--input-tokens", type=int)
+    usage_add.add_argument("--output-tokens", type=int)
+    usage_add.add_argument("--duration-ms", type=int)
+    usage_add.add_argument("--retry-count", type=int, default=0)
+    usage_add.add_argument("--cost-amount")
+    usage_add.add_argument("--currency", default="RUB")
+    usage_add.add_argument("--cost-certainty", choices=("measured", "estimated", "unknown"), default="unknown")
+    usage_add.add_argument("--pricing-as-of")
+    usage_add.add_argument("--cost-note", default="")
+    usage_add.add_argument("--operation-id")
+    usage_add.add_argument("--projects-dir", type=Path, default=Path("projects"))
+    usage_report_parser = usage_commands.add_parser("report", help="aggregate recorded usage without mixing estimates and measured costs")
+    usage_report_parser.add_argument("project_id")
+    usage_report_parser.add_argument("--projects-dir", type=Path, default=Path("projects"))
+
     gate = commands.add_parser("gate", help="approve a workflow stage and advance the project")
     gate_commands = gate.add_subparsers(dest="gate_command", required=True)
     approve = gate_commands.add_parser("approve", help="approve the current stage")
@@ -300,6 +324,18 @@ def main() -> None:
                 raise FileNotFoundError(f"Project '{args.project_id}' was not found at {project_dir}")
             output = write_critic_pack(project_dir, args.out)
             print(f"Created independent review pack: {output}")
+            return
+
+        if args.command == "usage":
+            project_dir = project_path(args.project_id, args.projects_dir)
+            if args.usage_command == "add":
+                record = add_usage(project_dir, args.provider, args.model, args.operation, args.stage,
+                                   args.input_tokens, args.output_tokens, args.duration_ms, args.retry_count,
+                                   args.cost_amount, args.currency, args.cost_certainty, args.pricing_as_of,
+                                   args.cost_note, args.operation_id)
+                print(f"Recorded {record['event_id']} ({record['operation_id']})")
+            else:
+                print(json.dumps(usage_report(project_dir), ensure_ascii=False, indent=2))
             return
 
         if args.command == "gate":

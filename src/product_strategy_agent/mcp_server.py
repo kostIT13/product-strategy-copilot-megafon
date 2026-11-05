@@ -14,6 +14,7 @@ from product_strategy_agent.rendering import render_project
 from product_strategy_agent.sources import add_local_source, fetch_web_source
 from product_strategy_agent.validation import validate_project, verify_project
 from product_strategy_agent.workflow import approve_stage
+from product_strategy_agent.usage import add_usage, usage_report
 
 
 def create_server() -> Any:
@@ -144,6 +145,23 @@ def create_server() -> Any:
         """Build a review bundle for a critic in an independent context."""
         output = write_critic_pack(workspace(project_id, projects_dir), Path(output_path) if output_path else None)
         return {"path": str(output)}
+
+    @server.tool()
+    def psa_usage_add(project_id: str, provider: str, model: str, operation: str, stage: str,
+                      input_tokens: int | None = None, output_tokens: int | None = None,
+                      duration_ms: int | None = None, cost_amount: str = "", currency: str = "RUB",
+                      retry_count: int = 0, cost_certainty: str = "unknown", pricing_as_of: str = "", cost_note: str = "",
+                      projects_dir: str = "projects") -> dict[str, Any]:
+        """Append usage without logging request text; unknown values stay unknown."""
+        return add_usage(workspace(project_id, projects_dir), provider, model, operation, stage,
+                         input_tokens, output_tokens, duration_ms, retry_count, cost_amount=cost_amount or None,
+                         currency=currency, cost_certainty=cost_certainty,
+                         pricing_as_of=pricing_as_of or None, cost_note=cost_note)
+
+    @server.tool()
+    def psa_usage_report(project_id: str, projects_dir: str = "projects") -> dict[str, Any]:
+        """Summarize tokens, durations, and measured/estimated costs separately."""
+        return usage_report(workspace(project_id, projects_dir))
 
     return server
 

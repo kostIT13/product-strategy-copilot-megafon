@@ -154,6 +154,40 @@ def validate_project(project_dir: Path) -> list[str]:
             errors.append(f"sources.jsonl:{line_number}: extracted_text_path is required")
         elif _safe_extracted_path(project_dir, raw_path) is None:
             errors.append(f"sources.jsonl:{line_number}: extracted_text_path must stay inside sources/")
+
+    usage_ids: set[str] = set()
+    for line_number, event in enumerate(loaded["usage.jsonl"], 1):
+        if event.get("schema_version") != 1:
+            errors.append(f"usage.jsonl:{line_number}: schema_version must be 1")
+        event_id = event.get("event_id")
+        if not isinstance(event_id, str) or not re.fullmatch(r"USE-\d+", event_id):
+            errors.append(f"usage.jsonl:{line_number}: invalid event_id")
+        elif event_id in usage_ids:
+            errors.append(f"usage.jsonl:{line_number}: duplicate event_id {event_id}")
+        else:
+            usage_ids.add(event_id)
+        for field in ("provider", "model", "operation"):
+            if not isinstance(event.get(field), str) or not event[field].strip():
+                errors.append(f"usage.jsonl:{line_number}: {field} is required")
+        if not isinstance(event.get("stage"), str) or event.get("stage") not in STAGES - {"blocked", "completed"}:
+            errors.append(f"usage.jsonl:{line_number}: invalid stage")
+        cost = event.get("cost")
+        if not isinstance(cost, dict) or cost.get("certainty") not in {"measured", "estimated", "unknown"}:
+            errors.append(f"usage.jsonl:{line_number}: invalid cost object/certainty")
+        elif cost.get("certainty") == "unknown" and cost.get("amount") is not None:
+            errors.append(f"usage.jsonl:{line_number}: unknown cost certainty cannot have an amount")
+        elif cost.get("certainty") != "unknown" and not isinstance(cost.get("amount"), str):
+            errors.append(f"usage.jsonl:{line_number}: measured/estimated cost needs a decimal string amount")
+        elif cost.get("certainty") != "unknown" and not re.fullmatch(r"\d+(?:\.\d+)?", cost["amount"]):
+            errors.append(f"usage.jsonl:{line_number}: cost amount must be a non-negative decimal string")
+        if isinstance(cost, dict) and (not isinstance(cost.get("currency"), str) or not re.fullmatch(r"[A-Z]{3}", cost["currency"])):
+            errors.append(f"usage.jsonl:{line_number}: currency must be a three-letter uppercase code")
+        for field in ("input_tokens", "output_tokens", "duration_ms", "retry_count"):
+            value = event.get(field)
+            if value is not None and (type(value) is not int or value < 0):
+                errors.append(f"usage.jsonl:{line_number}: {field} must be a non-negative integer or null")
+        if event.get("request_content_logged") is not False:
+            errors.append(f"usage.jsonl:{line_number}: request_content_logged must be false")
     return errors
 
 
