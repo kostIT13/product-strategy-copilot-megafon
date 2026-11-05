@@ -11,6 +11,7 @@ from product_strategy_agent.sources import utc_now
 
 CLAIM_TYPES = {"fact", "interpretation", "hypothesis", "forecast", "synthetic"}
 CONFIDENCE_LEVELS = {"low", "medium", "high", "unknown"}
+OPTION_ROLES = {"status_quo", "stop", "change"}
 
 
 def _records(path: Path) -> list[dict[str, Any]]:
@@ -27,7 +28,8 @@ def _records(path: Path) -> list[dict[str, Any]]:
 
 
 def _next_id(records: list[dict[str, Any]], prefix: str) -> str:
-    numbers = [int(match.group(1)) for record in records if (match := re.fullmatch(rf"{prefix}-(\d+)", str(record.get("id", record.get("claim_id", record.get("gap_id", record.get("decision_id", "")))))))]
+    id_fields = ("id", "claim_id", "gap_id", "decision_id", "option_id")
+    numbers = [int(match.group(1)) for record in records if (match := re.fullmatch(rf"{prefix}-(\d+)", next((str(record[field]) for field in id_fields if field in record), "")))]
     return f"{prefix}-{max(numbers, default=0) + 1:03d}"
 
 
@@ -43,7 +45,6 @@ def add_claim(
     source_ids: list[str] | None = None,
     source_locators: list[str] | None = None,
     quotes: list[str] | None = None,
-    quotes: list[str] | None = None,
     confidence: str = "unknown",
     reasoning_note: str = "",
     contradicts: list[str] | None = None,
@@ -53,7 +54,6 @@ def add_claim(
     text = text.strip()
     source_ids = source_ids or []
     source_locators = source_locators or []
-    quotes = quotes or []
     quotes = quotes or []
     contradicts = contradicts or []
     if not text:
@@ -70,10 +70,8 @@ def add_claim(
         raise ValueError("Each factual source must have an exact matching --quote")
     if quotes and len(source_ids) != len(quotes):
         raise ValueError("Each --quote must have a matching --source in the same order")
-    if claim_type == "fact" and len(source_ids) != len(quotes):
-        raise ValueError("Each factual source must have an exact matching --quote")
-    if quotes and len(source_ids) != len(quotes):
-        raise ValueError("Each --quote must have a matching --source in the same order")
+    if any(len(quote.strip()) > 500 for quote in quotes):
+        raise ValueError("Each quote is limited to 500 characters; cite only the needed excerpt")
 
     source_records = _records(project_dir / "sources.jsonl")
     known_sources = {record.get("source_id") for record in source_records}
@@ -98,7 +96,6 @@ def add_claim(
         "source_ids": source_ids,
         "source_locators": source_locators,
         "quotes": [quote.strip() for quote in quotes],
-        "quotes": [quote.strip() for quote in quotes],
         "confidence": confidence,
         "reasoning_note": reasoning_note.strip(),
         "contradicts": contradicts,
@@ -106,6 +103,50 @@ def add_claim(
         "status": "active",
         "created_at": utc_now(),
         "supersedes": supersedes,
+    }
+    _append(path, record)
+    return record
+
+
+def add_option(
+    project_dir: Path,
+    name: str,
+    role: str,
+    description: str,
+    benefits: str = "",
+    costs: str = "",
+    risks: str = "",
+    strongest_objection: str = "",
+    assumptions: list[str] | None = None,
+    claim_ids: list[str] | None = None,
+) -> dict[str, Any]:
+    name = name.strip()
+    description = description.strip()
+    if not name or not description:
+        raise ValueError("Option requires both --name and --description")
+    if role not in OPTION_ROLES:
+        raise ValueError(f"Role must be one of: {', '.join(sorted(OPTION_ROLES))}")
+    claim_ids = claim_ids or []
+    known_claims = {record.get("claim_id") for record in _records(project_dir / "claims.jsonl")}
+    unknown = set(claim_ids) - known_claims
+    if unknown:
+        raise ValueError(f"Unknown claim id(s): {', '.join(sorted(unknown))}")
+    path = project_dir / "options.jsonl"
+    records = _records(path)
+    record = {
+        "schema_version": 1,
+        "option_id": _next_id(records, "O"),
+        "name": name,
+        "role": role,
+        "description": description,
+        "benefits": benefits.strip(),
+        "costs": costs.strip(),
+        "risks": risks.strip(),
+        "strongest_objection": strongest_objection.strip(),
+        "assumptions": assumptions or [],
+        "claim_ids": claim_ids,
+        "created_at": utc_now(),
+        "status": "active",
     }
     _append(path, record)
     return record
@@ -143,6 +184,7 @@ def add_decision(
     assumptions: list[str] | None = None,
     risks: list[str] | None = None,
     revisit_when: str = "",
+    option_id: str | None = None,
 ) -> dict[str, Any]:
     chosen_option = chosen_option.strip()
     owner = owner.strip()
@@ -154,12 +196,17 @@ def add_decision(
     unknown = set(claim_ids) - known_claims
     if unknown:
         raise ValueError(f"Unknown claim id(s): {', '.join(sorted(unknown))}")
+    options = _records(project_dir / "options.jsonl")
+    known_options = {record.get("option_id") for record in options}
+    if option_id and option_id not in known_options:
+        raise ValueError(f"Unknown option id: {option_id}")
     path = project_dir / "decision-log.jsonl"
     records = _records(path)
     record = {
         "schema_version": 1,
         "decision_id": _next_id(records, "D"),
         "chosen_option": chosen_option,
+        "option_id": option_id,
         "owner": owner,
         "decided_at": utc_now(),
         "rationale": rationale.strip(),

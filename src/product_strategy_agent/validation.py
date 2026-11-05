@@ -14,6 +14,7 @@ REGISTRIES = {
     "sources.jsonl": ("source_id", "S"),
     "claims.jsonl": ("claim_id", "C"),
     "gaps.jsonl": ("gap_id", "G"),
+    "options.jsonl": ("option_id", "O"),
     "decision-log.jsonl": ("decision_id", "D"),
     "usage.jsonl": (None, None),
 }
@@ -95,6 +96,7 @@ def validate_project(project_dir: Path) -> list[str]:
 
     sources = {record["source_id"]: record for record in loaded["sources.jsonl"] if isinstance(record.get("source_id"), str)}
     claims = {record["claim_id"]: record for record in loaded["claims.jsonl"] if isinstance(record.get("claim_id"), str)}
+    options = {record["option_id"]: record for record in loaded["options.jsonl"] if isinstance(record.get("option_id"), str)}
     for line_number, claim in enumerate(loaded["claims.jsonl"], 1):
         if not isinstance(claim.get("text"), str) or not claim["text"].strip():
             errors.append(f"claims.jsonl:{line_number}: text is required")
@@ -128,6 +130,22 @@ def validate_project(project_dir: Path) -> list[str]:
                 errors.append(f"decision-log.jsonl:{line_number}: unknown claim {claim_id}")
         if not decision.get("chosen_option") or not decision.get("owner"):
             errors.append(f"decision-log.jsonl:{line_number}: chosen_option and owner are required")
+        option_id = decision.get("option_id")
+        if option_id and (not isinstance(option_id, str) or option_id not in options):
+            errors.append(f"decision-log.jsonl:{line_number}: unknown option {option_id}")
+
+    for line_number, option in enumerate(loaded["options.jsonl"], 1):
+        if not option.get("name") or not option.get("description"):
+            errors.append(f"options.jsonl:{line_number}: name and description are required")
+        if not isinstance(option.get("role"), str) or option.get("role") not in {"status_quo", "stop", "change"}:
+            errors.append(f"options.jsonl:{line_number}: invalid role")
+        for claim_id in option.get("claim_ids", []) or []:
+            if not isinstance(claim_id, str) or claim_id not in claims:
+                errors.append(f"options.jsonl:{line_number}: unknown claim {claim_id}")
+    if loaded["options.jsonl"]:
+        roles = {option.get("role") for option in loaded["options.jsonl"]}
+        if len(loaded["options.jsonl"]) < 3 or not {"status_quo", "stop", "change"}.issubset(roles):
+            errors.append("options.jsonl: add at least three options, including status_quo, stop, and change")
 
     for line_number, source in enumerate(loaded["sources.jsonl"], 1):
         raw_path = source.get("extracted_text_path")

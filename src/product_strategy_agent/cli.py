@@ -10,7 +10,8 @@ from pathlib import Path
 from typing import Any
 
 from product_strategy_agent import __version__
-from product_strategy_agent.ledger import add_claim, add_decision, add_gap
+from product_strategy_agent.ledger import add_claim, add_decision, add_gap, add_option
+from product_strategy_agent.rendering import render_project
 from product_strategy_agent.sources import add_local_source, fetch_web_source
 from product_strategy_agent.validation import validate_project, verify_project
 
@@ -78,7 +79,7 @@ def init_project(project_id: str, projects_dir: Path) -> Path:
         "## Доступные материалы\n",
         encoding="utf-8",
     )
-    for name in ("sources.jsonl", "claims.jsonl", "gaps.jsonl", "decision-log.jsonl", "usage.jsonl"):
+    for name in ("sources.jsonl", "claims.jsonl", "gaps.jsonl", "options.jsonl", "decision-log.jsonl", "usage.jsonl"):
         (path / name).write_text("", encoding="utf-8")
     (path / "sources").mkdir(exist_ok=True)
     return path
@@ -139,10 +140,25 @@ def build_parser() -> argparse.ArgumentParser:
     gap_add.add_argument("--priority", choices=("low", "medium", "high"), default="medium")
     gap_add.add_argument("--projects-dir", type=Path, default=Path("projects"))
 
+    option = commands.add_parser("option", help="record a decision option")
+    option_add = option.add_subparsers(dest="option_command", required=True).add_parser("add", help="append an option")
+    option_add.add_argument("project_id")
+    option_add.add_argument("--name", required=True)
+    option_add.add_argument("--role", required=True, choices=("status_quo", "stop", "change"))
+    option_add.add_argument("--description", required=True)
+    option_add.add_argument("--benefits", default="")
+    option_add.add_argument("--costs", default="")
+    option_add.add_argument("--risks", default="")
+    option_add.add_argument("--objection", default="")
+    option_add.add_argument("--assumption", action="append", default=[])
+    option_add.add_argument("--claim", action="append", default=[])
+    option_add.add_argument("--projects-dir", type=Path, default=Path("projects"))
+
     decision = commands.add_parser("decision", help="append a human-owned decision")
     decision_add = decision.add_subparsers(dest="decision_command", required=True).add_parser("add", help="record a decision")
     decision_add.add_argument("project_id")
     decision_add.add_argument("--option", required=True)
+    decision_add.add_argument("--option-id")
     decision_add.add_argument("--owner", required=True)
     decision_add.add_argument("--rationale", default="")
     decision_add.add_argument("--claim", action="append", default=[])
@@ -157,6 +173,9 @@ def build_parser() -> argparse.ArgumentParser:
         check = commands.add_parser(name, help=help_text)
         check.add_argument("project_id")
         check.add_argument("--projects-dir", type=Path, default=Path("projects"))
+    render = commands.add_parser("render", help="generate readable artifacts from ledgers and drafts")
+    render.add_argument("project_id")
+    render.add_argument("--projects-dir", type=Path, default=Path("projects"))
     return parser
 
 
@@ -212,9 +231,20 @@ def main() -> None:
                 record = add_gap(project_dir, args.question, args.why_it_matters, args.method, args.priority)
                 print(f"Recorded {record['gap_id']} [{record['priority']}]: {record['question']}")
             else:
+                if (project_dir / "options.jsonl").is_file() and (project_dir / "options.jsonl").stat().st_size and not args.option_id:
+                    raise ValueError("When options exist, select the chosen one with --option-id")
                 record = add_decision(project_dir, args.option, args.owner, args.rationale, args.claim,
-                                      args.reject, args.assumption, args.risk, args.revisit_when)
+                                      args.reject, args.assumption, args.risk, args.revisit_when, args.option_id)
                 print(f"Recorded {record['decision_id']}: {record['chosen_option']} (owner: {record['owner']})")
+            return
+
+        if args.command == "option":
+            project_dir = project_path(args.project_id, args.projects_dir)
+            if not (project_dir / "state.json").is_file():
+                raise FileNotFoundError(f"Project '{args.project_id}' was not found at {project_dir}")
+            record = add_option(project_dir, args.name, args.role, args.description, args.benefits,
+                                args.costs, args.risks, args.objection, args.assumption, args.claim)
+            print(f"Recorded {record['option_id']} [{record['role']}]: {record['name']}")
             return
 
         if args.command in {"validate", "verify"}:
@@ -232,6 +262,14 @@ def main() -> None:
                 print(f"{args.command}: failed with {len(errors)} error(s)")
                 raise SystemExit(1)
             print(f"{args.command}: passed" + (f" with {len(warnings)} warning(s)" if warnings else ""))
+            return
+
+        if args.command == "render":
+            project_dir = project_path(args.project_id, args.projects_dir)
+            if not (project_dir / "state.json").is_file():
+                raise FileNotFoundError(f"Project '{args.project_id}' was not found at {project_dir}")
+            for output in render_project(project_dir):
+                print(f"Rendered {output}")
             return
 
         state = load_state(args.project_id, args.projects_dir)
