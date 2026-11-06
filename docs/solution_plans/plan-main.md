@@ -453,6 +453,7 @@ CLI `psa usage add` добавляет provider-отчёт или явную о�
 │   │   │   ├── project_service.py
 │   │   │   ├── source_service.py
 │   │   │   ├── claim_service.py
+│   │   │   ├── option_service.py
 │   │   │   ├── decision_service.py
 │   │   │   ├── workflow_service.py
 │   │   │   ├── strategy_service.py

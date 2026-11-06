@@ -2,6 +2,7 @@
 
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
+from uuid import UUID
 
 from product_strategy_agent.adapters.persistence.postgres.database import get_session_factory
 from product_strategy_agent.adapters.persistence.postgres.models import (
@@ -17,6 +18,10 @@ from product_strategy_agent.domain.projects.errors import ProjectNotFound
 
 
 class PostgresClaimStore:
+    def get_project_id(self, claim_id: UUID) -> UUID | None:
+        with get_session_factory()() as session:
+            return session.scalar(select(ClaimRecord.project_id).where(ClaimRecord.id == claim_id))
+
     def create(self, claim: Claim) -> Claim:
         sessions = get_session_factory()
         try:

@@ -8,6 +8,14 @@ from product_strategy_agent.interfaces.cli.project_commands import (
     add_project_commands,
     handle_project_command,
 )
+from product_strategy_agent.interfaces.cli.decision_commands import (
+    add_decision_commands,
+    handle_decision_command,
+)
+from product_strategy_agent.interfaces.cli.option_commands import (
+    add_option_commands,
+    handle_option_command,
+)
 from product_strategy_agent.interfaces.cli.claim_commands import (
     add_claim_commands,
     handle_claim_command,
@@ -24,6 +32,8 @@ def build_parser() -> argparse.ArgumentParser:
     add_project_commands(commands)
     add_source_commands(commands)
     add_claim_commands(commands)
+    add_option_commands(commands)
+    add_decision_commands(commands)
     return parser
 
 
@@ -33,6 +43,8 @@ def main() -> int:
         "project": handle_project_command,
         "source": handle_source_command,
         "claim": handle_claim_command,
+        "option": handle_option_command,
+        "decision": handle_decision_command,
     }
     return handlers[args.resource](args)
 
