@@ -402,6 +402,11 @@ CLI `psa usage add` добавляет provider-отчёт или явную о�
 ├── QWEN.md
 ├── pyproject.toml
 ├── uv.lock
+├── alembic.ini
+├── alembic/
+│   ├── env.py
+│   ├── script.py.mako
+│   └── versions/
 ├── .env.example
 ├── .gitignore
 ├── config/
@@ -454,7 +459,7 @@ CLI `psa usage add` добавляет provider-отчёт или явную о�
 │   │   │   └── usage_service.py
 │   │   └── ports/                 # интерфейсы репозиториев и внешних клиентов
 │   ├── adapters/
-│   │   ├── persistence/postgres/  # отдельные репозитории, schema и migrations
+│   │   ├── persistence/postgres/  # engine, модели и отдельные репозитории
 │   │   ├── llm/                   # провайдеры моделей
 │   │   ├── search/                # поиск и получение источников
 │   │   └── documents/             # парсеры форматов
