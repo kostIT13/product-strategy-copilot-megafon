@@ -67,7 +67,7 @@ psa option add demo-retention --name "Пилот для сегмента A" --ro
 
 Свяжите решение с выбранным вариантом: `psa decision add ... --option-id O-003`. `psa validate` проверяет наличие минимум трёх вариантов с тремя обязательными ролями, если варианты уже начали записывать.
 
-`psa render demo-retention` создаёт `03_evidence.md`, `04_options.md`, `decision.md`, `05_strategy.md` и `06_validation-plan.md`. Для продуктовой, коммуникационной стратегии и плана проверки команда создаёт исходные черновики в `drafts/`; повторный `render` читает их, но не меняет. Сгенерированные Markdown-файлы пересобираются при каждом запуске.
+`psa render demo-retention` создаёт `03_evidence.md`, `04_options.md`, `decision.md`, `05_strategy.md` и `06_validation-plan.md`. Для продуктовой, коммуникационной стратегии и плана проверки команда создаёт исходные черновики в `drafts/`; повторный `render` читает их, но не меняет. Сгенерированные Markdown-файлы пересобираются при каждом запуске. `psa coverage demo-retention` показывает пропущенные ссылки, метки гипотез/вопросов и неподтверждённые обещания; см. [docs/coverage.md](docs/coverage.md).
 
 ## Сквозной демо-кейс
 
@@ -116,6 +116,7 @@ MCP integration is optional. Install with `python -m pip install -e ".[mcp]"`, l
 
 ## Материалы приёмки MVP
 
+- [Проверка coverage и capability-обещаний](docs/coverage.md).
 - [Runbook пересмотра изменённого источника](docs/demo-runbook.md).
 - [Приёмка FastMCP-хостов и CLI/MCP parity](docs/mcp-host-acceptance.md).
 - [Нейтральный A/B-пакет для независимой оценки](evals/demo/blind-review/reviewer-brief.md); ключ владельца не передавать рецензенту.

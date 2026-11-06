@@ -9,7 +9,8 @@ from typing import Any
 from product_strategy_agent import __version__
 from product_strategy_agent.cli import init_project, load_state, project_path
 from product_strategy_agent.critic import write_critic_pack
-from product_strategy_agent.ledger import add_claim, add_decision, add_gap, add_option
+from product_strategy_agent.ledger import add_capability, add_claim, add_decision, add_gap, add_option
+from product_strategy_agent.coverage import coverage_report
 from product_strategy_agent.rendering import render_project
 from product_strategy_agent.sources import add_local_source, fetch_web_source
 from product_strategy_agent.validation import validate_project, verify_project
@@ -120,6 +121,17 @@ def create_server() -> Any:
         """Append a typed claim; factual claims require a source, locator, and exact quote."""
         return add_claim(workspace(project_id, projects_dir), text, claim_type, source_ids, source_locators, quotes,
                          confidence, reasoning_note, contradicts, decision_impact, supersedes or None)
+
+    @server.tool()
+    def psa_add_capability(project_id: str, name: str, status: str, claim_ids: list[str] | None = None,
+                           projects_dir: str = "projects") -> dict[str, Any]:
+        """Record a product capability; customer-facing commitments may only use available capabilities."""
+        return add_capability(workspace(project_id, projects_dir), name, status, claim_ids)
+
+    @server.tool()
+    def psa_coverage(project_id: str, projects_dir: str = "projects") -> dict[str, Any]:
+        """Check authored strategy paragraphs for claims, hypotheses, questions, and supported commitments."""
+        return coverage_report(workspace(project_id, projects_dir))
 
     @server.tool()
     def psa_add_gap(project_id: str, question: str, why_it_matters: str = "", resolution_method: str = "",

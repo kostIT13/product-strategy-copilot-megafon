@@ -10,6 +10,7 @@ from typing import Any
 
 from product_strategy_agent.ledger import CLAIM_TYPES, CONFIDENCE_LEVELS
 from product_strategy_agent.workflow import MODE_PROFILES
+from product_strategy_agent.coverage import coverage_report
 
 REGISTRIES = {
     "sources.jsonl": ("source_id", "S"),
@@ -151,6 +152,43 @@ def validate_project(project_dir: Path) -> list[str]:
         roles = {option.get("role") for option in loaded["options.jsonl"]}
         if len(loaded["options.jsonl"]) < 3 or not {"status_quo", "stop", "change"}.issubset(roles):
             errors.append("options.jsonl: add at least three options, including status_quo, stop, and change")
+
+    capability_path = project_dir / "capabilities.jsonl"
+    if capability_path.exists():
+        capabilities = _read_jsonl(capability_path, errors)
+        seen_capabilities: set[str] = set()
+        for line_number, capability in enumerate(capabilities, 1):
+            capability_id = capability.get("capability_id")
+            if not isinstance(capability_id, str) or not re.fullmatch(r"CAP-\d+", capability_id):
+                errors.append(f"capabilities.jsonl:{line_number}: invalid capability_id")
+            elif capability_id in seen_capabilities:
+                errors.append(f"capabilities.jsonl:{line_number}: duplicate capability_id {capability_id}")
+            else:
+                seen_capabilities.add(capability_id)
+            if capability.get("schema_version") != 1:
+                errors.append(f"capabilities.jsonl:{line_number}: schema_version must be 1")
+            if not isinstance(capability.get("name"), str) or not capability["name"].strip():
+                errors.append(f"capabilities.jsonl:{line_number}: name is required")
+            capability_status = capability.get("status")
+            if not isinstance(capability_status, str) or capability_status not in {"available", "planned", "unavailable"}:
+                errors.append(f"capabilities.jsonl:{line_number}: invalid status")
+            capability_claims = capability.get("claim_ids", [])
+            if not isinstance(capability_claims, list):
+                errors.append(f"capabilities.jsonl:{line_number}: claim_ids must be an array")
+                continue
+            for claim_id in capability_claims:
+                if not isinstance(claim_id, str) or claim_id not in claims:
+                    errors.append(f"capabilities.jsonl:{line_number}: unknown claim {claim_id}")
+            if capability_status == "available" and not capability_claims:
+                errors.append(f"capabilities.jsonl:{line_number}: available capability needs supporting claims")
+            elif capability_status == "available" and not any(
+                isinstance(claim_id, str) and claims.get(claim_id, {}).get("type") == "fact"
+                for claim_id in capability_claims
+            ):
+                errors.append(f"capabilities.jsonl:{line_number}: available capability needs at least one factual claim")
+
+    coverage = coverage_report(project_dir)
+    errors.extend(coverage["errors"])
 
     for line_number, source in enumerate(loaded["sources.jsonl"], 1):
         raw_path = source.get("extracted_text_path")

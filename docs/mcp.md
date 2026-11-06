@@ -38,9 +38,9 @@ Use the Python executable from the environment where `product-strategy-agent[mcp
 - `psa_init`, `psa_status`, `psa_next`, `psa_mode_set`
 - `psa_revisit`, `psa_revisit_resolve`
 - `psa_add_source`, `psa_fetch_source`, `psa_list_sources`
-- `psa_add_claim`, `psa_add_gap`, `psa_add_option`, `psa_add_decision`
+- `psa_add_claim`, `psa_add_gap`, `psa_add_option`, `psa_add_decision`, `psa_add_capability`
 - `psa_approve_stage`
-- `psa_validate`, `psa_verify`, `psa_render`, `psa_critic_pack`
+- `psa_coverage`, `psa_validate`, `psa_verify`, `psa_render`, `psa_critic_pack`
 - `psa_usage_add`, `psa_usage_report`
 
 `psa_fetch_source` performs a network request only when explicitly called. Tools write only inside the selected project workspace, except for caller-supplied input/output paths. The server has no delete, shell, or arbitrary command tool.

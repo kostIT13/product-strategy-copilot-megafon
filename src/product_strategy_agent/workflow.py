@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from product_strategy_agent.sources import utc_now
+from product_strategy_agent.coverage import coverage_report
 
 WORK_STAGES = ("intake", "research_plan", "source_collection", "evidence_review", "options", "strategy", "validation")
 MODE_PROFILES = {
@@ -87,6 +88,9 @@ def _check_stage(project_dir: Path, stage: str, mode: str) -> None:
         for name in ("product-strategy.md", "communication-strategy.md"):
             if not _substantive_text(project_dir / "drafts" / name):
                 raise ValueError(f"Complete drafts/{name} before approving strategy")
+        coverage = coverage_report(project_dir)
+        if not coverage["ok"]:
+            raise ValueError("Resolve strategy coverage issues before approving strategy: " + "; ".join(coverage["errors"]))
     elif stage == "validation":
         if not _substantive_text(project_dir / "drafts" / "validation-plan.md"):
             raise ValueError("Complete drafts/validation-plan.md before approving validation")

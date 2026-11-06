@@ -28,7 +28,7 @@ def _records(path: Path) -> list[dict[str, Any]]:
 
 
 def _next_id(records: list[dict[str, Any]], prefix: str) -> str:
-    id_fields = ("id", "claim_id", "gap_id", "decision_id", "option_id")
+    id_fields = ("id", "claim_id", "gap_id", "decision_id", "option_id", "capability_id")
     numbers = [int(match.group(1)) for record in records if (match := re.fullmatch(rf"{prefix}-(\d+)", next((str(record[field]) for field in id_fields if field in record), "")))]
     return f"{prefix}-{max(numbers, default=0) + 1:03d}"
 
@@ -103,6 +103,45 @@ def add_claim(
         "status": "active",
         "created_at": utc_now(),
         "supersedes": supersedes,
+    }
+    _append(path, record)
+    return record
+
+
+def add_capability(
+    project_dir: Path,
+    name: str,
+    status: str,
+    claim_ids: list[str] | None = None,
+) -> dict[str, Any]:
+    """Append a product capability used to validate external commitments."""
+    name = name.strip()
+    claim_ids = claim_ids or []
+    if not name:
+        raise ValueError("Capability requires a non-empty name")
+    if not isinstance(status, str) or status not in {"available", "planned", "unavailable"}:
+        raise ValueError("Capability status must be available, planned, or unavailable")
+    if any(not isinstance(claim_id, str) for claim_id in claim_ids):
+        raise ValueError("Capability claim ids must be strings")
+    known_claims = {record.get("claim_id") for record in _records(project_dir / "claims.jsonl")}
+    unknown = set(claim_ids) - known_claims
+    if unknown:
+        raise ValueError(f"Unknown claim id(s): {', '.join(sorted(unknown))}")
+    if status == "available" and not claim_ids:
+        raise ValueError("An available capability must cite at least one claim")
+    claim_records = _records(project_dir / "claims.jsonl")
+    claim_types = {record.get("claim_id"): record.get("type") for record in claim_records}
+    if status == "available" and not any(claim_types.get(claim_id) == "fact" for claim_id in claim_ids):
+        raise ValueError("An available capability must cite at least one factual claim")
+    path = project_dir / "capabilities.jsonl"
+    records = _records(path)
+    record = {
+        "schema_version": 1,
+        "capability_id": _next_id(records, "CAP"),
+        "name": name,
+        "status": status,
+        "claim_ids": claim_ids,
+        "created_at": utc_now(),
     }
     _append(path, record)
     return record

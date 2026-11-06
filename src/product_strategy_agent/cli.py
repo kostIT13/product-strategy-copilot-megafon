@@ -11,7 +11,8 @@ from typing import Any
 
 from product_strategy_agent import __version__
 from product_strategy_agent.critic import write_critic_pack
-from product_strategy_agent.ledger import add_claim, add_decision, add_gap, add_option
+from product_strategy_agent.ledger import add_capability, add_claim, add_decision, add_gap, add_option
+from product_strategy_agent.coverage import coverage_report
 from product_strategy_agent.rendering import render_project
 from product_strategy_agent.sources import add_local_source, fetch_web_source
 from product_strategy_agent.validation import validate_project, verify_project
@@ -92,7 +93,7 @@ def init_project(project_id: str, projects_dir: Path) -> Path:
         "## Критерии достаточности\n",
         encoding="utf-8",
     )
-    for name in ("sources.jsonl", "claims.jsonl", "gaps.jsonl", "options.jsonl", "decision-log.jsonl", "usage.jsonl", "events.jsonl"):
+    for name in ("sources.jsonl", "claims.jsonl", "gaps.jsonl", "options.jsonl", "decision-log.jsonl", "usage.jsonl", "events.jsonl", "capabilities.jsonl"):
         (path / name).write_text("", encoding="utf-8")
     (path / "sources").mkdir(exist_ok=True)
     return path
@@ -166,6 +167,18 @@ def build_parser() -> argparse.ArgumentParser:
     option_add.add_argument("--assumption", action="append", default=[])
     option_add.add_argument("--claim", action="append", default=[])
     option_add.add_argument("--projects-dir", type=Path, default=Path("projects"))
+
+    capability = commands.add_parser("capability", help="record a product capability for promise checking")
+    capability_add = capability.add_subparsers(dest="capability_command", required=True).add_parser("add", help="append a capability")
+    capability_add.add_argument("project_id")
+    capability_add.add_argument("--name", required=True)
+    capability_add.add_argument("--status", required=True, choices=("available", "planned", "unavailable"))
+    capability_add.add_argument("--claim", action="append", default=[], help="claim supporting this capability; required when available")
+    capability_add.add_argument("--projects-dir", type=Path, default=Path("projects"))
+
+    coverage = commands.add_parser("coverage", help="check traceability markers in strategy drafts")
+    coverage.add_argument("project_id")
+    coverage.add_argument("--projects-dir", type=Path, default=Path("projects"))
 
     decision = commands.add_parser("decision", help="append a human-owned decision")
     decision_add = decision.add_subparsers(dest="decision_command", required=True).add_parser("add", help="record a decision")
@@ -324,6 +337,24 @@ def main() -> None:
             record = add_option(project_dir, args.name, args.role, args.description, args.benefits,
                                 args.costs, args.risks, args.objection, args.assumption, args.claim)
             print(f"Recorded {record['option_id']} [{record['role']}]: {record['name']}")
+            return
+
+        if args.command == "capability":
+            project_dir = project_path(args.project_id, args.projects_dir)
+            if not (project_dir / "state.json").is_file():
+                raise FileNotFoundError(f"Project '{args.project_id}' was not found at {project_dir}")
+            record = add_capability(project_dir, args.name, args.status, args.claim)
+            print(f"Recorded {record['capability_id']} [{record['status']}]: {record['name']}")
+            return
+
+        if args.command == "coverage":
+            project_dir = project_path(args.project_id, args.projects_dir)
+            if not (project_dir / "state.json").is_file():
+                raise FileNotFoundError(f"Project '{args.project_id}' was not found at {project_dir}")
+            report = coverage_report(project_dir)
+            print(json.dumps(report, ensure_ascii=False, indent=2))
+            if not report["ok"]:
+                raise SystemExit(1)
             return
 
         if args.command in {"validate", "verify"}:

@@ -7,8 +7,8 @@ from pathlib import Path
 from typing import Any
 
 DRAFTS = {
-    "product-strategy.md": """# Продуктовая стратегия\n\n## Аудитория и задача\n\nЗаполните целевой сегмент и задачу, которую он пытается решить.\n\n## Ценность и альтернативы\n\nОпишите ценность, текущие альтернативы и чем выбранное решение лучше.\n\n## Выбор и осознанные отказы\n\nУкажите выбранное направление, границы и то, что сознательно не делаем.\n\n## Связь пользы с затратами и доходами\n\nУкажите известное и отдельно пометьте гипотезы.\n""",
-    "communication-strategy.md": """# Коммуникационная стратегия\n\n## Аудитория и ситуация\n\n## Барьер понимания или выбора\n\n## Ключевое сообщение и подтверждение\n\nЗаполните сообщение и укажите подтверждение обещания.\n\n## Роль каналов\n\n## Неподтверждённые обещания\n""",
+    "product-strategy.md": """# Продуктовая стратегия\n\n<!-- Каждый содержательный абзац помечайте [C-ID], [HYPOTHESIS], [OPEN QUESTION] или [COMMITMENT: CAP-ID]. -->\n\n## Аудитория и задача\n\nЗаполните целевой сегмент и задачу, которую он пытается решить.\n\n## Ценность и альтернативы\n\nОпишите ценность, текущие альтернативы и чем выбранное решение лучше.\n\n## Выбор и осознанные отказы\n\nУкажите выбранное направление, границы и то, что сознательно не делаем.\n\n## Связь пользы с затратами и доходами\n\nУкажите известное и отдельно пометьте гипотезы.\n""",
+    "communication-strategy.md": """# Коммуникационная стратегия\n\n<!-- Внешние обещания отмечайте [COMMITMENT: CAP-ID]; capability должен быть available и иметь supporting claim. -->\n\n## Аудитория и ситуация\n\n## Барьер понимания или выбора\n\n## Ключевое сообщение и подтверждение\n\nЗаполните сообщение и укажите подтверждение обещания.\n\n## Роль каналов\n\n## Неподтверждённые обещания\n""",
     "validation-plan.md": """# План проверки\n\n## Ожидаемое изменение\n\n## Базовая линия или сравнение\n\n## Метрики и сегмент\n\n## Окно наблюдения\n\n## Защитные показатели\n\n## Ответственный и критерий решения\n""",
 }
 
@@ -35,6 +35,7 @@ def render_project(project_dir: Path) -> list[Path]:
     gaps = _records(project_dir, "gaps.jsonl")
     options = _records(project_dir, "options.jsonl")
     decisions = _records(project_dir, "decision-log.jsonl")
+    capabilities = _records(project_dir, "capabilities.jsonl")
     source_map = {item.get("source_id"): item for item in sources}
     outputs: list[Path] = []
 
@@ -122,7 +123,13 @@ def render_project(project_dir: Path) -> list[Path]:
     strategy = ["# Стратегия", "", "Этот файл собран из решения и авторских черновиков. Изменяйте черновики в `drafts/`, затем повторно запускайте `psa render`.", "",
                 "## Решение", "", latest.get("chosen_option", "Решение ещё не принято") if latest else "Решение ещё не принято", "",
                 "## Продуктовая стратегия", "", (drafts_dir / "product-strategy.md").read_text(encoding="utf-8").strip(), "",
-                "## Коммуникационная стратегия", "", (drafts_dir / "communication-strategy.md").read_text(encoding="utf-8").strip()]
+                "## Коммуникационная стратегия", "", (drafts_dir / "communication-strategy.md").read_text(encoding="utf-8").strip(), "",
+                "## Реестр возможностей продукта", ""]
+    if capabilities:
+        strategy.extend([f"- **{item.get('capability_id')} [{item.get('status')}]** {item.get('name')} — основания: {', '.join(item.get('claim_ids', [])) or 'не указаны'}"
+                          for item in capabilities])
+    else:
+        strategy.append("Возможности продукта пока не зарегистрированы.")
     strategy_path = project_dir / "05_strategy.md"
     _write(project_dir, strategy_path.name, "\n".join(strategy))
     outputs.append(strategy_path)
