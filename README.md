@@ -8,6 +8,7 @@
 
 ```powershell
 python -m pip install -e .
+psa doctor
 psa --help
 psa init demo-retention
 psa status demo-retention
@@ -17,7 +18,7 @@ psa resume demo-retention
 
 `init` создаёт папку `projects/<project-id>` с версионируемым `state.json`, шаблоном брифа и пустыми журналами. Исходные материалы в `projects/*/sources/` исключены из Git по умолчанию.
 
-Пока состояние изменяется только при создании проекта. Команды `status`, `next` и `resume` читают сохранённое состояние; следующие этапы MVP добавят управляемые переходы и артефакты.
+`psa doctor` проверяет версию Python, встроенные шаблоны, наличие `uv` и optional FastMCP. Конфигурацию он проверяет только по наличию файла и имён известных переменных: значения из `.env` и окружения не читаются и не выводятся. Состояние проекта меняют явные операции `gate`, `mode` и append-only команды записи; `status`, `next` и `resume` его читают.
 
 ### Импорт источников
 

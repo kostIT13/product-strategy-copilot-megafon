@@ -15,6 +15,7 @@ from product_strategy_agent.ledger import add_capability, add_claim, add_decisio
 from product_strategy_agent.coverage import coverage_report
 from product_strategy_agent.rendering import render_project
 from product_strategy_agent.artifacts import adopt_existing_render
+from product_strategy_agent.doctor import doctor_report, format_doctor_report
 from product_strategy_agent.sources import add_local_source, fetch_web_source
 from product_strategy_agent.validation import validate_project, verify_project
 from product_strategy_agent.usage import add_usage, usage_report
@@ -104,6 +105,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="psa", description="Evidence-based product strategy workflow")
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     commands = parser.add_subparsers(dest="command", required=True)
+
+    doctor = commands.add_parser("doctor", help="check Python, templates, and optional local configuration")
+    doctor.add_argument("--json", action="store_true", help="print a JSON diagnostic report")
 
     init = commands.add_parser("init", help="create a new project workspace")
     init.add_argument("project_id")
@@ -275,6 +279,13 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> None:
     args = build_parser().parse_args()
     try:
+        if args.command == "doctor":
+            report = doctor_report()
+            print(json.dumps(report, ensure_ascii=False, indent=2) if args.json else format_doctor_report(report))
+            if not report["ok"]:
+                raise SystemExit(1)
+            return
+
         if args.command == "init":
             path = init_project(args.project_id, args.projects_dir)
             print(f"Created project '{args.project_id}' at {path}")
