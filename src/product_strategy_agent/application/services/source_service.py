@@ -2,6 +2,7 @@
 
 import hashlib
 from datetime import datetime, timezone
+from uuid import UUID
 
 from product_strategy_agent.application.ports.source_store import SourceStore
 from product_strategy_agent.domain.sources.entities import (
@@ -68,3 +69,6 @@ class SourceService:
         if not project_key:
             raise InvalidSource("project key must not be empty")
         return self._store.list_for_project(project_key)
+
+    def get_revision(self, source_id: UUID, revision: int | None = None) -> Source | None:
+        return self._store.get_revision(source_id, revision)

@@ -1,6 +1,7 @@
 """SQLAlchemy implementation of the source persistence port."""
 
 import hashlib
+from uuid import UUID
 
 from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert
@@ -148,3 +149,39 @@ class PostgresSourceStore:
                     ),
                 )
             return list(latest.values())
+
+    def get_revision(self, source_id: UUID, revision: int | None = None) -> Source | None:
+        with get_session_factory()() as session:
+            source_record = session.get(SourceRecord, source_id)
+            if source_record is None:
+                return None
+            statement = select(SourceRevisionRecord).where(
+                SourceRevisionRecord.source_id == source_record.id
+            )
+            if revision is not None:
+                statement = statement.where(SourceRevisionRecord.revision == revision)
+            revision_record = session.scalar(
+                statement.order_by(SourceRevisionRecord.revision.desc()).limit(1)
+            )
+            if revision_record is None:
+                return None
+            return Source(
+                id=source_record.id,
+                project_id=source_record.project_id,
+                uri=source_record.uri,
+                kind=source_record.kind,
+                publisher=source_record.publisher,
+                reliability=source_record.reliability,
+                status=source_record.status,
+                revision=SourceRevision(
+                    id=revision_record.id,
+                    source_id=revision_record.source_id,
+                    revision=revision_record.revision,
+                    title=revision_record.title,
+                    content_hash=revision_record.content_hash,
+                    extracted_text=revision_record.extracted_text,
+                    locator=revision_record.locator,
+                    accessed_at=revision_record.accessed_at,
+                    limitations=tuple(revision_record.limitations),
+                ),
+            )

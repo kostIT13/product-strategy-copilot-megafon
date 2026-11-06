@@ -106,6 +106,8 @@ PostgreSQL CLI основной системы предоставляет `psa-m
 
 `psa` остаётся файловым CLI MVP; новая команда `psa-main` работает через PostgreSQL. Dockerfile собирает пакет, а named volume сохраняет локальные данные PostgreSQL.
 
+Утверждения основной системы сохраняют ссылку на точную ревизию источника и принимаются только если цитата дословно присутствует в извлечённом тексте. Добавить факт с подтверждением и вывести реестр можно командами `psa-main claim add demo --key C-001 --type fact --text "Описание факта" --confidence medium --evidence SOURCE_UUID 1 "paragraph:1" "точная цитата"` и `psa-main claim list demo`. Для гипотез и прогнозов источник необязателен; тип и уверенность всё равно задаются явно.
+
 ### MCP adapter
 
 MCP integration is optional. Install with `python -m pip install -e ".[mcp]"`, launch `psa-mcp` as a local stdio process, and configure that command in the target host. The adapter uses the standalone FastMCP 4.x framework. See [docs/mcp.md](docs/mcp.md) for available tools and host configuration.
