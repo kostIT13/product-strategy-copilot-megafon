@@ -5,6 +5,10 @@ from product_strategy_agent.adapters.persistence.postgres.models.claim import (
     ClaimEvidenceRecord,
     ClaimRecord,
 )
+from product_strategy_agent.adapters.persistence.postgres.models.capability import (
+    CapabilityClaimRecord,
+    CapabilityRecord,
+)
 from product_strategy_agent.adapters.persistence.postgres.models.decision import (
     DecisionClaimRecord,
     DecisionOptionRecord,
@@ -22,6 +26,8 @@ from product_strategy_agent.adapters.persistence.postgres.models.source import (
 __all__ = [
     "ClaimEvidenceRecord",
     "ClaimRecord",
+    "CapabilityClaimRecord",
+    "CapabilityRecord",
     "DecisionClaimRecord",
     "DecisionOptionRecord",
     "DecisionRecord",

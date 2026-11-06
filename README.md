@@ -106,6 +106,8 @@ PostgreSQL CLI основной системы предоставляет `psa-m
 
 `psa` остаётся файловым CLI MVP; новая команда `psa-main` работает через PostgreSQL. Dockerfile собирает пакет, а named volume сохраняет локальные данные PostgreSQL.
 
+Реестр возможностей доступен командами `psa-main capability add demo --key CAP-01 --name "Экспорт отчёта" --status available --claim CLAIM_UUID` и `psa-main capability list demo`. Статус `available` требует связанный активный factual claim, а значит и проверенную цитату; `planned` и `unavailable` можно регистрировать без такого подтверждения.
+
 Утверждения основной системы сохраняют ссылку на точную ревизию источника и принимаются только если цитата дословно присутствует в извлечённом тексте. Добавить факт с подтверждением и вывести реестр можно командами `psa-main claim add demo --key C-001 --type fact --text "Описание факта" --confidence medium --evidence SOURCE_UUID 1 "paragraph:1" "точная цитата"` и `psa-main claim list demo`. Для гипотез и прогнозов источник необязателен; тип и уверенность всё равно задаются явно.
 
 Варианты поддерживают ссылки на подтверждающие и оспаривающие claims: `psa-main option add demo --key OPT-A --name "Улучшить текущий продукт" --supports CLAIM_UUID --strength "Низкий срок запуска" --risk "Ограниченный рост"`, затем `psa-main option list demo`. Решение фиксируется отдельно: `psa-main decision add demo --key DEC-001 --selected-option OPTION_UUID --owner "Владелец продукта" --rationale "Основание выбора" --review-trigger "Пересмотреть при падении retention" --claim CLAIM_UUID --reject-option OTHER_OPTION_UUID`; список решений выводится `psa-main decision list demo`. Решения сохраняются как отдельные записи и не перезаписывают предыдущие.

@@ -76,8 +76,8 @@ class DecisionService:
         if len(set(basis_claim_ids)) != len(basis_claim_ids):
             raise InvalidDecision("duplicate basis claim")
         for claim_id in basis_claim_ids:
-            claim_project_id = self._claims.get_project_id(claim_id)
-            if claim_project_id != project.id:
+            claim = self._claims.get_reference_info(claim_id)
+            if claim is None or claim.project_id != project.id:
                 raise InvalidDecision("basis claim does not exist in this project")
 
         decision = Decision(

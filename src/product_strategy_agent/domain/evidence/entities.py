@@ -14,6 +14,13 @@ class EvidenceReference:
 
 
 @dataclass(frozen=True, slots=True)
+class ClaimReferenceInfo:
+    project_id: UUID
+    claim_type: str
+    status: str
+
+
+@dataclass(frozen=True, slots=True)
 class Claim:
     id: UUID
     project_id: UUID

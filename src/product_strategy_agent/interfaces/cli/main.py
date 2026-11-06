@@ -20,6 +20,10 @@ from product_strategy_agent.interfaces.cli.claim_commands import (
     add_claim_commands,
     handle_claim_command,
 )
+from product_strategy_agent.interfaces.cli.capability_commands import (
+    add_capability_commands,
+    handle_capability_command,
+)
 from product_strategy_agent.interfaces.cli.source_commands import (
     add_source_commands,
     handle_source_command,
@@ -34,6 +38,7 @@ def build_parser() -> argparse.ArgumentParser:
     add_claim_commands(commands)
     add_option_commands(commands)
     add_decision_commands(commands)
+    add_capability_commands(commands)
     return parser
 
 
@@ -45,6 +50,7 @@ def main() -> int:
         "claim": handle_claim_command,
         "option": handle_option_command,
         "decision": handle_decision_command,
+        "capability": handle_capability_command,
     }
     return handlers[args.resource](args)
 

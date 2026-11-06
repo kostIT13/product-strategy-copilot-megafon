@@ -1,0 +1,1 @@
+"""Product capability domain types."""

@@ -46,8 +46,8 @@ class OptionService:
             if link.claim_id in seen:
                 raise InvalidOption("duplicate claim link")
             seen.add(link.claim_id)
-            claim_project_id = self._claims.get_project_id(link.claim_id)
-            if claim_project_id != project.id:
+            claim = self._claims.get_reference_info(link.claim_id)
+            if claim is None or claim.project_id != project.id:
                 raise InvalidOption("linked claim does not exist in this project")
         option = StrategicOption(
             id=uuid4(),
