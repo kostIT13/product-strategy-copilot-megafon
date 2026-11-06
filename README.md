@@ -100,7 +100,9 @@ psa critic-pack demo
 
 ### Docker и PostgreSQL для основной разработки
 
-Скопируйте `.env.example` в `.env` и задайте локальные значения. `.env` исключён из Git. Запустите базу командой `docker compose up -d postgres`; для разового запуска CLI в контейнере используйте `docker compose --profile app run --rm app psa doctor`. Dockerfile собирает пакет, а named volume сохраняет локальные данные PostgreSQL. Сейчас Compose поднимает инфраструктуру; файловый MVP ещё не читает и не записывает данные в эту БД.
+Скопируйте `.env.example` в `.env` и задайте локальные значения. `.env` исключён из Git. Запустите базу командой `docker compose up -d postgres`, затем установите пакет командой `python -m pip install -e .` и примените миграции `alembic upgrade head`. Для разового запуска тех же команд в контейнере используйте `docker compose --profile app run --rm app alembic upgrade head`.
+
+Первый PostgreSQL-сервис основной системы — проекты: `psa-main project create --key demo --name "Demo project"` и `psa-main project show demo`. `psa` остаётся файловым CLI MVP; новая команда `psa-main` работает через PostgreSQL. Dockerfile собирает пакет, а named volume сохраняет локальные данные PostgreSQL.
 
 ### MCP adapter
 

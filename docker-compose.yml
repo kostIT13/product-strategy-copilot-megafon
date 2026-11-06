@@ -23,7 +23,7 @@ services:
       - .env
     environment:
       POSTGRES_HOST: postgres
-      DATABASE_URL: postgresql://${POSTGRES_USER:-product_strategy}:${POSTGRES_PASSWORD:-local-dev-change-this}@postgres:5432/${POSTGRES_DB:-product_strategy}
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-product_strategy}:${POSTGRES_PASSWORD:-local-dev-change-this}@postgres:5432/${POSTGRES_DB:-product_strategy}
     depends_on:
       postgres:
         condition: service_healthy

@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     projects_dir: Path = Path("projects")
 
     database_url: SecretStr = SecretStr(
-        "postgresql://product_strategy:local-dev-change-this@localhost:5432/product_strategy"
+        "postgresql+psycopg://product_strategy:local-dev-change-this@localhost:5432/product_strategy"
     )
 
     qwen_base_url: str = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
