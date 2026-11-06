@@ -14,6 +14,7 @@ from product_strategy_agent.critic import write_critic_pack
 from product_strategy_agent.ledger import add_capability, add_claim, add_decision, add_gap, add_option
 from product_strategy_agent.coverage import coverage_report
 from product_strategy_agent.rendering import render_project
+from product_strategy_agent.artifacts import adopt_existing_render
 from product_strategy_agent.sources import add_local_source, fetch_web_source
 from product_strategy_agent.validation import validate_project, verify_project
 from product_strategy_agent.usage import add_usage, usage_report
@@ -202,6 +203,10 @@ def build_parser() -> argparse.ArgumentParser:
     render = commands.add_parser("render", help="generate readable artifacts from ledgers and drafts")
     render.add_argument("project_id")
     render.add_argument("--projects-dir", type=Path, default=Path("projects"))
+    render.add_argument("--adopt-existing", action="store_true", help="record existing generated files without overwriting them")
+    render.add_argument("--discard-generated-edits", action="store_true", help="restore edited generated files and audit the explicit authorization")
+    render.add_argument("--by", default="", help="person authorizing replacement of edited generated files")
+    render.add_argument("--reason", default="", help="reason for replacing edited generated files")
     critic = commands.add_parser("critic-pack", help="build a review bundle for an independent critic")
     critic.add_argument("project_id")
     critic.add_argument("--out", type=Path, help="output Markdown path (default: <project>/reviews/critic-pack.md)")
@@ -378,7 +383,20 @@ def main() -> None:
             project_dir = project_path(args.project_id, args.projects_dir)
             if not (project_dir / "state.json").is_file():
                 raise FileNotFoundError(f"Project '{args.project_id}' was not found at {project_dir}")
-            for output in render_project(project_dir):
+            if args.adopt_existing and args.discard_generated_edits:
+                raise ValueError("Choose either --adopt-existing or --discard-generated-edits")
+            if args.adopt_existing:
+                report = adopt_existing_render(project_dir)
+                print(f"Adopted existing artifacts without overwriting: {len(report['adopted_files'])} file(s)")
+                if report["replaced_invalid_manifest"]:
+                    print("Replaced an invalid render manifest; existing Markdown was preserved")
+                print(f"Manifest: {report['manifest']}")
+                return
+            for output in render_project(
+                project_dir,
+                discard_generated_edits_by=args.by if args.discard_generated_edits else "",
+                discard_reason=args.reason if args.discard_generated_edits else "",
+            ):
                 print(f"Rendered {output}")
             return
 

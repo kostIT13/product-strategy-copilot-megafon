@@ -3,8 +3,17 @@
 from __future__ import annotations
 
 import json
+import hashlib
 from pathlib import Path
 from typing import Any
+
+from product_strategy_agent.artifacts import (
+    GENERATED_ARTIFACTS,
+    MANIFEST_NAME,
+    render_integrity_report,
+    write_render_manifest,
+)
+from product_strategy_agent.sources import utc_now
 
 DRAFTS = {
     "product-strategy.md": """# Продуктовая стратегия\n\n<!-- Каждый содержательный абзац помечайте [C-ID], [HYPOTHESIS], [OPEN QUESTION] или [COMMITMENT: CAP-ID]. -->\n\n## Аудитория и задача\n\nЗаполните целевой сегмент и задачу, которую он пытается решить.\n\n## Ценность и альтернативы\n\nОпишите ценность, текущие альтернативы и чем выбранное решение лучше.\n\n## Выбор и осознанные отказы\n\nУкажите выбранное направление, границы и то, что сознательно не делаем.\n\n## Связь пользы с затратами и доходами\n\nУкажите известное и отдельно пометьте гипотезы.\n""",
@@ -28,7 +37,44 @@ def _bullets(values: list[str]) -> str:
     return "\n".join(f"- {value}" for value in values) if values else "- Нет данных"
 
 
-def render_project(project_dir: Path) -> list[Path]:
+def render_project(
+    project_dir: Path,
+    *,
+    discard_generated_edits_by: str = "",
+    discard_reason: str = "",
+) -> list[Path]:
+    integrity = render_integrity_report(project_dir)
+    if not integrity["ok"]:
+        if not (project_dir / MANIFEST_NAME).is_file():
+            raise ValueError("Cannot overwrite untracked generated files: " + "; ".join(integrity["errors"]))
+        if not integrity["changed_artifacts"]:
+            raise ValueError("Cannot render until the manifest is repaired: " + "; ".join(integrity["errors"]))
+        if not discard_generated_edits_by.strip() or not discard_reason.strip():
+            raise ValueError(
+                "Generated files were edited; use --discard-generated-edits --by <person> --reason <reason> to restore them"
+            )
+        event_path = project_dir / "events.jsonl"
+        events = _records(project_dir, "events.jsonl")
+        artifact_events = [event for event in events if str(event.get("event_id", "")).startswith("ARTIFACT-")]
+        event = {
+            "schema_version": 1,
+            "event_id": f"ARTIFACT-{len(artifact_events) + 1:04d}",
+            "event_type": "generated_artifacts_regenerated",
+            "at": utc_now(),
+            "authorized_by": discard_generated_edits_by.strip(),
+            "reason": discard_reason.strip(),
+            "discarded_edits": [
+                {
+                    "path": name,
+                    "previous_hash": integrity["expected_hashes"].get(name),
+                    "edited_hash": _hash_project_file(project_dir / name),
+                }
+                for name in integrity["changed_artifacts"]
+            ],
+        }
+        with event_path.open("a", encoding="utf-8", newline="\n") as stream:
+            stream.write(json.dumps(event, ensure_ascii=False, sort_keys=True) + "\n")
+
     state = json.loads((project_dir / "state.json").read_text(encoding="utf-8"))
     sources = _records(project_dir, "sources.jsonl")
     claims = _records(project_dir, "claims.jsonl")
@@ -140,4 +186,11 @@ def render_project(project_dir: Path) -> list[Path]:
     validation_path = project_dir / "06_validation-plan.md"
     _write(project_dir, validation_path.name, "\n".join(validation))
     outputs.append(validation_path)
+    write_render_manifest(project_dir)
     return outputs
+
+
+def _hash_project_file(path: Path) -> str | None:
+    if not path.is_file():
+        return None
+    return hashlib.sha256(path.read_bytes()).hexdigest()

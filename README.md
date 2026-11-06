@@ -67,7 +67,7 @@ psa option add demo-retention --name "Пилот для сегмента A" --ro
 
 Свяжите решение с выбранным вариантом: `psa decision add ... --option-id O-003`. `psa validate` проверяет наличие минимум трёх вариантов с тремя обязательными ролями, если варианты уже начали записывать.
 
-`psa render demo-retention` создаёт `03_evidence.md`, `04_options.md`, `decision.md`, `05_strategy.md` и `06_validation-plan.md`. Для продуктовой, коммуникационной стратегии и плана проверки команда создаёт исходные черновики в `drafts/`; повторный `render` читает их, но не меняет. Сгенерированные Markdown-файлы пересобираются при каждом запуске. `psa coverage demo-retention` показывает пропущенные ссылки, метки гипотез/вопросов и неподтверждённые обещания; см. [docs/coverage.md](docs/coverage.md).
+`psa render demo-retention` создаёт `03_evidence.md`, `04_options.md`, `decision.md`, `05_strategy.md` и `06_validation-plan.md`. Для продуктовой, коммуникационной стратегии и плана проверки команда создаёт исходные черновики в `drafts/`; `render` читает их, но не меняет. Сгенерированные Markdown-файлы пересобираются, если их хэши совпадают с манифестом; ручные изменения останавливают перезапись. `psa coverage demo-retention` показывает пропущенные ссылки, метки гипотез/вопросов и неподтверждённые обещания; см. [docs/coverage.md](docs/coverage.md). Защита генерируемых сводок описана в [docs/generated-artifacts.md](docs/generated-artifacts.md).
 
 ## Сквозной демо-кейс
 

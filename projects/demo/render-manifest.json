@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-11-06T16:08:56Z",
+  "baseline": "adopted_existing",
+  "artifacts": {
+    "03_evidence.md": "029bc1c108b803ede878833abb9c4276c566d9dda83eb11a53c1d127080f1e8b",
+    "04_options.md": "121f3eba93dec210716b9e01f0b24cc40aefdcbd6264d490c82ee138f9ab4531",
+    "decision.md": "57353d34f4f7516cf27bf646c44762c45fdf5aac5306c627940cdffd4d08ce79",
+    "05_strategy.md": "4d189e8f7056a0c21978c3e637d2283983174a554fb8566045937876a759f76d",
+    "06_validation-plan.md": "29490bcbfb28b5cff5081b6a2fec02be7e6825a4e2cb9e0909c8c28ecb541b3d"
+  }
+}

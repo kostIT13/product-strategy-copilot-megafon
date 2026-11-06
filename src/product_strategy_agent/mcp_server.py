@@ -12,6 +12,7 @@ from product_strategy_agent.critic import write_critic_pack
 from product_strategy_agent.ledger import add_capability, add_claim, add_decision, add_gap, add_option
 from product_strategy_agent.coverage import coverage_report
 from product_strategy_agent.rendering import render_project
+from product_strategy_agent.artifacts import adopt_existing_render
 from product_strategy_agent.sources import add_local_source, fetch_web_source
 from product_strategy_agent.validation import validate_project, verify_project
 from product_strategy_agent.workflow import MODE_PROFILES, approve_stage, set_project_mode
@@ -176,10 +177,17 @@ def create_server() -> Any:
         return {"ok": not errors, "errors": errors, "warnings": warnings}
 
     @server.tool()
-    def psa_render(project_id: str, projects_dir: str = "projects") -> dict[str, Any]:
-        """Regenerate readable evidence, options, decision, strategy, and validation artifacts."""
-        paths = render_project(workspace(project_id, projects_dir))
+    def psa_render(project_id: str, discard_generated_edits_by: str = "", reason: str = "",
+                   projects_dir: str = "projects") -> dict[str, Any]:
+        """Regenerate derived Markdown; direct edits require an explicit actor and reason and are audited."""
+        paths = render_project(workspace(project_id, projects_dir),
+                               discard_generated_edits_by=discard_generated_edits_by, discard_reason=reason)
         return {"rendered": [str(path) for path in paths]}
+
+    @server.tool()
+    def psa_render_adopt_existing(project_id: str, projects_dir: str = "projects") -> dict[str, Any]:
+        """Track current generated Markdown hashes without overwriting the files."""
+        return adopt_existing_render(workspace(project_id, projects_dir))
 
     @server.tool()
     def psa_critic_pack(project_id: str, output_path: str = "", projects_dir: str = "projects") -> dict[str, str]:

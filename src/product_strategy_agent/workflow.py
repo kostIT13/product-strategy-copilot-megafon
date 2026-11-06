@@ -8,6 +8,7 @@ from typing import Any
 
 from product_strategy_agent.sources import utc_now
 from product_strategy_agent.coverage import coverage_report
+from product_strategy_agent.artifacts import render_integrity_report
 
 WORK_STAGES = ("intake", "research_plan", "source_collection", "evidence_review", "options", "strategy", "validation")
 MODE_PROFILES = {
@@ -94,9 +95,15 @@ def _check_stage(project_dir: Path, stage: str, mode: str) -> None:
     elif stage == "validation":
         if not _substantive_text(project_dir / "drafts" / "validation-plan.md"):
             raise ValueError("Complete drafts/validation-plan.md before approving validation")
+        coverage = coverage_report(project_dir)
+        if not coverage["ok"]:
+            raise ValueError("Resolve strategy coverage issues before approving validation: " + "; ".join(coverage["errors"]))
         for name in ("05_strategy.md", "06_validation-plan.md"):
             if not (project_dir / name).is_file():
                 raise ValueError(f"Run psa render before approving validation; missing {name}")
+        integrity = render_integrity_report(project_dir)
+        if not integrity["ok"]:
+            raise ValueError("Resolve generated artifact integrity issues before approving validation: " + "; ".join(integrity["errors"]))
 
 
 def approve_stage(project_dir: Path, stage: str, approved_by: str, reason: str = "") -> dict[str, Any]:

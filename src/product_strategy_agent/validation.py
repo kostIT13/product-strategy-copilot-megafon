@@ -11,6 +11,7 @@ from typing import Any
 from product_strategy_agent.ledger import CLAIM_TYPES, CONFIDENCE_LEVELS
 from product_strategy_agent.workflow import MODE_PROFILES
 from product_strategy_agent.coverage import coverage_report
+from product_strategy_agent.artifacts import render_integrity_report
 
 REGISTRIES = {
     "sources.jsonl": ("source_id", "S"),
@@ -189,6 +190,7 @@ def validate_project(project_dir: Path) -> list[str]:
 
     coverage = coverage_report(project_dir)
     errors.extend(coverage["errors"])
+    errors.extend(render_integrity_report(project_dir)["errors"])
 
     for line_number, source in enumerate(loaded["sources.jsonl"], 1):
         raw_path = source.get("extracted_text_path")
