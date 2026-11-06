@@ -96,7 +96,11 @@ psa critic-pack demo
 
 Методика и текущая предварительная оценка находятся в [docs/evaluation](docs/evaluation/README.md) и [evals/demo](evals/demo/comparison.md). Самооценка неслепая и не заменяет независимого рецензента.
 
-Для первого запуска нужны Python 3.11+ и `python -m pip install -e .`. CLI не требует Docker, базы данных или внешнего API для локального процесса; `source fetch` — отдельная команда для явного сетевого импорта. Runtime-пакет использует только стандартную библиотеку Python.
+Для первого запуска нужны Python 3.11+ и `python -m pip install -e .`. CLI работает с файловыми проектами; `source fetch` — отдельная команда для явного сетевого импорта. Типизированные настройки из окружения и `.env` описаны в `src/product_strategy_agent/config.py`.
+
+### Docker и PostgreSQL для основной разработки
+
+Скопируйте `.env.example` в `.env` и задайте локальные значения. `.env` исключён из Git. Запустите базу командой `docker compose up -d postgres`; для разового запуска CLI в контейнере используйте `docker compose --profile app run --rm app psa doctor`. Dockerfile собирает пакет, а named volume сохраняет локальные данные PostgreSQL. Сейчас Compose поднимает инфраструктуру; файловый MVP ещё не читает и не записывает данные в эту БД.
 
 ### MCP adapter
 

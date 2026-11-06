@@ -9,6 +9,15 @@ wheels/
 # Virtual environments
 .venv
 
+# Local secrets and runtime overrides
+.env
+.env.*
+!.env.example
+
+# Local database and container state
+postgres-data/
+*.sqlite3
+
 # Local project source material
 projects/*/sources/
 
