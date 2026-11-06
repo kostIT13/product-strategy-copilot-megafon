@@ -22,6 +22,10 @@ from product_strategy_agent.adapters.persistence.postgres.models.source import (
     SourceRecord,
     SourceRevisionRecord,
 )
+from product_strategy_agent.adapters.persistence.postgres.models.workflow import (
+    WorkflowEventRecord,
+    WorkflowStateRecord,
+)
 
 __all__ = [
     "ClaimEvidenceRecord",
@@ -36,4 +40,6 @@ __all__ = [
     "ProjectRecord",
     "SourceRecord",
     "SourceRevisionRecord",
+    "WorkflowEventRecord",
+    "WorkflowStateRecord",
 ]

@@ -24,6 +24,10 @@ from product_strategy_agent.interfaces.cli.capability_commands import (
     add_capability_commands,
     handle_capability_command,
 )
+from product_strategy_agent.interfaces.cli.workflow_commands import (
+    add_workflow_commands,
+    handle_workflow_command,
+)
 from product_strategy_agent.interfaces.cli.source_commands import (
     add_source_commands,
     handle_source_command,
@@ -39,6 +43,7 @@ def build_parser() -> argparse.ArgumentParser:
     add_option_commands(commands)
     add_decision_commands(commands)
     add_capability_commands(commands)
+    add_workflow_commands(commands)
     return parser
 
 
@@ -51,6 +56,7 @@ def main() -> int:
         "option": handle_option_command,
         "decision": handle_decision_command,
         "capability": handle_capability_command,
+        "workflow": handle_workflow_command,
     }
     return handlers[args.resource](args)
 
