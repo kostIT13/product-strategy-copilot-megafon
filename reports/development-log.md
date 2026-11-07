@@ -129,3 +129,7 @@
 ## Первый агентный проход — 7 ноября 2026, 22:54 (Asia/Novosibirsk)
 
 Начат этап 4: отдельные Qwen-compatible HTTP adapter, порты, доменные схемы, версионированный prompt и AgentAnalysisService. Добавлены CLI agent analyze/show и dry-run, PostgreSQL agent_runs и миграция 0010. Ответ проверяется по JSON-схеме и точным цитатам переданных ревизий; результат остаётся черновиком, claims/решения/workflow не изменяются. Все 64 unit-теста, PostgreSQL smoke с MockTransport и Alembic check прошли. Реальный API не вызывался: ключ не настроен. Обновлены конфигурация, Docker-образ, инструкция и планы. Отчёт: reports/2026-11-07-agent-analysis.md. Длительность отдельно не замерялась.
+
+## OpenAI-compatible клиент через LiteLLM — 7 ноября 2026, 23:10 (Asia/Novosibirsk)
+
+По запросу пользователя Qwen отделён от провайдера: OpenAICompatibleProvider на LiteLLM SDK 1.108.2, универсальные LLM_* настройки и необязательный JSON extra body. Сохранены alias для прежних QWEN_* переменных; локальный .env переименован без вывода значений. Удалён прежний QwenChatProvider, обновлены CLI, extra agent, инструкции и планы. Отдельный transport сохраняет лимит ответа, raw usage и обработку gzip; проверены отсутствие retries и безопасные ошибки. Все 70 unit-тестов и агентный PostgreSQL smoke из собранного Docker-образа прошли с MockTransport. Внешняя модель не вызывалась. Отчёт: reports/2026-11-07-litellm-provider.md. Длительность отдельно не замерялась.

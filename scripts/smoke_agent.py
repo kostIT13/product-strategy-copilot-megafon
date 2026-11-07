@@ -7,7 +7,7 @@ import httpx
 from pydantic import SecretStr
 from sqlalchemy import func, select
 from smoke_main import require, rejects
-from product_strategy_agent.adapters.llm.qwen import QwenChatProvider
+from product_strategy_agent.adapters.llm.openai_compatible import OpenAICompatibleProvider
 from product_strategy_agent.adapters.persistence.postgres.database import get_session_factory
 from product_strategy_agent.adapters.persistence.postgres.models import AgentRunRecord, ClaimRecord, WorkflowStateRecord
 from product_strategy_agent.adapters.persistence.postgres.repositories.agent_run_repository import PostgresAgentRunStore
@@ -45,10 +45,10 @@ def main():
             "content": "not JSON" if mode["value"] == "bad_json" else json.dumps(output)}}],
             "usage": {"prompt_tokens": 100, "completion_tokens": 30, "total_tokens": 130}})
 
-    settings = Settings(_env_file=None, qwen_base_url="https://fixture-provider.example/v1",
-                        qwen_api_key=SecretStr("synthetic-key"), qwen_model="fixture-provider")
+    settings = Settings(_env_file=None, llm_base_url="https://fixture-provider.example/v1",
+                        llm_api_key=SecretStr("synthetic-key"), llm_model="fixture-provider")
     service = AgentAnalysisService(ps, ss, SourceSearchService(PostgresSourceSearch()),
-                                  QwenChatProvider(settings, httpx.MockTransport(handle)), runs)
+                                  OpenAICompatibleProvider(settings, httpx.MockTransport(handle)), runs)
     success = service.analyze(key, "Can we export?", "export")
     require(success.status == "succeeded" and success.result["status"] == "answered", "validated draft must persist")
     require(success.result["citations"][0]["source_id"] == str(source.id), "draft must cite the selected source")

@@ -14,7 +14,7 @@ from typing import Any
 from product_strategy_agent import __version__
 from product_strategy_agent.rendering import DRAFTS
 
-KNOWN_CONFIG_NAMES = ("QWEN_API_KEY", "QWEN_BASE_URL", "QWEN_MODEL")
+KNOWN_CONFIG_NAMES = ("LLM_API_KEY", "LLM_BASE_URL", "LLM_MODEL", "QWEN_API_KEY", "QWEN_BASE_URL", "QWEN_MODEL")
 
 
 def doctor_report(base_dir: Path | None = None) -> dict[str, Any]:

@@ -4,7 +4,7 @@
 
 ## Запуск
 
-Локально установите `python -m pip install -e ".[agent]"` (для файловых парсеров также extra documents). Docker-образ включает оба extra. Примените миграции, включая `0010_agent_runs`. В `.env` настройте QWEN_BASE_URL, QWEN_MODEL и QWEN_API_KEY. Имя модели должно точно совпадать с моделью, доступной на выбранном endpoint; значение из плана само по себе не подтверждает доступность модели в API.
+Локально установите `python -m pip install -e ".[agent]"` (для файловых парсеров также extra documents). Docker-образ включает оба extra. Примените миграции, включая `0010_agent_runs`. В `.env` настройте LLM_BASE_URL, LLM_MODEL и LLM_API_KEY. Имя модели должно точно совпадать с моделью, доступной на выбранном endpoint; значение из плана само по себе не подтверждает доступность модели в API.
 
 ```powershell
 psa-main agent analyze demo --question "Что известно об экспорте?" --query "экспорт" --dry-run
@@ -26,12 +26,14 @@ psa-main agent show demo RUN_UUID
 
 ## Провайдер и аудит
 
-Адаптер использует [Qwen-compatible JSON chat completion](https://www.alibabacloud.com/help/en/model-studio/qwen-structured-output) с response_format=json_object и локальной проверкой схемы. QWEN_MAX_OUTPUT_TOKENS по умолчанию 2048, QWEN_TIMEOUT_SECONDS — 60. QWEN_ENABLE_THINKING по умолчанию не передаётся; задавайте его только для модели, поддерживающей этот параметр. Неподдерживаемый JSON mode приводит к failed run, без скрытого fallback.
+`OpenAICompatibleProvider` использует [LiteLLM SDK с OpenAI-совместимым endpoint](https://docs.litellm.ai/docs/providers/openai_compatible): `completion(model="openai/" + LLM_MODEL, api_base=LLM_BASE_URL)`. Префикс выбирает протокол; на сервер уходит исходный model ID, включая namespace и `/`. Qwen — значение LLM_MODEL. Отдельный LiteLLM Proxy не требуется. Сервер должен поддерживать `/chat/completions` и response_format=json_object. Неподдерживаемый JSON mode приводит к failed run без скрытого fallback.
 
-HTTPS обязателен для удалённого endpoint; HTTP разрешён только для localhost/127.0.0.1/::1/host.docker.internal. Redirects, proxy-переменные и автоматические retries не используются. Для локального endpoint ключ может быть пустым. Ответ ограничен 2 MiB; незавершённая генерация отклоняется. HTTP timeout ограничивает операции транспорта, а не задаёт жёсткий process timeout.
+LLM_MAX_OUTPUT_TOKENS по умолчанию 2048, LLM_TIMEOUT_SECONDS — 60. LLM_EXTRA_BODY={} задаёт необязательные параметры сервера, например `{"chat_template_kwargs":{"enable_thinking":false}}`. Клиент не отправляет thinking сам. Extra body не может переопределять model/messages/stream/token limit/response_format. Старые QWEN_BASE_URL/MODEL/API_KEY/MAX_OUTPUT_TOKENS/TIMEOUT_SECONDS читаются как alias; приоритет у LLM_*. QWEN_ENABLE_THINKING удалён: перенесите параметр в поддерживаемый сервером extra body.
+
+HTTPS обязателен для удалённого endpoint; HTTP разрешён только для localhost/127.0.0.1/::1/host.docker.internal. Redirects, proxy-переменные, cache и автоматические retries отключены. Для локального endpoint ключ может быть пустым: SDK получает технический `local-no-key`, который отправляется как Bearer. Ответ ограничен 2 MiB до разбора SDK; незавершённая генерация отклоняется. HTTP timeout ограничивает операции транспорта, а не задаёт жёсткий process timeout. LiteLLM использует локальную карту моделей, загрузка внешней карты цен и журналирование сообщений отключены. Справочная стоимость не подставляется.
 
 В `agent_runs` до HTTP-вызова создаётся checkpoint running, затем succeeded или failed. Сохраняются вопрос, query, модель, prompt version, ссылки/hash/длины выбранных контекстов, проверенный draft либо безопасный error_code. Полные запросы и невалидные сырые ответы в таблицу не записываются. Известные token usage и длительность сохраняются, неизвестная стоимость и usage — null, без подстановки нуля. Succeeded означает прохождение технических проверок, а не утверждение выводов человеком.
 
 После падения процесса run может остаться running: автоматический resume/retry пока не реализован. Повтор analyze создаёт новый запуск и может повторно расходовать токены. Готовые terminal records через сервис не перезаписываются. Show ограничен указанным проектом.
 
-Проверка без платного API: `docker compose --profile app run --build --rm app python scripts/smoke_agent.py`. Она использует настоящий Qwen adapter с httpx.MockTransport и PostgreSQL; это проверка протокола и оркестрации, а не качества реальной модели.
+Проверка без платного API: `docker compose --profile app run --build --rm app python scripts/smoke_agent.py`. Она использует настоящий OpenAICompatibleProvider, LiteLLM SDK с httpx.MockTransport и PostgreSQL; это проверка протокола и оркестрации, а не качества реальной модели.

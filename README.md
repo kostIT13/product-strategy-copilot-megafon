@@ -100,7 +100,7 @@ psa critic-pack demo
 
 ### Docker и PostgreSQL для основной разработки
 
-Первый агентный проход по импортированным источникам: `psa-main agent analyze demo --question "Что известно об экспорте?" --query "экспорт" --dry-run`. [Настройка модели, вызов и аудит черновиков](docs/agent-analysis.md).
+Первый агентный проход по импортированным источникам: `psa-main agent analyze demo --question "Что известно об экспорте?" --query "экспорт" --dry-run`. Клиент использует LiteLLM и OpenAI-совместимый endpoint; Qwen задаётся именем модели через `LLM_MODEL`, адрес и ключ — через `LLM_BASE_URL` и `LLM_API_KEY`. [Настройка модели, вызов и аудит черновиков](docs/agent-analysis.md).
 
 Явная загрузка веб-страницы: `psa-main web import demo https://example.com/`. [HTTP-политика и provenance](docs/web-import.md).
 

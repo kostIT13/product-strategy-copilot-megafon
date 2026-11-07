@@ -4,7 +4,7 @@ from dataclasses import asdict
 import json
 from uuid import UUID
 
-from product_strategy_agent.adapters.llm.qwen import QwenChatProvider
+from product_strategy_agent.adapters.llm.openai_compatible import OpenAICompatibleProvider
 from product_strategy_agent.adapters.persistence.postgres.repositories.agent_run_repository import PostgresAgentRunStore
 from product_strategy_agent.adapters.persistence.postgres.repositories.project_repository import PostgresProjectStore
 from product_strategy_agent.adapters.persistence.postgres.repositories.source_repository import PostgresSourceStore
@@ -18,7 +18,7 @@ from product_strategy_agent.domain.projects.errors import ProjectNotFound
 
 def build_agent_service() -> AgentAnalysisService:
     return AgentAnalysisService(PostgresProjectStore(), PostgresSourceStore(),
-        SourceSearchService(PostgresSourceSearch()), QwenChatProvider(get_settings()), PostgresAgentRunStore())
+        SourceSearchService(PostgresSourceSearch()), OpenAICompatibleProvider(get_settings()), PostgresAgentRunStore())
 
 
 def add_agent_commands(commands: argparse._SubParsersAction):
