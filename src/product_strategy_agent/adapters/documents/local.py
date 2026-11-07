@@ -5,6 +5,7 @@ from pathlib import Path
 from product_strategy_agent.adapters.documents.html import HtmlTextExtractor
 from product_strategy_agent.adapters.documents.docx import DocxTextExtractor
 from product_strategy_agent.adapters.documents.pdf import PdfTextExtractor
+from product_strategy_agent.adapters.documents.xlsx import XlsxTextExtractor
 from product_strategy_agent.domain.sources.documents import DocumentExtractionError, ExtractedDocument
 
 
@@ -20,7 +21,7 @@ class LocalDocumentExtractor:
     def extract(self, path: Path, encoding: str = "utf-8-sig") -> ExtractedDocument:
         path = path.expanduser().resolve(strict=True)
         suffix = path.suffix.lower()
-        if suffix not in self.TEXT_TYPES | self.HTML_TYPES | {".docx", ".pdf"}:
+        if suffix not in self.TEXT_TYPES | self.HTML_TYPES | {".docx", ".pdf", ".xlsx"}:
             raise DocumentExtractionError(f"unsupported document format: {suffix or '(none)'}")
         if not path.is_file():
             raise DocumentExtractionError("document must be a regular file")
@@ -28,6 +29,12 @@ class LocalDocumentExtractor:
             data = stream.read(self.max_bytes + 1)
         if len(data) > self.max_bytes:
             raise DocumentExtractionError(f"document exceeds the {self.max_bytes}-byte limit")
+        if suffix == ".xlsx":
+            text, title, visible, hidden, formulas = XlsxTextExtractor().extract(data)
+            return ExtractedDocument(path.as_uri(), text, title.strip() or path.stem, "dataset", (
+                "XLSX cell values only; no formatting, charts, images or formula evaluation; cached results are not used.",
+                f"Visible sheets: {visible}; excluded hidden sheets: {hidden}; formula cells preserved as text: {formulas}.",
+            ), locator="workbook:visible-sheets")
         if suffix == ".pdf":
             text, title, pages, empty_pages = PdfTextExtractor().extract(data)
             limitations = ["PDF text layer only; no OCR; reading order and table layout may differ from the rendered page."]

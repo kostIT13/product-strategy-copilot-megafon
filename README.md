@@ -100,7 +100,7 @@ psa critic-pack demo
 
 ### Docker и PostgreSQL для основной разработки
 
-Импорт TXT/Markdown/CSV/JSON, статического HTML, DOCX и PDF через `psa-main document import`: [инструкция](docs/document-import.md). Для локального DOCX/PDF установите `python -m pip install -e ".[documents]"`; Docker-образ уже включает парсер.
+Импорт TXT/Markdown/CSV/JSON, статического HTML, DOCX, PDF и XLSX через `psa-main document import`: [инструкция](docs/document-import.md). Для локального DOCX/PDF/XLSX установите `python -m pip install -e ".[documents]"`; Docker-образ уже включает парсер.
 
 Ручное резервирование и восстановление в новую БД: [инструкция backup/restore](docs/postgres-backup.md).
 
@@ -112,7 +112,7 @@ psa critic-pack demo
 
 Проверки конкуренции и транзакций: `docker compose --profile app run --build --rm app python scripts/smoke_integrity.py`. Четыре потока одновременно регистрируют источники и подтверждают один переход; затем проверяются ссылки между проектами и откат родительских/дочерних записей при ошибке. Сценарий оставляет два синтетических проекта с уникальными ключами для аудита. Эти сценарии предназначены для development-БД.
 
-PostgreSQL CLI основной системы предоставляет `psa-main project create --key demo --name "Demo project"` и `psa-main project show demo`. Для добавления уже извлечённого UTF-8 текста в реестр источников используйте `psa-main source add demo .\research.txt --uri https://example.org/research --kind web_page`, для просмотра реестра — `psa-main source list demo`. Один и тот же URI с тем же содержимым регистрируется идемпотентно; изменённый текст сохраняется новой неизменяемой ревизией. На этом шаге CLI принимает именно извлечённый текст; загрузчики URL и парсеры документов будут отдельными адаптерами.
+PostgreSQL CLI основной системы предоставляет `psa-main project create --key demo --name "Demo project"` и `psa-main project show demo`. Для добавления уже извлечённого UTF-8 текста в реестр источников используйте `psa-main source add demo .\research.txt --uri https://example.org/research --kind web_page`, для просмотра реестра — `psa-main source list demo`. Один и тот же URI с тем же содержимым регистрируется идемпотентно; изменённый текст сохраняется новой неизменяемой ревизией. Команда source add принимает уже извлечённый текст; для файловых форматов используйте document import. Загрузка URL остаётся отдельным следующим адаптером.
 
 `psa` остаётся файловым CLI MVP; новая команда `psa-main` работает через PostgreSQL. Dockerfile собирает пакет, а named volume сохраняет локальные данные PostgreSQL.
 
