@@ -3,8 +3,8 @@
 from datetime import datetime
 from uuid import UUID, uuid4
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, UniqueConstraint, func, text
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import Computed, DateTime, ForeignKey, Index, Integer, String, Text, UniqueConstraint, func, text
+from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.types import Uuid
 
@@ -40,6 +40,7 @@ class SourceRevisionRecord(Base):
     __table_args__ = (
         UniqueConstraint("source_id", "revision", name="uq_source_revisions_source_revision"),
         UniqueConstraint("source_id", "content_hash", name="uq_source_revisions_source_hash"),
+        Index("ix_source_revisions_search_vector", "search_vector", postgresql_using="gin"),
     )
 
     id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=uuid4)
@@ -50,6 +51,11 @@ class SourceRevisionRecord(Base):
     title: Mapped[str] = mapped_column(String(500), nullable=False)
     content_hash: Mapped[str] = mapped_column(String(64), nullable=False)
     extracted_text: Mapped[str] = mapped_column(Text, nullable=False)
+    search_vector: Mapped[str] = mapped_column(TSVECTOR, Computed(
+        "setweight(to_tsvector('pg_catalog.simple'::regconfig, coalesce(title, '')), 'A') || "
+        "setweight(to_tsvector('pg_catalog.simple'::regconfig, left(coalesce(extracted_text, ''), 100000)), 'B')",
+        persisted=True,
+    ))
     locator: Mapped[str] = mapped_column(String(500), nullable=False)
     accessed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     limitations: Mapped[list[str]] = mapped_column(

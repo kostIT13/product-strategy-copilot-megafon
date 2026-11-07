@@ -100,6 +100,8 @@ psa critic-pack demo
 
 ### Docker и PostgreSQL для основной разработки
 
+Поиск по актуальным ревизиям источников: `psa-main search demo "retention" --json`. [Описание и ограничения поиска](docs/source-search.md).
+
 Импорт TXT/Markdown/CSV/JSON, статического HTML, DOCX, PDF и XLSX через `psa-main document import`: [инструкция](docs/document-import.md). Для локального DOCX/PDF/XLSX установите `python -m pip install -e ".[documents]"`; Docker-образ уже включает парсер.
 
 Ручное резервирование и восстановление в новую БД: [инструкция backup/restore](docs/postgres-backup.md).
