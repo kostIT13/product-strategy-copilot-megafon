@@ -4,6 +4,7 @@ from functools import lru_cache
 from pathlib import Path
 
 from pydantic import SecretStr
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -26,8 +27,11 @@ class Settings(BaseSettings):
     )
 
     qwen_base_url: str = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
-    qwen_model: str = "qwen3.8:27b"
+    qwen_model: str = Field(default="qwen3.8:27b", min_length=1, max_length=250)
     qwen_api_key: SecretStr = SecretStr("")
+    qwen_max_output_tokens: int = Field(default=2048, gt=0, le=8192)
+    qwen_timeout_seconds: float = Field(default=60, gt=0, le=300)
+    qwen_enable_thinking: bool | None = None
 
 
 @lru_cache(maxsize=1)

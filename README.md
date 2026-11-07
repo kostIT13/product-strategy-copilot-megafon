@@ -100,6 +100,8 @@ psa critic-pack demo
 
 ### Docker и PostgreSQL для основной разработки
 
+Первый агентный проход по импортированным источникам: `psa-main agent analyze demo --question "Что известно об экспорте?" --query "экспорт" --dry-run`. [Настройка модели, вызов и аудит черновиков](docs/agent-analysis.md).
+
 Явная загрузка веб-страницы: `psa-main web import demo https://example.com/`. [HTTP-политика и provenance](docs/web-import.md).
 
 Поиск по актуальным ревизиям источников: `psa-main search demo "retention" --json`. [Описание и ограничения поиска](docs/source-search.md).

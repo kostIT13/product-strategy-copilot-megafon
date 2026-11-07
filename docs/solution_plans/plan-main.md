@@ -446,6 +446,7 @@ CLI `psa usage add` добавляет provider-отчёт или явную о�
 │   │   ├── projects/
 │   │   ├── sources/
 │   │   ├── evidence/
+│   │   ├── agent/                 # схемы черновика и метаданные запуска
 │   │   ├── decisions/
 │   │   └── workflow/
 │   ├── application/              # прикладные сценарии и порты
@@ -455,6 +456,7 @@ CLI `psa usage add` добавляет provider-отчёт или явную о�
 │   │   │   ├── source_search_service.py
 │   │   │   ├── document_import_service.py
 │   │   │   ├── web_import_service.py
+│   │   │   ├── agent_analysis_service.py
 │   │   │   ├── claim_service.py
 │   │   │   ├── option_service.py
 │   │   │   ├── decision_service.py
@@ -462,6 +464,7 @@ CLI `psa usage add` добавляет provider-отчёт или явную о�
 │   │   │   ├── workflow_service.py
 │   │   │   ├── strategy_service.py
 │   │   │   └── usage_service.py
+│   │   ├── prompts/               # версионированные инструкции модели
 │   │   └── ports/                 # интерфейсы репозиториев и внешних клиентов
 │   ├── adapters/
 │   │   ├── persistence/postgres/  # engine, модели и отдельные репозитории

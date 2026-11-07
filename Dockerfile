@@ -13,7 +13,7 @@ COPY src ./src
 COPY alembic.ini ./
 COPY alembic ./alembic
 
-RUN pip install --upgrade pip && pip install ".[documents]"
+RUN pip install --upgrade pip && pip install ".[documents,agent]"
 
 COPY scripts ./scripts
 
