@@ -3,6 +3,7 @@
 from pathlib import Path
 
 from product_strategy_agent.adapters.documents.html import HtmlTextExtractor
+from product_strategy_agent.adapters.documents.docx import DocxTextExtractor
 from product_strategy_agent.domain.sources.documents import DocumentExtractionError, ExtractedDocument
 
 
@@ -18,7 +19,7 @@ class LocalDocumentExtractor:
     def extract(self, path: Path, encoding: str = "utf-8-sig") -> ExtractedDocument:
         path = path.expanduser().resolve(strict=True)
         suffix = path.suffix.lower()
-        if suffix not in self.TEXT_TYPES | self.HTML_TYPES:
+        if suffix not in self.TEXT_TYPES | self.HTML_TYPES | {".docx"}:
             raise DocumentExtractionError(f"unsupported document format: {suffix or '(none)'}")
         if not path.is_file():
             raise DocumentExtractionError("document must be a regular file")
@@ -26,6 +27,14 @@ class LocalDocumentExtractor:
             data = stream.read(self.max_bytes + 1)
         if len(data) > self.max_bytes:
             raise DocumentExtractionError(f"document exceeds the {self.max_bytes}-byte limit")
+        if suffix == ".docx":
+            text, title = DocxTextExtractor().extract(data)
+            if not text.strip() or "\x00" in text:
+                raise DocumentExtractionError("DOCX document has no usable body text")
+            return ExtractedDocument(
+                path.as_uri(), text, title or path.stem, "uploaded_document",
+                ("DOCX body only: table rows flattened; merged cells may repeat; nested tables, headers, footers, images, textboxes and tracked changes are not fully represented.",),
+            )
         try:
             text = data.decode(encoding)
         except (UnicodeError, LookupError) as exc:

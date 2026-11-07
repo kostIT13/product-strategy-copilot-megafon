@@ -16,6 +16,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+documents = ["python-docx>=1.1.2,<2"]
 mcp = ["fastmcp>=4,<5"]
 
 [project.scripts]
