@@ -58,7 +58,8 @@ def main() -> None:
     workflow.start(key, "synthetic-smoke")
 
     def advance():
-        return workflow.advance(key, "synthetic-smoke", "Synthetic integration check")
+        state, _ = workflow.status(key)
+        return workflow.advance(key, "synthetic-smoke", "Synthetic integration check", state.version)
 
     advance()
     advance()

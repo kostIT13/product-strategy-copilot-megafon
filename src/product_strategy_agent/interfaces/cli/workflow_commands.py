@@ -22,6 +22,7 @@ def add_workflow_commands(commands: argparse._SubParsersAction) -> None:
     advance.add_argument("project_key")
     advance.add_argument("--approved-by", required=True, dest="actor")
     advance.add_argument("--reason", required=True)
+    advance.add_argument("--expected-version", required=True, type=int)
     events = actions.add_parser("events", help="Show transition history")
     events.add_argument("project_key")
 
@@ -41,7 +42,7 @@ def handle_workflow_command(args: argparse.Namespace) -> int:
             )
             return 0
         if args.action == "advance":
-            state = service.advance(args.project_key, args.actor, args.reason)
+            state = service.advance(args.project_key, args.actor, args.reason, args.expected_version)
             print(f"Approved; workflow advanced to {state.current_stage} (version {state.version})")
             return 0
         for event in service.history(args.project_key):

@@ -10,6 +10,7 @@ from product_strategy_agent.domain.workflow.entities import (
 from product_strategy_agent.domain.workflow.errors import (
     WorkflowGateBlocked,
     WorkflowNotStarted,
+    WorkflowConflict,
 )
 from product_strategy_agent.domain.projects.errors import ProjectNotFound
 
@@ -41,8 +42,10 @@ class WorkflowService:
         next_stage = WORKFLOW_STAGES[index + 1] if index + 1 < len(WORKFLOW_STAGES) else None
         return state, next_stage
 
-    def advance(self, project_key: str, actor: str, reason: str) -> WorkflowState:
+    def advance(self, project_key: str, actor: str, reason: str, expected_version: int) -> WorkflowState:
         state, next_stage = self.status(project_key)
+        if state.version != expected_version:
+            raise WorkflowConflict("workflow version changed; review the current status before approving")
         actor, reason = actor.strip(), reason.strip()
         if not actor or not reason:
             raise ValueError("workflow approval requires both an approver and a reason")

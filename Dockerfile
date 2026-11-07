@@ -12,9 +12,10 @@ COPY pyproject.toml README.md ./
 COPY src ./src
 COPY alembic.ini ./
 COPY alembic ./alembic
-COPY scripts ./scripts
 
 RUN pip install --upgrade pip && pip install .
+
+COPY scripts ./scripts
 
 USER app
 
