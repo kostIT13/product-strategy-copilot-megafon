@@ -13,7 +13,7 @@ from product_strategy_agent.domain.projects.errors import ProjectNotFound
 def add_document_commands(commands: argparse._SubParsersAction) -> None:
     document = commands.add_parser("document", help="Import local documents")
     actions = document.add_subparsers(dest="action", required=True)
-    importer = actions.add_parser("import", help="Extract a local text, HTML, or DOCX document")
+    importer = actions.add_parser("import", help="Extract a local text, HTML, DOCX, or PDF document")
     importer.add_argument("project_key")
     importer.add_argument("file", type=Path)
     importer.add_argument("--uri")

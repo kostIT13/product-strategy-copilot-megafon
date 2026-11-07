@@ -31,6 +31,7 @@ class SourceService:
         title: str | None = None,
         publisher: str | None = None,
         limitations: tuple[str, ...] = (),
+        locator: str | None = None,
     ) -> SourceRegistration:
         project_key = project_key.strip()
         uri = uri.strip()
@@ -45,6 +46,8 @@ class SourceService:
             raise InvalidSource("source text must not be empty")
 
         canonical_text = extracted_text + "\n"
+        if locator is not None and (not locator.strip() or len(locator) > 500):
+            raise InvalidSource("source locator must be non-empty and at most 500 characters")
         if len(canonical_text.encode("utf-8")) > _MAX_EXTRACTED_BYTES:
             raise InvalidSource("extracted source text exceeds the 10 MiB limit")
         content_hash = hashlib.sha256(canonical_text.encode("utf-8")).hexdigest()
@@ -52,7 +55,7 @@ class SourceService:
             title=(title.strip() if title and title.strip() else uri.rsplit("/", 1)[-1] or uri),
             content_hash=content_hash,
             extracted_text=canonical_text,
-            locator=f"paragraphs:1-{max(1, sum(bool(line.strip()) for line in extracted_text.splitlines()))}",
+            locator=locator.strip() if locator is not None else f"paragraphs:1-{max(1, sum(bool(line.strip()) for line in extracted_text.splitlines()))}",
             accessed_at=datetime.now(timezone.utc),
             limitations=tuple(item.strip() for item in limitations if item.strip()),
         )

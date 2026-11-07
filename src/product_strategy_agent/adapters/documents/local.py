@@ -4,6 +4,7 @@ from pathlib import Path
 
 from product_strategy_agent.adapters.documents.html import HtmlTextExtractor
 from product_strategy_agent.adapters.documents.docx import DocxTextExtractor
+from product_strategy_agent.adapters.documents.pdf import PdfTextExtractor
 from product_strategy_agent.domain.sources.documents import DocumentExtractionError, ExtractedDocument
 
 
@@ -19,7 +20,7 @@ class LocalDocumentExtractor:
     def extract(self, path: Path, encoding: str = "utf-8-sig") -> ExtractedDocument:
         path = path.expanduser().resolve(strict=True)
         suffix = path.suffix.lower()
-        if suffix not in self.TEXT_TYPES | self.HTML_TYPES | {".docx"}:
+        if suffix not in self.TEXT_TYPES | self.HTML_TYPES | {".docx", ".pdf"}:
             raise DocumentExtractionError(f"unsupported document format: {suffix or '(none)'}")
         if not path.is_file():
             raise DocumentExtractionError("document must be a regular file")
@@ -27,6 +28,13 @@ class LocalDocumentExtractor:
             data = stream.read(self.max_bytes + 1)
         if len(data) > self.max_bytes:
             raise DocumentExtractionError(f"document exceeds the {self.max_bytes}-byte limit")
+        if suffix == ".pdf":
+            text, title, pages, empty_pages = PdfTextExtractor().extract(data)
+            limitations = ["PDF text layer only; no OCR; reading order and table layout may differ from the rendered page."]
+            if empty_pages:
+                limitations.append("Pages without extracted text: " + ", ".join(map(str, empty_pages)))
+            return ExtractedDocument(path.as_uri(), text, title or path.stem, "uploaded_document",
+                                     tuple(limitations), locator=f"pages:1-{pages}")
         if suffix == ".docx":
             text, title = DocxTextExtractor().extract(data)
             if not text.strip() or "\x00" in text:

@@ -10,6 +10,7 @@ class ExtractedDocument:
     title: str
     kind: str
     limitations: tuple[str, ...] = ()
+    locator: str | None = None
 
 
 class DocumentExtractionError(ValueError):

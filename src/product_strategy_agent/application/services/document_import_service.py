@@ -20,4 +20,5 @@ class DocumentImportService:
             project_key, uri if uri is not None else document.uri, document.kind,
             document.text, title=title or document.title, publisher=publisher,
             limitations=document.limitations,
+            locator=document.locator,
         )
