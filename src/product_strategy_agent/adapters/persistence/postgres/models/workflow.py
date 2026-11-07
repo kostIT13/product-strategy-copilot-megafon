@@ -15,7 +15,7 @@ _STAGE_CHECK = "stage IN ('intake', 'research_plan', 'source_collection', 'evide
 class WorkflowStateRecord(Base):
     __tablename__ = "workflow_states"
     __table_args__ = (
-        CheckConstraint(_STAGE_CHECK, name="current_stage_allowed"),
+        CheckConstraint(_STAGE_CHECK.replace("stage", "current_stage"), name="current_stage_allowed"),
         CheckConstraint("status IN ('in_progress', 'completed')", name="status_allowed"),
     )
 

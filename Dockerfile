@@ -10,9 +10,11 @@ RUN groupadd --system app && useradd --system --gid app --create-home app
 
 COPY pyproject.toml README.md ./
 COPY src ./src
+COPY alembic.ini ./
+COPY alembic ./alembic
 
 RUN pip install --upgrade pip && pip install .
 
 USER app
 
-CMD ["psa", "--help"]
+CMD ["psa-main", "--help"]
