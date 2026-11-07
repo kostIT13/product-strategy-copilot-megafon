@@ -100,6 +100,8 @@ psa critic-pack demo
 
 ### Docker и PostgreSQL для основной разработки
 
+Импорт TXT/Markdown/CSV/JSON и статического HTML через `psa-main document import`: [инструкция](docs/document-import.md).
+
 Ручное резервирование и восстановление в новую БД: [инструкция backup/restore](docs/postgres-backup.md).
 
 Скопируйте `.env.example` в `.env` и задайте локальные значения. `.env` исключён из Git. Запустите базу командой `docker compose up -d postgres`, затем установите пакет командой `python -m pip install -e .` и примените миграции `alembic upgrade head`. Новые миграции создавайте через `alembic revision --autogenerate -m "описание изменения"` и обязательно просматривайте сгенерированный diff.
