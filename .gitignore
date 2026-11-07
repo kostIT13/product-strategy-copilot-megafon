@@ -16,6 +16,7 @@ wheels/
 
 # Local database and container state
 postgres-data/
+backups/
 *.sqlite3
 
 # Local project source material

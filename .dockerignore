@@ -9,5 +9,6 @@ projects
 reports
 evals
 postgres-data
+backups
 build
 dist

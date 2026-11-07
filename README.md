@@ -100,6 +100,8 @@ psa critic-pack demo
 
 ### Docker и PostgreSQL для основной разработки
 
+Ручное резервирование и восстановление в новую БД: [инструкция backup/restore](docs/postgres-backup.md).
+
 Скопируйте `.env.example` в `.env` и задайте локальные значения. `.env` исключён из Git. Запустите базу командой `docker compose up -d postgres`, затем установите пакет командой `python -m pip install -e .` и примените миграции `alembic upgrade head`. Новые миграции создавайте через `alembic revision --autogenerate -m "описание изменения"` и обязательно просматривайте сгенерированный diff.
 
 Для применения миграций через контейнер используйте `docker compose --profile tools run --build --rm migrate`. Для CLI — `docker compose --profile app run --build --rm app psa-main --help`. Образ включает Alembic и миграции; `.dockerignore` исключает секреты и локальные данные из контекста сборки. Локальный Python подключается к `localhost`, контейнеры — к сервису `postgres`; Compose подставляет внутренний URL автоматически. Порт БД опубликован только на `127.0.0.1`.
