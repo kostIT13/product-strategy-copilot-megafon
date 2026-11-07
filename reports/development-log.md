@@ -89,3 +89,7 @@
 ## Продолжение 7 ноября 2026, 18:55 (Asia/Novosibirsk)
 
 Подготовлен контейнерный запуск миграций: Dockerfile включает Alembic, добавлен Compose-сервис migrate, .dockerignore исключает секреты и локальные данные. Шаблон .env настроен для localhost, Compose использует внутренний hostname postgres; порт опубликован на loopback. Исправлено ORM-ограничение workflow_states: current_stage вместо несуществующей stage. Compose config, генерация PostgreSQL DDL и offline Alembic SQL прошли. Docker Engine недоступен, сборка и подключение к живой БД не выполнялись. Длительность блока отдельно не замерялась.
+
+## PostgreSQL integration smoke — 7 ноября 2026, 19:07 (Asia/Novosibirsk)
+
+Запущены Docker Desktop и PostgreSQL 17; образ приложения собран, миграции 0001–0007 применены к development-БД. Добавлен scripts/smoke_main.py и запуск в README. Сквозной сценарий выявил отсутствующий импорт UUID в claim-репозитории; исправлено. Контрольный сценарий из пересобранного образа прошёл до completed с восемью событиями, alembic check не обнаружил новых операций. Отчёт: reports/2026-11-07-postgres-smoke.md. PostgreSQL и синтетические данные оставлены для просмотра. Длительность отдельно не замерялась.

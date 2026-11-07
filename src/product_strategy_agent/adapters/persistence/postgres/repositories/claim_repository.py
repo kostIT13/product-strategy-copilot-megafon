@@ -1,5 +1,7 @@
 """SQLAlchemy implementation of the claim persistence port."""
 
+from uuid import UUID
+
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 

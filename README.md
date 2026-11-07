@@ -104,6 +104,8 @@ psa critic-pack demo
 
 Для применения миграций через контейнер используйте `docker compose --profile tools run --build --rm migrate`. Для CLI — `docker compose --profile app run --build --rm app psa-main --help`. Образ включает Alembic и миграции; `.dockerignore` исключает секреты и локальные данные из контекста сборки. Локальный Python подключается к `localhost`, контейнеры — к сервису `postgres`; Compose подставляет внутренний URL автоматически. Порт БД опубликован только на `127.0.0.1`.
 
+После применения миграций сквозной сценарий запускается командой `docker compose --profile app run --build --rm app python scripts/smoke_main.py`. Он создаёт отдельный синтетический проект с уникальным ключом, проверяет повторную регистрацию источника, сохранность ревизий, отказ при неверной цитате и блокировки workflow, затем проходит до `completed`. Проект остаётся в development-БД для просмотра; ключ выводится в начале и в итоговом JSON.
+
 PostgreSQL CLI основной системы предоставляет `psa-main project create --key demo --name "Demo project"` и `psa-main project show demo`. Для добавления уже извлечённого UTF-8 текста в реестр источников используйте `psa-main source add demo .\research.txt --uri https://example.org/research --kind web_page`, для просмотра реестра — `psa-main source list demo`. Один и тот же URI с тем же содержимым регистрируется идемпотентно; изменённый текст сохраняется новой неизменяемой ревизией. На этом шаге CLI принимает именно извлечённый текст; загрузчики URL и парсеры документов будут отдельными адаптерами.
 
 `psa` остаётся файловым CLI MVP; новая команда `psa-main` работает через PostgreSQL. Dockerfile собирает пакет, а named volume сохраняет локальные данные PostgreSQL.
