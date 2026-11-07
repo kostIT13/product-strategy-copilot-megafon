@@ -1,6 +1,6 @@
 """Source records and immutable extracted-text revisions."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from uuid import UUID
 
@@ -13,6 +13,7 @@ class SourceRevisionDraft:
     locator: str
     accessed_at: datetime
     limitations: tuple[str, ...] = ()
+    provenance: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass(frozen=True, slots=True)
@@ -26,6 +27,7 @@ class SourceRevision:
     locator: str
     accessed_at: datetime
     limitations: tuple[str, ...]
+    provenance: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass(frozen=True, slots=True)

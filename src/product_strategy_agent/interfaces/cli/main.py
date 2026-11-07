@@ -1,6 +1,7 @@
 """Entry point for the PostgreSQL-backed main application CLI."""
 
 import argparse
+from product_strategy_agent.interfaces.cli.web_commands import add_web_commands, handle_web_command
 from product_strategy_agent.interfaces.cli.search_commands import add_search_commands, handle_search_command
 from product_strategy_agent.interfaces.cli.document_commands import add_document_commands, handle_document_command
 from collections.abc import Callable
@@ -48,6 +49,7 @@ def build_parser() -> argparse.ArgumentParser:
     add_workflow_commands(commands)
     add_document_commands(commands)
     add_search_commands(commands)
+    add_web_commands(commands)
     return parser
 
 
@@ -63,6 +65,7 @@ def main() -> int:
         "workflow": handle_workflow_command,
         "document": handle_document_command,
         "search": handle_search_command,
+        "web": handle_web_command,
     }
     return handlers[args.resource](args)
 

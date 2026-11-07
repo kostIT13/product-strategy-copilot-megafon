@@ -121,3 +121,7 @@
 ## Полнотекстовый поиск PostgreSQL — 7 ноября 2026, 20:20 (Asia/Novosibirsk)
 
 Добавлены отдельный SourceSearchService/port, PostgreSQL search adapter, revision-aware результаты и CLI search с JSON. Миграция 0008 применена к существующей development-БД: generated tsvector и GIN по названию и первым 100000 символам текста. Выдача ограничена проектом и последней ревизией. Все 31 unit-тест, PostgreSQL smoke поиска и alembic check прошли из собранного образа. Проверены ranking, фразы, кириллица, изоляция, исключение старых версий, backfill и CLI JSON. Инструкция docs/source-search.md, отчёт reports/2026-11-07-source-search.md; длительность отдельно не замерялась.
+
+## HTTP-импорт и provenance — 7 ноября 2026, 20:34 (Asia/Novosibirsk)
+
+Добавлены отдельные public URL policy, pinned HTTP/TLS transport, fetch/extract adapters, WebImportService и CLI web import. Миграция 0009 добавила provenance ревизии (requested/final URL, media type, charset, время и hash тела). DNS/redirect проверки исключают приватные и смешанные адреса; ввод/ответ ограничены, compressed/truncated ответы отклоняются. Все 47 unit-тестов, web smoke с реальным HTTPS example.com, регрессия основной цепочки и alembic check прошли. Документация и roadmap обновлены; отчёт reports/2026-11-07-web-import.md. Длительность отдельно не замерялась.

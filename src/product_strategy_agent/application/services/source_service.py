@@ -32,6 +32,7 @@ class SourceService:
         publisher: str | None = None,
         limitations: tuple[str, ...] = (),
         locator: str | None = None,
+        provenance: dict[str, str] | None = None,
     ) -> SourceRegistration:
         project_key = project_key.strip()
         uri = uri.strip()
@@ -51,13 +52,17 @@ class SourceService:
         if len(canonical_text.encode("utf-8")) > _MAX_EXTRACTED_BYTES:
             raise InvalidSource("extracted source text exceeds the 10 MiB limit")
         content_hash = hashlib.sha256(canonical_text.encode("utf-8")).hexdigest()
+        source_title = title.strip() if title and title.strip() else uri.rsplit("/", 1)[-1] or uri
+        if len(source_title) > 500 or "\x00" in source_title:
+            raise InvalidSource("source title must be at most 500 characters without NUL")
         revision = SourceRevisionDraft(
-            title=(title.strip() if title and title.strip() else uri.rsplit("/", 1)[-1] or uri),
+            title=source_title,
             content_hash=content_hash,
             extracted_text=canonical_text,
             locator=locator.strip() if locator is not None else f"paragraphs:1-{max(1, sum(bool(line.strip()) for line in extracted_text.splitlines()))}",
             accessed_at=datetime.now(timezone.utc),
             limitations=tuple(item.strip() for item in limitations if item.strip()),
+            provenance=dict(provenance or {}),
         )
         return self._store.register_revision(
             project_key=project_key,

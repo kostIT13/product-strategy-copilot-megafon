@@ -83,6 +83,7 @@ class PostgresSourceStore:
                     locator=revision.locator,
                     accessed_at=revision.accessed_at,
                     limitations=list(revision.limitations),
+                    provenance=dict(revision.provenance),
                 )
                 session.add(revision_record)
                 session.flush()
@@ -108,6 +109,7 @@ class PostgresSourceStore:
                         locator=revision_record.locator,
                         accessed_at=revision_record.accessed_at,
                         limitations=tuple(revision_record.limitations),
+                        provenance=dict(revision_record.provenance),
                     ),
                 ),
                 created_revision=created_revision,
@@ -146,6 +148,7 @@ class PostgresSourceStore:
                         locator=revision_record.locator,
                         accessed_at=revision_record.accessed_at,
                         limitations=tuple(revision_record.limitations),
+                        provenance=dict(revision_record.provenance),
                     ),
                 )
             return list(latest.values())
@@ -183,5 +186,6 @@ class PostgresSourceStore:
                     locator=revision_record.locator,
                     accessed_at=revision_record.accessed_at,
                     limitations=tuple(revision_record.limitations),
+                    provenance=dict(revision_record.provenance),
                 ),
             )
