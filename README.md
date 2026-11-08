@@ -177,4 +177,6 @@ MCP integration is optional. Install with `python -m pip install -e ".[mcp]"`, l
 
 Явное человеческое принятие конкретной стратегии для внутреннего review и экспорт Markdown/JSON с SHA-256: [docs/strategy-approval.md](docs/strategy-approval.md). Нужна миграция `0017_strategy_approvals`; это не разрешение публикации или клиентских обещаний.
 
+Проверка формулировок IDE-агента по доступным возможностям и доказательствам без модели: [docs/promise-check.md](docs/promise-check.md). Команда `psa-main promise check PROJECT --input promises.json` возвращает blockers или пакет для человеческого review; публикацию не разрешает.
+
 Методики и чек-листы для ручной проверки сценария: [knowledge/README.md](knowledge/README.md). Источники, версии и ограничения указаны в каталоге; загрузка этих материалов работающим агентом ещё не подключена.

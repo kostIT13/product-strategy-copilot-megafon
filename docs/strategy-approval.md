@@ -52,7 +52,7 @@ psa-main strategy export PROJECT STRATEGY_RUN_UUID
 
 ## MCP и проверки
 
-Main FastMCP содержит 18 tools. Новые: `psa_main_preview_strategy_approval`, `psa_main_approve_strategy`, `psa_main_get_strategy_approval`, `psa_main_export_strategy`. Только approve записывает receipt, он идемпотентен. Остальные read-only, все четыре без модели. Используется тот же application service, что в CLI.
+Main FastMCP содержит 19 tools с учётом отдельного promise preflight. Новые: `psa_main_preview_strategy_approval`, `psa_main_approve_strategy`, `psa_main_get_strategy_approval`, `psa_main_export_strategy`. Только approve записывает receipt, он идемпотентен. Остальные read-only, все четыре без модели. Используется тот же application service, что в CLI.
 
 ```powershell
 python -m unittest discover -s tests

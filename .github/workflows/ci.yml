@@ -147,10 +147,10 @@ jobs:
       - run: uv sync --frozen --extra agent --extra documents --extra mcp --group dev
       - run: uv run --frozen --no-sync alembic upgrade head
       - run: uv run --frozen --no-sync alembic check
-      - name: Exercise PostgreSQL services, fixture pipelines and internal strategy approval
+      - name: Exercise PostgreSQL services, fixture pipelines, strategy approval and promise preflight
         shell: bash
         run: |
           set -euo pipefail
-          for scenario in main agent agent_pipeline evidence_extraction agent_critic strategy_options strategy_selection strategy_plan main_mcp; do
+          for scenario in main agent agent_pipeline evidence_extraction agent_critic strategy_options strategy_selection strategy_plan promises main_mcp; do
             uv run --frozen --no-sync python "scripts/smoke_${scenario}.py"
           done

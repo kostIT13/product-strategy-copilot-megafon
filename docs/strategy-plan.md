@@ -17,7 +17,7 @@ psa-main pipeline resume demo PIPELINE_UUID --expected-version 2
 
 Resume из prepared отправляет этот контекст настроенному LLM и может расходовать токены. Snapshot содержит self-reported owner и review notes: их тоже увидит провайдер. Лимит/extra body берутся из обычных LLM_* настроек, не повышаются автоматически. Неизвестный внешний исход не повторяется; успешный run восстанавливается без второй генерации.
 
-Main MCP добавляет `psa_main_prepare_strategy` и `psa_main_start_strategy`; теперь 18 tools с учётом отдельного approval/export среза. Они используют тот же core; get/resume остаются общими. Generic agent analyze/pipeline start с fresh task не принимает strategy_plan без selection.
+Main MCP добавляет `psa_main_prepare_strategy` и `psa_main_start_strategy`; теперь 19 tools с учётом отдельных approval/export и promise preflight срезов. Они используют тот же core; get/resume остаются общими. Generic agent analyze/pipeline start с fresh task не принимает strategy_plan без selection.
 
 ## Состав черновика
 

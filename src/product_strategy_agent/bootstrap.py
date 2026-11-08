@@ -21,6 +21,8 @@ from product_strategy_agent.application.services.strategy_plan_context import St
 from product_strategy_agent.application.services.strategy_plan_service import StrategyPlanService
 from product_strategy_agent.application.services.strategy_approval_service import StrategyApprovalService
 from product_strategy_agent.adapters.persistence.postgres.repositories.strategy_approval_repository import PostgresStrategyApprovalStore
+from product_strategy_agent.application.services.promise_check_service import PromiseCheckService
+from product_strategy_agent.adapters.persistence.postgres.repositories.promise_evidence_reader import PostgresPromiseEvidenceReader
 
 
 @dataclass(frozen=True)
@@ -32,6 +34,7 @@ class MainServices:
     selection: StrategySelectionService | None = None
     strategy: StrategyPlanService | None = None
     strategy_approval: StrategyApprovalService | None = None
+    promises: PromiseCheckService | None = None
 
 
 def build_main_services() -> MainServices:
@@ -42,7 +45,13 @@ def build_main_services() -> MainServices:
     context = StrategyPlanContext(agent, selection, PostgresStrategyInputStore(), PostgresDecisionStore(), PostgresOptionStore())
     pipeline = AgentPipelineService(agent, PostgresAgentPipelineStore(), context)
     return MainServices(agent, search, pipeline, AgentCriticService(agent, pipeline),
-                        selection, StrategyPlanService(context, pipeline), StrategyApprovalService(context, PostgresStrategyApprovalStore()))
+                        selection, StrategyPlanService(context, pipeline), StrategyApprovalService(context, PostgresStrategyApprovalStore()),
+                        build_promise_service())
+
+
+def build_promise_service() -> PromiseCheckService:
+    """Native IDE/CLI preflight needs only the database reader, never an LLM provider."""
+    return PromiseCheckService(PostgresPromiseEvidenceReader())
 
 
 def build_agent_service() -> AgentAnalysisService:

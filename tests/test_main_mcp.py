@@ -33,7 +33,8 @@ class MainMCPTests(unittest.IsolatedAsyncioTestCase):
                                      "psa_main_get_pipeline", "psa_main_resume_pipeline",
                                      "psa_main_prepare_critic", "psa_main_start_critic", "psa_main_preview_selection",
                                      "psa_main_record_selection", "psa_main_get_selection", "psa_main_prepare_strategy", "psa_main_start_strategy",
-                                     "psa_main_preview_strategy_approval", "psa_main_approve_strategy", "psa_main_get_strategy_approval", "psa_main_export_strategy"})
+                                     "psa_main_preview_strategy_approval", "psa_main_approve_strategy", "psa_main_get_strategy_approval", "psa_main_export_strategy",
+                                     "psa_main_check_promises"})
         for name, tool in tools.items():
             writes = name in {"psa_main_analyze", "psa_main_start_pipeline", "psa_main_resume_pipeline", "psa_main_start_critic", "psa_main_record_selection", "psa_main_start_strategy", "psa_main_approve_strategy"}
             self.assertEqual(tool.annotations.read_only_hint, not writes)

@@ -1,6 +1,8 @@
 """CLI commands for claims and citation-checked evidence."""
 
 import argparse
+from dataclasses import asdict
+import json
 from uuid import UUID
 
 from product_strategy_agent.adapters.persistence.postgres.repositories.claim_repository import (
@@ -16,6 +18,7 @@ from product_strategy_agent.application.services.claim_service import ClaimServi
 from product_strategy_agent.domain.evidence.entities import EvidenceReference
 from product_strategy_agent.domain.evidence.errors import ClaimAlreadyExists, InvalidClaim
 from product_strategy_agent.domain.projects.errors import ProjectNotFound
+from product_strategy_agent.interfaces.payloads import json_payload
 
 
 def add_claim_commands(commands: argparse._SubParsersAction) -> None:
@@ -41,6 +44,7 @@ def add_claim_commands(commands: argparse._SubParsersAction) -> None:
 
     listing = actions.add_parser("list", help="List project claims")
     listing.add_argument("project_key")
+    listing.add_argument("--json", action="store_true", help="Machine-readable claim UUIDs, types and evidence references")
 
 
 def handle_claim_command(args: argparse.Namespace) -> int:
@@ -52,6 +56,9 @@ def handle_claim_command(args: argparse.Namespace) -> int:
     try:
         if args.action == "list":
             claims = service.list_for_project(args.project_key)
+            if getattr(args, "json", False):
+                print(json.dumps(json_payload([asdict(claim) for claim in claims]), ensure_ascii=False, indent=2))
+                return 0
             for claim in claims:
                 print(
                     f"{claim.key}  [{claim.claim_type}/{claim.confidence}]  "
