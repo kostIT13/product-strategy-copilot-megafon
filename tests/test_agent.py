@@ -150,6 +150,14 @@ class AgentAnalysisTests(unittest.TestCase):
         self.assertEqual(error.exception.code, "provider_http_401")
         self.assertNotIn("synthetic-secret", str(error.exception))
 
+    def test_reserved_attempt_cannot_execute_a_different_request(self):
+        prepared = self.service.prepare("demo", "Original?", "export")
+        run = self.service.new_run(prepared)
+        self.runs.create(run)
+        with self.assertRaises(ValueError):
+            self.service.execute_reserved(replace(prepared, question="Changed?"), run)
+        self.provider.generate.assert_not_called()
+
     def test_run_lookup_is_project_scoped(self):
         self.reply()
         run = self.service.analyze("demo", "Question?", "export")

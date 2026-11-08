@@ -199,3 +199,12 @@ class OpenAICompatibleProviderTests(unittest.TestCase):
         self.assertEqual(reply.content, '{"draft":true}')
         self.assertEqual(reply.usage["total_tokens"], 14)
         self.assertNotIn("synthetic-key", str([str(item.message) for item in emitted]))
+
+    def test_checkpoint_fingerprint_tracks_request_settings_and_allows_key_rotation(self):
+        original = OpenAICompatibleProvider(settings()).configuration_hash
+        rotated = OpenAICompatibleProvider(settings(llm_api_key=SecretStr("rotated-key"), llm_timeout_seconds=5))
+        self.assertEqual(original, rotated.configuration_hash)
+        for changes in ({"llm_model": "other"}, {"llm_base_url": "https://other.example/v1"},
+                        {"llm_max_output_tokens": 1000}, {"llm_extra_body": {"enable_thinking": False}}):
+            with self.subTest(changes=changes):
+                self.assertNotEqual(original, OpenAICompatibleProvider(settings(**changes)).configuration_hash)

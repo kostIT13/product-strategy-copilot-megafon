@@ -1,4 +1,5 @@
 """ORM models registered with SQLAlchemy metadata."""
+from .agent_pipeline import AgentPipelineRecord
 from product_strategy_agent.adapters.persistence.postgres.models.agent_run import AgentRunRecord
 
 from product_strategy_agent.adapters.persistence.postgres.models.project import ProjectRecord
@@ -29,6 +30,7 @@ from product_strategy_agent.adapters.persistence.postgres.models.workflow import
 )
 
 __all__ = [
+    "AgentPipelineRecord",
     "AgentRunRecord",
     "ClaimEvidenceRecord",
     "ClaimRecord",

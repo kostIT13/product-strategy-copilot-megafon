@@ -1,0 +1,13 @@
+"""Atomic reservation binds the paid attempt before any external call."""
+from typing import Protocol
+from uuid import UUID
+from product_strategy_agent.domain.agent.models import AgentRun
+from product_strategy_agent.domain.agent.pipeline import AgentPipeline
+
+
+class AgentPipelineStore(Protocol):
+    def create(self, pipeline: AgentPipeline) -> AgentPipeline: ...
+    def get(self, project_id: UUID, pipeline_id: UUID) -> AgentPipeline | None: ...
+    def reserve(self, project_id: UUID, pipeline_id: UUID, expected_version: int, run: AgentRun) -> AgentPipeline: ...
+    def advance(self, project_id: UUID, pipeline_id: UUID, expected_version: int,
+                status: str, *, result: dict | None = None) -> AgentPipeline: ...

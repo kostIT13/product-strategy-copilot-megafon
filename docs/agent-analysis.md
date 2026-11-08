@@ -38,4 +38,6 @@ HTTPS обязателен для удалённого endpoint; HTTP разре
 
 После падения процесса run может остаться running: автоматический resume/retry пока не реализован. Повтор analyze создаёт новый запуск и может повторно расходовать токены. Готовые terminal records через сервис не перезаписываются. Show ограничен указанным проектом.
 
+Для checkpointed запуска используйте [pipeline start/resume](agent-pipeline.md): он закрепляет исходный запрос и связывает attempt до вызова провайдера. Сохранённый успешный результат восстанавливается без повторной генерации; неизвестный исход внешнего запроса не повторяется автоматически. Ограничение standalone analyze выше сохраняется.
+
 Проверка без платного API: `docker compose --profile app run --build --rm app python scripts/smoke_agent.py`. Она использует настоящий OpenAICompatibleProvider, LiteLLM SDK с httpx.MockTransport и PostgreSQL; это проверка протокола и оркестрации, а не качества реальной модели.

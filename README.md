@@ -106,6 +106,8 @@ psa critic-pack demo
 
 При ошибке модельного API смотрите сохранённый `error_code` запуска: [диагностика провайдера](docs/model-provider-diagnostics.md). Имя модели должно точно совпадать с ID настроенного сервера.
 
+Для выполнения с контрольными точками: `psa-main pipeline start demo --question "Что известно об экспорте?" --query "экспорт"`, затем `pipeline resume ... --expected-version N`. [Состояния, восстановление и границы повторных вызовов](docs/agent-pipeline.md).
+
 Явная загрузка веб-страницы: `psa-main web import demo https://example.com/`. [HTTP-политика и provenance](docs/web-import.md).
 
 Поиск по актуальным ревизиям источников: `psa-main search demo "retention" --json`. [Описание и ограничения поиска](docs/source-search.md).

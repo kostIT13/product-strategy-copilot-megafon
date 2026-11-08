@@ -1,5 +1,7 @@
 """Single-attempt OpenAI-compatible JSON chat completion over HTTP."""
 import time
+import json
+import hashlib
 import os
 import logging
 from urllib.parse import urlsplit
@@ -12,6 +14,10 @@ class OpenAICompatibleProvider:
     def __init__(self, settings: Settings, transport=None):
         self.settings, self.transport = settings, transport
         self.model = settings.llm_model
+        self.configuration_hash = hashlib.sha256(json.dumps({
+            "base_url": settings.llm_base_url.rstrip("/"), "model": self.model,
+            "max_tokens": settings.llm_max_output_tokens, "extra_body": settings.llm_extra_body,
+        }, sort_keys=True).encode("utf-8")).hexdigest()
 
     def generate(self, messages: list[dict[str, str]]) -> ModelReply:
         try:

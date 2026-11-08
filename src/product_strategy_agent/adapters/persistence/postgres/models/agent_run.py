@@ -1,7 +1,7 @@
 """Persistent agent execution checkpoints and validated drafts."""
 from datetime import datetime
 from uuid import UUID
-from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Index, String, Text, func
+from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Index, String, Text, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.types import Uuid
@@ -13,6 +13,7 @@ class AgentRunRecord(Base):
     __table_args__ = (
         CheckConstraint("status IN ('running', 'succeeded', 'failed')", name="status_allowed"),
         Index("ix_agent_runs_project_created", "project_id", "created_at"),
+        UniqueConstraint("id", "project_id", name="uq_agent_runs_id_project"),
     )
     id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True)
     project_id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)

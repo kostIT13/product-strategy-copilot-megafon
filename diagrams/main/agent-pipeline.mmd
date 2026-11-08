@@ -1,0 +1,11 @@
+stateDiagram-v2
+    direction LR
+    [*] --> prepared: start pins evidence / version 0
+    prepared --> draft_running: atomic attempt reservation / version 1
+    draft_running --> draft_ready: succeeded run / version 2
+    draft_running --> failed: failed run and safe error code
+    draft_running --> draft_running: unknown outcome / no provider replay
+    draft_ready --> completed: local schema and citation checks / version 3
+    completed --> completed: resume returns stored review packet
+    completed --> [*]: human review remains required
+    failed --> [*]: no automatic retry
