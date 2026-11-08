@@ -19,6 +19,40 @@ env:
   LITELLM_LOCAL_MODEL_COST_MAP: 'True'
 
 jobs:
+  docs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: '0.11.30'
+          python-version: '3.12'
+          enable-cache: true
+      - run: uv sync --frozen --group dev
+      - run: uv run --frozen --no-sync python -m scripts.ci.docs
+
+  secrets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: '0.11.30'
+          python-version: '3.12'
+          enable-cache: true
+      - run: uv sync --frozen --no-default-groups
+      - name: Pull pinned official Gitleaks CLI image
+        run: docker pull ghcr.io/gitleaks/gitleaks@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f
+      - name: Check history, safe working tree and generated negative probes
+        run: uv run --frozen --no-sync python -m scripts.ci.secrets
+
   unit:
     name: unit (${{ matrix.os }}, Python ${{ matrix.python }})
     runs-on: ${{ matrix.os }}

@@ -2041,6 +2041,7 @@ mcp = [
 [package.dev-dependencies]
 dev = [
     { name = "build" },
+    { name = "markdown-it-py" },
     { name = "ruff" },
 ]
 
@@ -2063,6 +2064,7 @@ provides-extras = ["agent", "documents", "mcp"]
 [package.metadata.requires-dev]
 dev = [
     { name = "build", specifier = ">=1.2,<2" },
+    { name = "markdown-it-py", specifier = ">=3,<5" },
     { name = "ruff", specifier = ">=0.14,<1" },
 ]
 

@@ -1,0 +1,44 @@
+name: demo
+
+on:
+  push:
+    branches: [main, 'feature/**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: demo-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  LLM_API_KEY: ''
+  LLM_BASE_URL: https://provider.invalid/v1
+
+jobs:
+  local-artifacts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: '0.11.30'
+          python-version: '3.12'
+          enable-cache: true
+      - run: uv sync --frozen --no-default-groups
+      - name: Validate, verify, resume and rebuild synthetic cases in temporary copies
+        run: uv run --frozen --no-sync python -m scripts.ci.demo --report demo-report.json
+      - name: Summarize demo checks
+        if: always()
+        shell: bash
+        run: |
+          if [ -f demo-report.json ]; then
+            printf '### Local synthetic demo\n\n```json\n' >> "$GITHUB_STEP_SUMMARY"
+            cat demo-report.json >> "$GITHUB_STEP_SUMMARY"
+            printf '\n```\n' >> "$GITHUB_STEP_SUMMARY"
+          fi
