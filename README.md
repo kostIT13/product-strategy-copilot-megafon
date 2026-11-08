@@ -4,6 +4,8 @@
 
 GitHub CI проверяет frozen-установку по `uv.lock`, unittest/Ruff, PostgreSQL/FastMCP smoke, локальные Markdown-ссылки и секреты в истории. Отдельный demo workflow воспроизводит синтетические артефакты без внешней модели. Состав матрицы и локальный повтор — [docs/continuous-integration.md](docs/continuous-integration.md).
 
+Сборка проверяемого ZIP, wheel/sdist и Docker smoke описана в [docs/distribution.md](docs/distribution.md). Теговый release workflow готовит draft после CI и проверки установки.
+
 ## CLI
 
 Требуется Python 3.11 или новее. Из корня репозитория установите пакет в editable-режиме и используйте команду `psa`:
@@ -168,3 +170,13 @@ MCP integration is optional. Install with `python -m pip install -e ".[mcp]"`, l
 - [Приёмка FastMCP-хостов и CLI/MCP parity](docs/mcp-host-acceptance.md).
 - [Нейтральный A/B-пакет для независимой оценки](evals/demo/blind-review/reviewer-brief.md); ключ владельца не передавать рецензенту.
 - [Шаблон записи равноусловного запуска M6](evals/demo/blind-review/run-record-template.md).
+
+Явное сохранение проверенных AI-вариантов и человеческого решения, без автоматических claims/approvals: [docs/strategy-selection.md](docs/strategy-selection.md).
+
+Продуктовая стратегия, внутренние коммуникационные гипотезы и эксперименты по сохранённому решению: [docs/strategy-plan.md](docs/strategy-plan.md).
+
+Явное человеческое принятие конкретной стратегии для внутреннего review и экспорт Markdown/JSON с SHA-256: [docs/strategy-approval.md](docs/strategy-approval.md). Нужна миграция `0017_strategy_approvals`; это не разрешение публикации или клиентских обещаний.
+
+Проверка формулировок IDE-агента по доступным возможностям и доказательствам без модели: [docs/promise-check.md](docs/promise-check.md). Команда `psa-main promise check PROJECT --input promises.json` возвращает blockers или пакет для человеческого review; публикацию не разрешает.
+
+Методики и чек-листы для ручной проверки сценария: [knowledge/README.md](knowledge/README.md). Источники, версии и ограничения указаны в каталоге; загрузка этих материалов работающим агентом ещё не подключена.

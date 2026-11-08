@@ -13,7 +13,8 @@ from product_strategy_agent.adapters.persistence.postgres.base import Base
 
 class OptionRecord(Base):
     __tablename__ = "options"
-    __table_args__ = (UniqueConstraint("project_id", "key", name="uq_options_project_key"),)
+    __table_args__ = (UniqueConstraint("project_id", "key", name="uq_options_project_key"),
+                      UniqueConstraint("id", "project_id", name="uq_options_id_project"))
 
     id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=uuid4)
     project_id: Mapped[UUID] = mapped_column(

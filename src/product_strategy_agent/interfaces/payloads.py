@@ -24,6 +24,10 @@ def analysis_preview(prepared: PreparedAnalysis) -> dict:
                          for context in prepared.contexts]}
     if prepared.input_run_id is not None:
         payload.update(input_run_id=str(prepared.input_run_id), input_hash=prepared.input_hash)
+    if prepared.task == "strategy_plan":
+        payload.update(decision_id=prepared.review_target["decision"]["id"],
+                       selected_option_id=prepared.review_target["decision"]["selected_option_id"],
+                       communication_internal_only=True, publication_approved=False)
     return payload
 
 

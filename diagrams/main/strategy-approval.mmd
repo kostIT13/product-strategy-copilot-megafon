@@ -1,0 +1,14 @@
+flowchart TD
+    IDE[IDE agent follows instructions] --> P[Read strategy and linked critic preview via CLI or MCP]
+    P --> G{Successful plan, matching critic, current sources?}
+    G -->|No| B[Block approval]
+    G -->|Yes| H[Human reviews hypotheses, gaps and critic concerns]
+    H --> C[Explicit command with owner, resolution, scope and preview hash]
+    C --> T[PostgreSQL transaction locks and rechecks pinned inputs]
+    T -->|Changed| B
+    T -->|Unchanged| R[One immutable internal approval receipt]
+    R --> REPLAY[Same command returns same receipt]
+    R --> E[Export rechecks current inputs]
+    E -->|Changed or stale| X[Keep historical receipt; block export]
+    E -->|Unchanged| F[UTF-8 Markdown and JSON contents with SHA-256]
+    F --> N[Internal review only; no publication or customer promises]

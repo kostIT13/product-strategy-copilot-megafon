@@ -1,6 +1,8 @@
 """CLI commands for product capabilities."""
 
 import argparse
+from dataclasses import asdict
+import json
 from uuid import UUID
 
 from product_strategy_agent.adapters.persistence.postgres.repositories.capability_repository import (
@@ -11,6 +13,7 @@ from product_strategy_agent.adapters.persistence.postgres.repositories.project_r
 from product_strategy_agent.application.services.capability_service import CapabilityService
 from product_strategy_agent.domain.capabilities.errors import CapabilityAlreadyExists, InvalidCapability
 from product_strategy_agent.domain.projects.errors import ProjectNotFound
+from product_strategy_agent.interfaces.payloads import json_payload
 
 
 def add_capability_commands(commands: argparse._SubParsersAction) -> None:
@@ -25,6 +28,7 @@ def add_capability_commands(commands: argparse._SubParsersAction) -> None:
     add.add_argument("--description")
     listing = actions.add_parser("list", help="List product capabilities")
     listing.add_argument("project_key")
+    listing.add_argument("--json", action="store_true", help="Machine-readable UUIDs and linked claim IDs")
 
 
 def handle_capability_command(args: argparse.Namespace) -> int:
@@ -32,6 +36,9 @@ def handle_capability_command(args: argparse.Namespace) -> int:
     try:
         if args.action == "list":
             items = service.list_for_project(args.project_key)
+            if getattr(args, "json", False):
+                print(json.dumps(json_payload([asdict(item) for item in items]), ensure_ascii=False, indent=2))
+                return 0
             for item in items:
                 print(f"{item.key}  {item.status}  {item.name}  (claims: {len(item.claim_ids)})")
             if not items:

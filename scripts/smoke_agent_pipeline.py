@@ -1,4 +1,5 @@
 """Real PostgreSQL checkpoints, process restart, concurrency, CLI/MCP parity."""
+from product_strategy_agent.interfaces.mcp.inventory import MAIN_TOOL_COUNT
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, replace
@@ -62,7 +63,7 @@ async def stdio_checks(key, pipeline):
         cwd=str(root), env={"DATABASE_URL": get_settings().database_url.get_secret_value(), "PYTHONPATH": str(root / "src")},
         keep_alive=False)
     async with Client(transport, timeout=60) as client:
-        require(len(await client.list_tools()) == 9, "production inventory must contain nine tools")
+        require(len(await client.list_tools()) == MAIN_TOOL_COUNT, "production inventory must contain twelve tools")
         args = {"project_key": key, "pipeline_id": str(pipeline.id)}
         shown = (await client.call_tool("psa_main_get_pipeline", args)).data
         require(shown == json_payload(asdict(pipeline)), "MCP pipeline show parity")

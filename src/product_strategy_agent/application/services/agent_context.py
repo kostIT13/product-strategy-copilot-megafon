@@ -26,8 +26,15 @@ def prepare_request(project_id, question, query, model, contexts, task="evidence
                 or review_target_hash(review_target) != input_hash):
             raise ValueError("critic request does not match its pinned target")
         body["review_target"] = review_target
+    elif task == "strategy_plan":
+        if (review_target is None or input_run_id is None or review_target.get("source_run_id") != str(input_run_id)
+                or review_target_hash(review_target) != input_hash):
+            raise ValueError("strategy request does not match its pinned decision context")
+        # JSONB reorders object keys. Preserve byte-identical model requests on resume.
+        review_target = json.loads(json.dumps(review_target, ensure_ascii=False, sort_keys=True))
+        body["strategy_context"] = review_target
     elif input_run_id is not None or input_hash is not None or review_target is not None:
-        raise ValueError("only critic requests may reference a review target")
+        raise ValueError("this task cannot reference a saved input")
     messages = [{"role": "system", "content": profile.system},
                 {"role": "user", "content": json.dumps(body, ensure_ascii=False)}]
     return PreparedAnalysis(project_id, question, query.strip(), model, profile.version, messages, contexts,

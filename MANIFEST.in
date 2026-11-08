@@ -1,0 +1,3 @@
+include README.md uv.lock .env.example Dockerfile docker-compose.yml alembic.ini
+recursive-include alembic *.py *.mako
+recursive-include knowledge *.md *.json

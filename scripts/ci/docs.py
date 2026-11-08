@@ -13,6 +13,8 @@ from scripts.ci.repository import git
 REQUIRED = ("README.md", "pyproject.toml", "uv.lock", ".env.example", "Dockerfile",
             "docker-compose.yml", "alembic.ini", "alembic/env.py",
             ".github/workflows/ci.yml", ".github/workflows/demo.yml",
+            ".github/workflows/release.yml", "MANIFEST.in", "docs/distribution.md",
+            "knowledge/README.md", "knowledge/catalog.json",
             "docs/solution_plans/plan-main.md", "docs/solution_plans/roadmap-full-solution.md",
             "projects/demo/state.json", "projects/table-demo/state.json")
 MARKDOWN = MarkdownIt("commonmark")
