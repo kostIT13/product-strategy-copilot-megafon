@@ -24,6 +24,7 @@ mcp = ["fastmcp>=4,<5"]
 psa = "product_strategy_agent.cli:main"
 psa-main = "product_strategy_agent.interfaces.cli.main:main"
 psa-mcp = "product_strategy_agent.mcp_server:main"
+psa-main-mcp = "product_strategy_agent.interfaces.mcp.server:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

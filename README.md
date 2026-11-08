@@ -102,6 +102,8 @@ psa critic-pack demo
 
 Первый агентный проход по импортированным источникам: `psa-main agent analyze demo --question "Что известно об экспорте?" --query "экспорт" --dry-run`. Клиент использует LiteLLM и OpenAI-совместимый endpoint; Qwen задаётся именем модели через `LLM_MODEL`, адрес и ключ — через `LLM_BASE_URL` и `LLM_API_KEY`. [Настройка модели, вызов и аудит черновиков](docs/agent-analysis.md).
 
+Для основной PostgreSQL-системы добавлен отдельный FastMCP stdio-сервер `psa-main-mcp`: поиск, подготовка запроса, анализ и просмотр запуска. [Запуск, границы инструментов и проверка CLI/MCP](docs/main-mcp.md).
+
 Явная загрузка веб-страницы: `psa-main web import demo https://example.com/`. [HTTP-политика и provenance](docs/web-import.md).
 
 Поиск по актуальным ревизиям источников: `psa-main search demo "retention" --json`. [Описание и ограничения поиска](docs/source-search.md).

@@ -442,6 +442,7 @@ CLI `psa usage add` добавляет provider-отчёт или явную о�
 │   └── validation-plan.md
 ├── src/product_strategy_agent/
 │   ├── __init__.py
+│   ├── bootstrap.py             # общая сборка PostgreSQL-сервисов для CLI/MCP
 │   ├── domain/                   # сущности, value objects, доменные ошибки
 │   │   ├── projects/
 │   │   ├── sources/
@@ -473,7 +474,12 @@ CLI `psa usage add` добавляет provider-отчёт или явную о�
 │   │   └── documents/             # парсеры форматов
 │   ├── interfaces/
 │   │   ├── cli/                   # раздельные группы команд
-│   │   └── mcp/                   # FastMCP server и тонкие tool-модули
+│   │   ├── payloads.py           # общие JSON-представления CLI/MCP
+│   │   └── mcp/                   # отдельный PostgreSQL FastMCP stdio server
+│   │       ├── server.py
+│   │       ├── agent_tools.py
+│   │       ├── search_tools.py
+│   │       └── errors.py
 │   ├── validation/                # схемы и межмодульные проверки
 │   └── config/                    # загрузка и проверка конфигурации
 ├── evals/

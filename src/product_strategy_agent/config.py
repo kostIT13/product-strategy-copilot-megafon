@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     projects_dir: Path = Path("projects")
 
     database_url: SecretStr = SecretStr(
-        "postgresql+psycopg://product_strategy:local-dev-change-this@localhost:5432/product_strategy"
+        "postgresql+psycopg://product_strategy:local-dev-change-this@127.0.0.1:5432/product_strategy"
     )
 
     # QWEN_* aliases allow existing local environments to migrate gradually.
