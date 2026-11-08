@@ -20,7 +20,7 @@ class MainMCPTests(unittest.IsolatedAsyncioTestCase):
         self.fixture.setUp()
         self.fixture.reply()
         self.search = Mock()
-        self.services = MainServices(self.fixture.service, self.search, Mock())
+        self.services = MainServices(self.fixture.service, self.search, Mock(), Mock())
         self.client = Client(create_server(self.services))
         await self.client.__aenter__()
         self.addAsyncCleanup(self.client.__aexit__, None, None, None)
@@ -30,9 +30,10 @@ class MainMCPTests(unittest.IsolatedAsyncioTestCase):
         tools = {tool.name: tool for tool in await self.client.list_tools()}
         self.assertEqual(set(tools), {"psa_main_search_sources", "psa_main_prepare_analysis",
                                      "psa_main_analyze", "psa_main_get_agent_run", "psa_main_start_pipeline",
-                                     "psa_main_get_pipeline", "psa_main_resume_pipeline"})
+                                     "psa_main_get_pipeline", "psa_main_resume_pipeline",
+                                     "psa_main_prepare_critic", "psa_main_start_critic"})
         for name, tool in tools.items():
-            writes = name in {"psa_main_analyze", "psa_main_start_pipeline", "psa_main_resume_pipeline"}
+            writes = name in {"psa_main_analyze", "psa_main_start_pipeline", "psa_main_resume_pipeline", "psa_main_start_critic"}
             self.assertEqual(tool.annotations.read_only_hint, not writes)
             self.assertEqual(tool.annotations.open_world_hint, name in {"psa_main_analyze", "psa_main_resume_pipeline"})
             self.assertEqual(tool.annotations.idempotent_hint, not writes)

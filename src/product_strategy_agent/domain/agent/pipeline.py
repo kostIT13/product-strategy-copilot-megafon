@@ -32,3 +32,5 @@ class AgentPipeline:
     created_at: datetime
     updated_at: datetime
     task: AgentTask = "evidence_answer"
+    input_run_id: UUID | None = None
+    input_hash: str | None = None

@@ -9,7 +9,7 @@ from product_strategy_agent.application.ports.model_provider import ModelProvide
 from product_strategy_agent.application.ports.project_store import ProjectStore
 from product_strategy_agent.application.ports.source_store import SourceStore
 from product_strategy_agent.application.services.source_search_service import SourceSearchService
-from product_strategy_agent.application.services.agent_context import source_context, prepare_request, context_references
+from product_strategy_agent.application.services.agent_context import source_context, prepare_request, context_references, review_target_hash
 from product_strategy_agent.application.services.agent_validation import CitationValidationError
 from product_strategy_agent.domain.agent.models import (
     AgentRun, AgentRunFailed, PreparedAnalysis, ProviderError,
@@ -25,6 +25,8 @@ class AgentAnalysisService:
 
     def prepare(self, project_key: str, question: str, query: str, task: str = "evidence_answer") -> PreparedAnalysis:
         task_profile(task)
+        if task == "evidence_critic":
+            raise ValueError("use critic prepare/start with a successful input run")
         question = question.strip()
         if not question or len(question) > 4000:
             raise ValueError("question must contain 1-4000 characters")
@@ -53,21 +55,26 @@ class AgentAnalysisService:
     def new_run(prepared: PreparedAnalysis) -> AgentRun:
         return AgentRun(uuid4(), prepared.project_id, "running", prepared.question, prepared.query,
                         prepared.model, prepared.prompt_version, context_references(prepared), None, None, None,
-                        datetime.now(timezone.utc), None, task=prepared.task)
+                        datetime.now(timezone.utc), None, task=prepared.task,
+                        input_run_id=prepared.input_run_id, input_hash=prepared.input_hash)
 
     def execute_reserved(self, prepared: PreparedAnalysis, run: AgentRun) -> AgentRun:
         # Called only by standalone analyze or the successful pipeline reservation
         # owner. Never expose this method directly as a CLI/MCP operation.
+        if prepared.task == "evidence_critic" and (prepared.review_target is None or
+                review_target_hash(prepared.review_target) != prepared.input_hash):
+            raise ValueError("critic target no longer matches its reserved hash")
         if (run.status != "running" or self.runs.get(prepared.project_id, run.id) != run
                 or run.contexts != context_references(prepared)
-                or (run.question, run.query, run.model, run.prompt_version, run.task) !=
-                   (prepared.question, prepared.query, prepared.model, prepared.prompt_version, prepared.task)):
+                or (run.question, run.query, run.model, run.prompt_version, run.task, run.input_run_id, run.input_hash) !=
+                   (prepared.question, prepared.query, prepared.model, prepared.prompt_version, prepared.task,
+                    prepared.input_run_id, prepared.input_hash)):
             raise ValueError("reserved agent run no longer matches its checkpoint")
         reply = None
         try:
             reply = self.provider.generate(prepared.messages)
             answer = task_profile(prepared.task).output_model.model_validate_json(reply.content)
-            validate_task_citations(prepared.task, answer, prepared.contexts)
+            validate_task_citations(prepared.task, answer, prepared.contexts, prepared.review_target)
         except Exception as exc:
             code = (exc.code if isinstance(exc, ProviderError) else
                     "invalid_citation" if isinstance(exc, CitationValidationError) else

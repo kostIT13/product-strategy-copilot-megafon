@@ -110,6 +110,8 @@ psa critic-pack demo
 
 Для черновиков фактов, гипотез и пробелов используйте `--task evidence_extraction` в agent analyze или pipeline start. [Схемы, цитаты и границы извлечения](docs/evidence-extraction.md).
 
+Для отдельной проверки сохранённого run: `psa-main critic prepare demo RUN_UUID`, затем `critic start` и обычный pipeline resume. [Critic, оценки и привязка к исходному черновику](docs/agent-critic.md).
+
 Явная загрузка веб-страницы: `psa-main web import demo https://example.com/`. [HTTP-политика и provenance](docs/web-import.md).
 
 Поиск по актуальным ревизиям источников: `psa-main search demo "retention" --json`. [Описание и ограничения поиска](docs/source-search.md).

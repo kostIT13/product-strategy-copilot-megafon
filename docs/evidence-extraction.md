@@ -12,7 +12,7 @@ psa-main agent analyze demo --task evidence_extraction --question "Выдели 
 psa-main pipeline start demo --task evidence_extraction --question "Выдели факты, гипотезы и пробелы об экспорте" --query "экспорт"
 ```
 
-Пайплайн продолжается обычными pipeline show/resume с expected_version. Task фиксируется при start и не меняется при resume. В MCP передайте `task: "evidence_extraction"` в psa_main_prepare_analysis, psa_main_analyze или psa_main_start_pipeline. Новые инструменты не добавлялись: inventory остаётся семь, параметр optional с прежним default.
+Пайплайн продолжается обычными pipeline show/resume с expected_version. Task фиксируется при start и не меняется при resume. В MCP передайте `task: "evidence_extraction"` в psa_main_prepare_analysis, psa_main_analyze или psa_main_start_pipeline. Сама extraction-задача не добавляет новых инструментов, параметр optional с прежним default. С учётом отдельных critic tools текущий main inventory — девять.
 
 ## Схема черновика
 
@@ -38,7 +38,7 @@ Task registry `application/agent_tasks.py` связывает стабильны
 
 Количество источников и границы контекста прежние: до трёх ревизий, первые 8000 символов каждой. Лимит ответа берётся из LLM_MAX_OUTPUT_TOKENS; он не растёт автоматически. Незавершённый ответ не принимается и не превращается в частично подтверждённый результат. Для больших схем/корпусов лимит нужно выбирать явно; изменение запроса/конфигурации не переисполняет существующий pipeline скрыто.
 
-Технические проверки схемы и точного совпадения цитат не доказывают semantic entailment или качество гипотез. LLM critic и утверждение человеком — отдельные следующие шаги.
+Технические проверки схемы и точного совпадения цитат не доказывают semantic entailment или качество гипотез. Для отдельного [LLM critic](agent-critic.md) сохранённого run добавлены critic prepare/start; эта модельная оценка также требует человека и не является независимой верификацией.
 
 ## Проверки
 

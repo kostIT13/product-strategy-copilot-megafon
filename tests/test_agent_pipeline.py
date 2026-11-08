@@ -173,9 +173,10 @@ class PipelineMCPTests(unittest.IsolatedAsyncioTestCase):
     async def test_checkpoint_tools_use_same_service_and_reject_stale_resume(self):
         from fastmcp import Client
         from product_strategy_agent.bootstrap import MainServices
+        from product_strategy_agent.application.services.agent_critic_service import AgentCriticService
         from product_strategy_agent.interfaces.mcp.server import create_server
         fixture, store, service = pipeline_fixture()
-        async with Client(create_server(MainServices(fixture.service, Mock(), service))) as client:
+        async with Client(create_server(MainServices(fixture.service, Mock(), service, AgentCriticService(fixture.service, service)))) as client:
             started = (await client.call_tool("psa_main_start_pipeline",
                 {"project_key": "demo", "question": "Can we export?", "query": "export"})).data
             args = {"project_key": "demo", "pipeline_id": started["id"], "expected_version": 0}

@@ -29,8 +29,8 @@ class PostgresAgentPipelineStore:
             if row.status != "prepared":
                 raise PipelineConflict("pipeline draft has already been reserved")
             if (run.project_id != project_id or run.status != "running" or run.contexts != row.contexts
-                    or (run.question, run.query, run.model, run.prompt_version, run.task) !=
-                       (row.question, row.query, row.model, row.prompt_version, row.task)):
+                    or (run.question, run.query, run.model, run.prompt_version, run.task, run.input_run_id, run.input_hash) !=
+                       (row.question, row.query, row.model, row.prompt_version, row.task, row.input_run_id, row.input_hash)):
                 raise ValueError("agent attempt does not match pipeline evidence")
             session.add(AgentRunRecord(**asdict(run)))
             session.flush()

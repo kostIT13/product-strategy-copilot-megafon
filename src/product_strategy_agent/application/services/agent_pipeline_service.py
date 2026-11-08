@@ -5,7 +5,9 @@ from uuid import UUID, uuid4
 from product_strategy_agent.application.agent_tasks import task_profile, validate_task_citations
 from product_strategy_agent.application.ports.agent_pipeline_store import AgentPipelineStore
 from product_strategy_agent.application.services.agent_analysis_service import AgentAnalysisService
-from product_strategy_agent.application.services.agent_context import context_references, prepare_request, request_hash, source_context
+from product_strategy_agent.application.services.agent_context import context_references, prepare_request, request_hash, restore_contexts
+from product_strategy_agent.application.services.critic_context import prepare_critic_request
+from product_strategy_agent.domain.agent.critic import critic_verdict
 from product_strategy_agent.domain.agent.models import AgentRunFailed
 from product_strategy_agent.domain.agent.pipeline import AgentPipeline, PipelineConflict, PipelineOutcomeUnknown
 from product_strategy_agent.domain.projects.errors import ProjectNotFound
@@ -17,11 +19,15 @@ class AgentPipelineService:
 
     def start(self, project_key: str, question: str, query: str, task: str = "evidence_answer") -> AgentPipeline:
         prepared = self.agent.prepare(project_key, question, query, task)
+        return self.start_prepared(prepared)
+
+    def start_prepared(self, prepared) -> AgentPipeline:
         now = datetime.now(timezone.utc)
         return self.store.create(AgentPipeline(uuid4(), prepared.project_id, "prepared", 0,
             prepared.question, prepared.query, prepared.model, prepared.prompt_version,
             self._configuration_hash(), request_hash(prepared), context_references(prepared),
-            None, None, None, now, now, task=prepared.task))
+            None, None, None, now, now, task=prepared.task,
+            input_run_id=prepared.input_run_id, input_hash=prepared.input_hash))
 
     def show(self, project_key: str, pipeline_id: UUID) -> AgentPipeline:
         project = self.agent.projects.get_by_key(project_key.strip())
@@ -56,10 +62,11 @@ class AgentPipelineService:
             return self._reconcile(reserved)
         if pipeline.status == "draft_ready":
             run = self.agent.runs.get(pipeline.project_id, pipeline.agent_run_id)
-            if run is None or run.status != "succeeded" or run.contexts != pipeline.contexts or run.task != pipeline.task:
+            if (run is None or run.status != "succeeded" or run.contexts != pipeline.contexts or run.task != pipeline.task
+                    or (run.input_run_id, run.input_hash) != (pipeline.input_run_id, pipeline.input_hash)):
                 raise PipelineConflict("pipeline draft checkpoint does not match its evidence")
             answer = task_profile(pipeline.task).output_model.model_validate(run.result)
-            validate_task_citations(pipeline.task, answer, prepared.contexts)
+            validate_task_citations(pipeline.task, answer, prepared.contexts, prepared.review_target)
             result = {"kind": "human_review_packet", "task": pipeline.task, "requires_human_review": True,
                       "draft_status": answer.status, "draft": answer.model_dump(mode="json"),
                       "agent_run_id": str(run.id), "evidence": pipeline.contexts, "usage": run.usage,
@@ -67,6 +74,10 @@ class AgentPipelineService:
                                  "semantic_entailment": "not_evaluated"},
                       "next_action": "Review the draft and evidence; obtain more evidence if insufficient. "
                                      "Claims, decisions and workflow approvals remain explicit human actions."}
+            if pipeline.task == "evidence_critic":
+                result.update(input_run_id=str(pipeline.input_run_id), input_hash=pipeline.input_hash,
+                              critic_verdict=critic_verdict(answer))
+                result["checks"]["semantic_entailment"] = "model_assessed_not_verified"
             return self.store.advance(pipeline.project_id, pipeline.id, pipeline.version, "completed", result=result)
         raise PipelineConflict("unsupported pipeline state")
 
@@ -88,19 +99,14 @@ class AgentPipelineService:
     def _reconstruct(self, pipeline):
         if self._configuration_hash() != pipeline.provider_config_hash or self.agent.provider.model != pipeline.model:
             raise PipelineConflict("provider configuration changed; preserve this pipeline and explicitly start a new one")
-        contexts = []
-        if not 1 <= len(pipeline.contexts) <= 3:
-            raise PipelineConflict("pipeline evidence checkpoint is invalid")
-        for reference in pipeline.contexts:
-            length = reference["context_chars"]
-            if type(length) is not int or not 1 <= length <= 8000:
-                raise PipelineConflict("pipeline context length is invalid")
-            source = self.agent.sources.get_revision(UUID(reference["source_id"]), reference["revision"])
-            if source is None or source.project_id != pipeline.project_id:
-                raise PipelineConflict("pipeline source revision is missing or belongs to another project")
-            contexts.append(source_context(source, length))
-        prepared = prepare_request(pipeline.project_id, pipeline.question, pipeline.query, pipeline.model, contexts, pipeline.task)
+        if pipeline.task == "evidence_critic":
+            target = self.agent.runs.get(pipeline.project_id, pipeline.input_run_id)
+            prepared = prepare_critic_request(self.agent, target)
+        else:
+            contexts = restore_contexts(self.agent.sources, pipeline.project_id, pipeline.contexts)
+            prepared = prepare_request(pipeline.project_id, pipeline.question, pipeline.query, pipeline.model, contexts, pipeline.task)
         if (prepared.prompt_version != pipeline.prompt_version or request_hash(prepared) != pipeline.request_hash
-                or context_references(prepared) != pipeline.contexts):
+                or context_references(prepared) != pipeline.contexts
+                or (prepared.input_run_id, prepared.input_hash) != (pipeline.input_run_id, pipeline.input_hash)):
             raise PipelineConflict("pipeline source, prompt or schema changed; stored request cannot be reconstructed")
         return prepared

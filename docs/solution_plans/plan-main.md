@@ -465,6 +465,8 @@ CLI `psa usage add` добавляет provider-отчёт или явную о�
 │   │   │   ├── web_import_service.py
 │   │   │   ├── agent_analysis_service.py
 │   │   │   ├── agent_pipeline_service.py
+│   │   │   ├── agent_critic_service.py
+│   │   │   ├── critic_context.py
 │   │   │   ├── claim_service.py
 │   │   │   ├── option_service.py
 │   │   │   ├── decision_service.py
@@ -487,6 +489,7 @@ CLI `psa usage add` добавляет provider-отчёт или явную о�
 │   │       ├── agent_tools.py
 │   │       ├── search_tools.py
 │   │       ├── pipeline_tools.py
+│   │       ├── critic_tools.py
 │   │       └── errors.py
 │   ├── validation/                # схемы и межмодульные проверки
 │   └── config/                    # загрузка и проверка конфигурации

@@ -11,6 +11,7 @@ from product_strategy_agent.application.services.source_search_service import So
 from product_strategy_agent.config import get_settings
 from product_strategy_agent.application.services.agent_pipeline_service import AgentPipelineService
 from product_strategy_agent.adapters.persistence.postgres.repositories.agent_pipeline_repository import PostgresAgentPipelineStore
+from product_strategy_agent.application.services.agent_critic_service import AgentCriticService
 
 
 @dataclass(frozen=True)
@@ -18,13 +19,15 @@ class MainServices:
     agent: AgentAnalysisService
     search: SourceSearchService
     pipeline: AgentPipelineService
+    critic: AgentCriticService
 
 
 def build_main_services() -> MainServices:
     search = SourceSearchService(PostgresSourceSearch())
     agent = AgentAnalysisService(PostgresProjectStore(), PostgresSourceStore(), search,
         OpenAICompatibleProvider(get_settings()), PostgresAgentRunStore())
-    return MainServices(agent, search, AgentPipelineService(agent, PostgresAgentPipelineStore()))
+    pipeline = AgentPipelineService(agent, PostgresAgentPipelineStore())
+    return MainServices(agent, search, pipeline, AgentCriticService(agent, pipeline))
 
 
 def build_agent_service() -> AgentAnalysisService:

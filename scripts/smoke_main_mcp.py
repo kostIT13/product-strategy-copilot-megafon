@@ -20,6 +20,7 @@ from product_strategy_agent.application.services.agent_analysis_service import A
 from product_strategy_agent.application.services.project_service import ProjectService
 from product_strategy_agent.application.services.source_service import SourceService
 from product_strategy_agent.bootstrap import MainServices, build_main_services
+from product_strategy_agent.application.services.agent_critic_service import AgentCriticService
 from product_strategy_agent.application.services.agent_pipeline_service import AgentPipelineService
 from product_strategy_agent.adapters.persistence.postgres.repositories.agent_pipeline_repository import PostgresAgentPipelineStore
 from product_strategy_agent.config import Settings, get_settings
@@ -56,9 +57,10 @@ async def main():
     service = AgentAnalysisService(agent.projects, agent.sources, production.search,
         OpenAICompatibleProvider(settings, httpx.MockTransport(handle)), agent.runs)
     args = {"project_key": key, "question": "Can we export?", "query": "export"}
-    async with Client(create_server(MainServices(service, production.search, AgentPipelineService(service, PostgresAgentPipelineStore()))), timeout=60) as client:
+    pipeline = AgentPipelineService(service, PostgresAgentPipelineStore())
+    async with Client(create_server(MainServices(service, production.search, pipeline, AgentCriticService(service, pipeline))), timeout=60) as client:
         tools = await client.list_tools()
-        require(len(tools) == 7, "main server must expose exactly seven tools")
+        require(len(tools) == 9, "main server must expose exactly nine tools")
         preview = (await client.call_tool("psa_main_prepare_analysis", args)).data
         require(preview["dry_run"] and mode["calls"] == 0, "prepare must not invoke the provider")
         success = (await client.call_tool("psa_main_analyze", args)).data
@@ -78,7 +80,7 @@ async def main():
         keep_alive=False)
     # Production subprocess: only read tools and invalid input, never a live model call.
     async with Client(transport, timeout=60) as client:
-        require(len(await client.list_tools()) == 7, "stdio handshake and tool discovery must work")
+        require(len(await client.list_tools()) == 9, "stdio handshake and tool discovery must work")
         prepared = (await client.call_tool("psa_main_prepare_analysis", args)).data
         expected = cli("agent", "analyze", key, "--question", args["question"], "--query", "export", "--dry-run")
         require(prepared == expected, "stdio prepare and CLI dry-run must match")
@@ -99,7 +101,7 @@ async def main():
         require(session.get(WorkflowStateRecord, project.id) is None, "MCP agent must not advance workflow")
     require(mode["calls"] == 2, "only explicit in-process analyses may call the fixture provider")
     print(json.dumps({"status": "passed", "project_key": key, "run_id": success["id"],
-        "tool_count": 7, "stdio": True, "cli_parity": True, "live_model": False}))
+        "tool_count": 9, "stdio": True, "cli_parity": True, "live_model": False}))
 
 
 if __name__ == "__main__":

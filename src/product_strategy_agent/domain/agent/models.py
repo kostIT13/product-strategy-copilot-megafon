@@ -57,6 +57,9 @@ class PreparedAnalysis:
     messages: list[dict[str, str]]
     contexts: list[dict]
     task: AgentTask = "evidence_answer"
+    input_run_id: UUID | None = None
+    input_hash: str | None = None
+    review_target: dict | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -75,3 +78,5 @@ class AgentRun:
     created_at: datetime
     finished_at: datetime | None
     task: AgentTask = "evidence_answer"
+    input_run_id: UUID | None = None
+    input_hash: str | None = None

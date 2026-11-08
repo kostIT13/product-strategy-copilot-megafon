@@ -6,7 +6,7 @@ from pydantic import Field
 from product_strategy_agent.interfaces.mcp.agent_tools import READ
 from product_strategy_agent.interfaces.mcp.errors import invoke
 from product_strategy_agent.interfaces.payloads import json_payload
-from product_strategy_agent.domain.agent.tasks import AgentTask
+from product_strategy_agent.domain.agent.tasks import AnalysisTask
 
 
 def register_pipeline_tools(server, services):
@@ -15,7 +15,7 @@ def register_pipeline_tools(server, services):
     def psa_main_start_pipeline(project_key: str,
             question: Annotated[str, Field(min_length=1, max_length=4000)],
             query: Annotated[str, Field(min_length=1, max_length=1000)],
-            task: AgentTask = "evidence_answer") -> dict:
+            task: AnalysisTask = "evidence_answer") -> dict:
         """Pin evidence and request hashes in a new pipeline. Writes state; does not call the LLM."""
         return invoke(lambda: json_payload(asdict(services.pipeline.start(project_key, question, query, task))))
 

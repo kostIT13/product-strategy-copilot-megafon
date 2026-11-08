@@ -122,11 +122,12 @@ class ExtractionMCPTests(unittest.IsolatedAsyncioTestCase):
     async def test_task_selection_in_analyze_prepare_and_pipeline(self):
         from fastmcp import Client
         from product_strategy_agent.bootstrap import MainServices
+        from product_strategy_agent.application.services.agent_critic_service import AgentCriticService
         from product_strategy_agent.interfaces.mcp.server import create_server
         fixture, store, pipeline = test_agent_pipeline.pipeline_fixture()
         fixture.reply(json.dumps(extraction_output(fixture)))
         args = {"project_key": "demo", "question": "Extract evidence", "query": "export", "task": "evidence_extraction"}
-        async with Client(create_server(MainServices(fixture.service, Mock(), pipeline))) as client:
+        async with Client(create_server(MainServices(fixture.service, Mock(), pipeline, AgentCriticService(fixture.service, pipeline)))) as client:
             prepared = (await client.call_tool("psa_main_prepare_analysis", args)).data
             self.assertEqual(prepared["task"], "evidence_extraction")
             fixture.provider.generate.assert_not_called()

@@ -4,6 +4,8 @@
 
 Задача по умолчанию — evidence_answer. Для [структурированных facts/hypotheses/gaps](evidence-extraction.md) добавлен отдельный профиль `--task evidence_extraction` со своей схемой и prompt version; task сохраняется вместе с checkpoint.
 
+Для [critic-проверки](agent-critic.md) уже сохранённого run используйте отдельные critic prepare/start и pipeline resume. Она связывается с исходным run/hash, не повторяет поиск и не утверждает результат за человека.
+
 ## Запуск
 
 Локально установите `python -m pip install -e ".[agent]"` (для файловых парсеров также extra documents). Docker-образ включает оба extra. Примените миграции, включая `0010_agent_runs`. В `.env` настройте LLM_BASE_URL, LLM_MODEL и LLM_API_KEY. Имя модели должно точно совпадать с моделью, доступной на выбранном endpoint; значение из плана само по себе не подтверждает доступность модели в API.
