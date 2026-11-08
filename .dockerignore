@@ -1,0 +1,14 @@
+.git
+.venv
+**/__pycache__
+**/*.py[cod]
+**/*.egg-info
+.env
+.env.*
+projects
+reports
+evals
+postgres-data
+backups
+build
+dist

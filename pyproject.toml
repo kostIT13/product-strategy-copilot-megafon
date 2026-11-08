@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "product-strategy-agent"
+version = "0.1.0"
+description = "Portable CLI for evidence-based product strategy work"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "alembic>=1.13,<2",
+    "pydantic-settings>=2.6,<3",
+    "psycopg[binary]>=3.2,<4",
+    "sqlalchemy>=2.0,<3",
+]
+
+[project.optional-dependencies]
+agent = ["litellm==1.108.2", "httpx>=0.27,<1"]
+documents = ["python-docx>=1.1.2,<2", "pypdf>=7,<8", "openpyxl>=3.1.5,<4", "defusedxml>=0.7.1,<1"]
+mcp = ["fastmcp>=4,<5"]
+
+[project.scripts]
+psa = "product_strategy_agent.cli:main"
+psa-main = "product_strategy_agent.interfaces.cli.main:main"
+psa-mcp = "product_strategy_agent.mcp_server:main"
+psa-main-mcp = "product_strategy_agent.interfaces.mcp.server:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
