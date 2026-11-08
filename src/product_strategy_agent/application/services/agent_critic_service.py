@@ -8,7 +8,7 @@ class AgentCriticService:
 
     def prepare(self, project_key, run_id):
         target = self.agent.get_run(project_key, run_id)
-        return prepare_critic_request(self.agent, target)
+        return prepare_critic_request(self.agent, target, self.pipeline.strategy_context)
 
     def start(self, project_key, run_id):
         return self.pipeline.start_prepared(self.prepare(project_key, run_id))

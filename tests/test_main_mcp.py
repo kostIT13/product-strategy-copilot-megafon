@@ -31,12 +31,15 @@ class MainMCPTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(set(tools), {"psa_main_search_sources", "psa_main_prepare_analysis",
                                      "psa_main_analyze", "psa_main_get_agent_run", "psa_main_start_pipeline",
                                      "psa_main_get_pipeline", "psa_main_resume_pipeline",
-                                     "psa_main_prepare_critic", "psa_main_start_critic"})
+                                     "psa_main_prepare_critic", "psa_main_start_critic", "psa_main_preview_selection",
+                                     "psa_main_record_selection", "psa_main_get_selection", "psa_main_prepare_strategy", "psa_main_start_strategy",
+                                     "psa_main_preview_strategy_approval", "psa_main_approve_strategy", "psa_main_get_strategy_approval", "psa_main_export_strategy",
+                                     "psa_main_check_promises"})
         for name, tool in tools.items():
-            writes = name in {"psa_main_analyze", "psa_main_start_pipeline", "psa_main_resume_pipeline", "psa_main_start_critic"}
+            writes = name in {"psa_main_analyze", "psa_main_start_pipeline", "psa_main_resume_pipeline", "psa_main_start_critic", "psa_main_record_selection", "psa_main_start_strategy", "psa_main_approve_strategy"}
             self.assertEqual(tool.annotations.read_only_hint, not writes)
             self.assertEqual(tool.annotations.open_world_hint, name in {"psa_main_analyze", "psa_main_resume_pipeline"})
-            self.assertEqual(tool.annotations.idempotent_hint, not writes)
+            self.assertEqual(tool.annotations.idempotent_hint, not writes or name in {"psa_main_record_selection", "psa_main_approve_strategy"})
 
     async def test_preview_matches_cli_payload_without_call_or_write(self):
         expected = analysis_preview(self.fixture.service.prepare("demo", "Can we export?", "export"))

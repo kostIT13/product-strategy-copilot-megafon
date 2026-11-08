@@ -1,4 +1,5 @@
 """Strategy proposal/critic checkpoints on PostgreSQL with fixture-only LLM calls."""
+from product_strategy_agent.interfaces.mcp.inventory import MAIN_TOOL_COUNT
 import asyncio
 from dataclasses import asdict
 import json
@@ -39,7 +40,7 @@ async def stdio_checks(key, options, critic):
         keep_alive=False)
     args = {"project_key": key, "question": "Compare export strategies", "query": "export", "task": "strategy_options"}
     async with Client(transport, timeout=60) as client:
-        require(len(await client.list_tools()) == 9, "task must reuse the existing nine tools")
+        require(len(await client.list_tools()) == MAIN_TOOL_COUNT, "task must reuse the existing twelve tools")
         preview = (await client.call_tool("psa_main_prepare_analysis", args)).data
         require(preview == cli("agent", "analyze", key, "--question", args["question"], "--query", "export",
                                "--task", "strategy_options", "--dry-run"), "options prepare CLI/MCP parity")

@@ -14,8 +14,9 @@ from product_strategy_agent.domain.projects.errors import ProjectNotFound
 
 
 class AgentPipelineService:
-    def __init__(self, agent: AgentAnalysisService, store: AgentPipelineStore):
+    def __init__(self, agent: AgentAnalysisService, store: AgentPipelineStore, strategy_context=None):
         self.agent, self.store = agent, store
+        self.strategy_context = strategy_context
 
     def start(self, project_key: str, question: str, query: str, task: str = "evidence_answer") -> AgentPipeline:
         prepared = self.agent.prepare(project_key, question, query, task)
@@ -80,6 +81,12 @@ class AgentPipelineService:
                 result["checks"]["semantic_entailment"] = "model_assessed_not_verified"
             if pipeline.task == "strategy_options":
                 result.update(proposal_only=True, selection_required=True)
+            if pipeline.task == "strategy_plan":
+                stale = self.strategy_context.stale_sources(pipeline.project_id, pipeline.contexts)
+                result.update(input_run_id=str(pipeline.input_run_id), input_hash=pipeline.input_hash,
+                    decision_id=str(answer.decision_id), selected_option_id=str(answer.selected_option_id),
+                    communication_internal_only=True, publication_approved=False, stale_source_ids=stale)
+                result["checks"]["source_freshness"] = "stale_at_review" if stale else "current_at_review"
             return self.store.advance(pipeline.project_id, pipeline.id, pipeline.version, "completed", result=result)
         raise PipelineConflict("unsupported pipeline state")
 
@@ -103,7 +110,12 @@ class AgentPipelineService:
             raise PipelineConflict("provider configuration changed; preserve this pipeline and explicitly start a new one")
         if pipeline.task == "evidence_critic":
             target = self.agent.runs.get(pipeline.project_id, pipeline.input_run_id)
-            prepared = prepare_critic_request(self.agent, target)
+            prepared = prepare_critic_request(self.agent, target, self.strategy_context)
+        elif pipeline.task == "strategy_plan":
+            if self.strategy_context is None:
+                raise PipelineConflict("strategy context is not configured")
+            prepared = self.strategy_context.restore(pipeline.project_id, pipeline.input_run_id,
+                pipeline.input_hash, pipeline.question, require_current=pipeline.status == "prepared")
         else:
             contexts = restore_contexts(self.agent.sources, pipeline.project_id, pipeline.contexts)
             prepared = prepare_request(pipeline.project_id, pipeline.question, pipeline.query, pipeline.model, contexts, pipeline.task)

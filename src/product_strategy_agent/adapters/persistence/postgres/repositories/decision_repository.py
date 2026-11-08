@@ -21,6 +21,18 @@ from product_strategy_agent.domain.projects.errors import ProjectNotFound
 
 
 class PostgresDecisionStore:
+    def get_by_id(self, decision_id):
+        with get_session_factory()() as session:
+            row = session.get(DecisionRecord, decision_id)
+            if row is None:
+                return None
+            alternatives = session.scalars(select(DecisionOptionRecord).where(DecisionOptionRecord.decision_id == row.id)).all()
+            claims = session.scalars(select(DecisionClaimRecord).where(DecisionClaimRecord.decision_id == row.id)).all()
+            return Decision(id=row.id, project_id=row.project_id, key=row.key, selected_option_id=row.selected_option_id,
+                owner=row.owner, rationale=row.rationale, assumptions=tuple(row.assumptions), risks=tuple(row.risks),
+                review_trigger=row.review_trigger, decided_at=row.decided_at, basis_claim_ids=tuple(item.claim_id for item in claims),
+                alternatives=tuple(sorted((DecisionAlternative(item.option_id, item.disposition) for item in alternatives), key=lambda item: str(item.option_id))))
+
     def create(self, decision: Decision) -> Decision:
         try:
             with get_session_factory().begin() as session:

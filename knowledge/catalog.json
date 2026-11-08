@@ -1,0 +1,226 @@
+{
+  "schema_version": 1,
+  "bundle_version": "1.0.0",
+  "path_base": "repository_root",
+  "checked_on": "2026-11-08",
+  "runtime_integration": "not_connected",
+  "project_adaptation_evaluation": "not_performed",
+  "sources": [
+    {
+      "id": "EXT-JTBD",
+      "kind": "external_primary",
+      "author": "Christensen Institute",
+      "title": "Jobs to Be Done Theory",
+      "url": "https://www.christenseninstitute.org/theory/jobs-to-be-done/",
+      "source_revision": null,
+      "checked_on": "2026-11-08"
+    },
+    {
+      "id": "EXT-USER-NEEDS",
+      "kind": "external_primary",
+      "author": "GOV.UK User research community",
+      "title": "Learning about users and their needs",
+      "url": "https://www.gov.uk/service-manual/user-research/start-by-learning-user-needs",
+      "source_revision": null,
+      "checked_on": "2026-11-08"
+    },
+    {
+      "id": "EXT-OPTIONS",
+      "kind": "external_primary",
+      "author": "HM Treasury / Government Finance Function",
+      "title": "The Green Book (2026)",
+      "url": "https://www.gov.uk/government/publications/the-green-book--2/the-green-book-2026",
+      "source_revision": "2026 edition, updated 2026-10-28",
+      "checked_on": "2026-11-08"
+    },
+    {
+      "id": "EXT-TEST-CARD",
+      "kind": "external_primary",
+      "author": "Dr. Alex Osterwalder / Strategyzer",
+      "title": "Validate your ideas with The Test Card",
+      "url": "https://www.strategyzer.com/library/validate-your-ideas-with-the-test-card",
+      "source_revision": "2015-03-05 article",
+      "checked_on": "2026-11-08"
+    },
+    {
+      "id": "PROJECT-EVIDENCE",
+      "kind": "project_contract",
+      "author": "Product Strategy Agent project",
+      "paths": [
+        "docs/agent-analysis.md",
+        "docs/strategy-options.md"
+      ],
+      "source_revision": "903ae7b",
+      "checked_on": "2026-11-08"
+    },
+    {
+      "id": "PROJECT-CRITIC",
+      "kind": "project_contract",
+      "author": "Product Strategy Agent project",
+      "paths": [
+        "docs/agent-critic.md"
+      ],
+      "source_revision": "903ae7b",
+      "checked_on": "2026-11-08"
+    },
+    {
+      "id": "PROJECT-SELECTION",
+      "kind": "project_contract",
+      "author": "Product Strategy Agent project",
+      "paths": [
+        "docs/strategy-selection.md"
+      ],
+      "source_revision": "903ae7b",
+      "checked_on": "2026-11-08"
+    },
+    {
+      "id": "PROJECT-PLAN",
+      "kind": "project_contract",
+      "author": "Product Strategy Agent project",
+      "paths": [
+        "docs/strategy-plan.md"
+      ],
+      "source_revision": "903ae7b",
+      "checked_on": "2026-11-08"
+    }
+  ],
+  "documents": [
+    {
+      "id": "M-SEGMENT-01",
+      "path": "knowledge/methods/segmentation.md",
+      "kind": "method",
+      "version": "1.0.0",
+      "origin": "mixed",
+      "author": "Product Strategy Agent project",
+      "checked_on": "2026-11-08",
+      "source_ids": [
+        "EXT-JTBD",
+        "EXT-USER-NEEDS",
+        "PROJECT-PLAN"
+      ],
+      "applicability": [
+        "segment_hypothesis",
+        "value_hypothesis",
+        "research questions"
+      ],
+      "limitations": [
+        "Not observed market segmentation",
+        "No market sizing or willingness-to-pay inference",
+        "Adaptation not evaluated on real cases"
+      ]
+    },
+    {
+      "id": "M-OPTIONS-01",
+      "path": "knowledge/methods/alternatives.md",
+      "kind": "method",
+      "version": "1.0.0",
+      "origin": "mixed",
+      "author": "Product Strategy Agent project",
+      "checked_on": "2026-11-08",
+      "source_ids": [
+        "EXT-OPTIONS",
+        "PROJECT-SELECTION"
+      ],
+      "applicability": [
+        "strategy_options",
+        "qualitative comparison",
+        "human selection"
+      ],
+      "limitations": [
+        "No numeric ranking or financial appraisal",
+        "No mandatory main-task option roles",
+        "Formal validation cannot prove semantic distinctness"
+      ]
+    },
+    {
+      "id": "M-EXPERIMENT-01",
+      "path": "knowledge/methods/experiments.md",
+      "kind": "method",
+      "version": "1.0.0",
+      "origin": "mixed",
+      "author": "Product Strategy Agent project",
+      "checked_on": "2026-11-08",
+      "source_ids": [
+        "EXT-TEST-CARD",
+        "PROJECT-PLAN"
+      ],
+      "applicability": [
+        "validation questions",
+        "critical assumptions",
+        "proposed experiments"
+      ],
+      "limitations": [
+        "Qualitative drafts are not executed tests",
+        "No statistical power or sample-size calculation",
+        "No invented numerical thresholds"
+      ]
+    },
+    {
+      "id": "C-EVIDENCE-01",
+      "path": "knowledge/checklists/evidence.md",
+      "kind": "checklist",
+      "version": "1.0.0",
+      "origin": "internal_heuristic",
+      "author": "Product Strategy Agent project",
+      "checked_on": "2026-11-08",
+      "source_ids": [
+        "PROJECT-EVIDENCE"
+      ],
+      "applicability": [
+        "source provenance",
+        "citation review",
+        "fact versus hypothesis"
+      ],
+      "limitations": [
+        "Exact quotation does not prove entailment",
+        "Cannot certify truth, research completeness or all access requirements"
+      ]
+    },
+    {
+      "id": "C-CRITIC-01",
+      "path": "knowledge/checklists/critic.md",
+      "kind": "checklist",
+      "version": "1.0.0",
+      "origin": "internal_heuristic",
+      "author": "Product Strategy Agent project",
+      "checked_on": "2026-11-08",
+      "source_ids": [
+        "PROJECT-CRITIC",
+        "PROJECT-SELECTION"
+      ],
+      "applicability": [
+        "linked critic review",
+        "item coverage",
+        "human resolution"
+      ],
+      "limitations": [
+        "Advisory model review is not independent truth",
+        "Owner identity remains self-reported",
+        "No workflow approval authority"
+      ]
+    },
+    {
+      "id": "C-STRATEGY-01",
+      "path": "knowledge/checklists/strategy.md",
+      "kind": "checklist",
+      "version": "1.0.0",
+      "origin": "internal_heuristic",
+      "author": "Product Strategy Agent project",
+      "checked_on": "2026-11-08",
+      "source_ids": [
+        "PROJECT-PLAN",
+        "PROJECT-SELECTION"
+      ],
+      "applicability": [
+        "decision-bound internal strategy review",
+        "communication hypotheses",
+        "experiment coherence"
+      ],
+      "limitations": [
+        "Does not grant publication permission",
+        "No economic/statistical/legal certification",
+        "Does not replace independent review"
+      ]
+    }
+  ]
+}

@@ -6,7 +6,7 @@
 
 - Ubuntu: Python 3.11 и 3.12, Windows: Python 3.12. Проверка актуальности lock, frozen install extras agent/documents/mcp и dev-группы, Ruff, unittest, `psa doctor`, `psa-main --help`.
 - Отдельная Ubuntu/Python 3.11 установка без extras/dev: doctor и help обоих CLI. Отсутствие FastMCP в этом job — ожидаемое предупреждение optional component.
-- Ubuntu/Python 3.12 и PostgreSQL 17 service: все миграции с нуля, Alembic check и семь smoke-сценариев main/agent/agent_pipeline/evidence_extraction/agent_critic/strategy_options/main_mcp. Agent-ответы фиксированы через MockTransport; проверяется настоящий FastMCP stdio subprocess.
+- Ubuntu/Python 3.12 и PostgreSQL 17 service: все миграции с нуля, Alembic check и девять smoke-сценариев main/agent/agent_pipeline/evidence_extraction/agent_critic/strategy_options/strategy_selection/strategy_plan/main_mcp. Agent-ответы фиксированы через MockTransport; проверяется настоящий FastMCP stdio subprocess.
 
 Используются uv 0.11.30 и `uv.lock` из публичного PyPI. Полные SHA checkout v7.0.1 и setup-uv v10.3.3 сверены с официальными Git tags; Actions закреплены на commit. Источники: [checkout](https://github.com/actions/checkout/releases/tag/v7.0.1), [setup-uv](https://github.com/astral-sh/setup-uv/releases/tag/v10.3.3), [интеграция uv](https://docs.astral.sh/uv/guides/integration/github/).
 
@@ -53,6 +53,10 @@ PostgreSQL smoke создают синтетические проекты и fai
 
 Demo runner сам использует временные копии и не изменяет projects/. Secrets scanner не сканирует весь локальный каталог с .env/.venv; в экспорт попадают Git-tracked и новые неигнорируемые файлы.
 
+## Дистрибутив и Docker
+
+В ci.yml добавлен Docker job: frozen runtime image с extras agent/documents/mcp, непривилегированный пользователь, CLI/offline Alembic/FastMCP startup и demo smoke без сети с read-only filesystem. release.yml переиспользует ci/demo через workflow_call, затем строит ZIP/wheel/sdist и проверяет установку вне src. Только теговый draft job получает contents: write; ручной запуск на ветке сохраняет artifact. Подробности и локальные команды — [distribution.md](distribution.md).
+
 ## Что остаётся
 
-Release packaging, instruction-sync, Docker build smoke и настройки required checks пока не реализованы. Общего replay engine нет; фикстурные smoke не подменяют независимую оценку качества стратегий и отложенные пользовательские приёмки. Бейдж CI добавляется после подтверждённого удалённого зелёного прогона. План: раздел 14.1 в `docs/solution_plans/plan-main.md`.
+Instruction-sync и настройки required checks пока не реализованы; удалённый результат release/Docker jobs ещё требует подтверждения. Общего replay engine нет; фикстурные smoke не подменяют независимую оценку качества стратегий и отложенные пользовательские приёмки. Бейдж CI добавляется после подтверждённого удалённого зелёного прогона. План: раздел 14.1 в `docs/solution_plans/plan-main.md`.

@@ -1,4 +1,5 @@
 """Linked critic on PostgreSQL/stdio; optional one-call live synthetic check."""
+from product_strategy_agent.interfaces.mcp.inventory import MAIN_TOOL_COUNT
 import argparse
 import asyncio
 from dataclasses import asdict, replace
@@ -41,7 +42,7 @@ async def stdio_checks(key, target, completed):
         cwd=str(root), env={"DATABASE_URL": get_settings().database_url.get_secret_value(), "PYTHONPATH": str(root / "src")},
         keep_alive=False)
     async with Client(transport, timeout=60) as client:
-        require(len(await client.list_tools()) == 9, "critic must extend production inventory to nine tools")
+        require(len(await client.list_tools()) == MAIN_TOOL_COUNT, "critic must extend production inventory to twelve tools")
         args = {"project_key": key, "run_id": str(target.id)}
         preview = (await client.call_tool("psa_main_prepare_critic", args)).data
         require(preview == cli("critic", "prepare", key, str(target.id)), "critic prepare CLI/MCP parity")

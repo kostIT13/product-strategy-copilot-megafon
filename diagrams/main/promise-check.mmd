@@ -1,0 +1,15 @@
+flowchart TD
+    IDE[Human or IDE agent drafts exact promise text] --> IDS[Read capability and claim UUIDs via CLI JSON]
+    IDS --> R[PromiseCheckRequest with explicit support links]
+    R --> S[One PostgreSQL REPEATABLE READ and READ ONLY snapshot]
+    S --> C{Every capability is available in this project?}
+    C -->|No| B[Blocked with explicit reasons]
+    C -->|Yes| F{All selected claims are linked active facts?}
+    F -->|No| B
+    F -->|Yes| E{All sources current, hashes and quotes valid, locator verified?}
+    E -->|No| B
+    E -->|Yes| P[Hash-bound evidence packet eligible for human review]
+    P --> H[Human checks meaning, audience, conditions and limits]
+    B --> N[No model call or business write]
+    H --> NEXT[Future explicit human decision with transactional recheck]
+    P --> DENY[No publication, customer-promise or workflow approval]

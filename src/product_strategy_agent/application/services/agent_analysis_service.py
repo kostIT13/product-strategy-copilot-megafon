@@ -27,6 +27,8 @@ class AgentAnalysisService:
         task_profile(task)
         if task == "evidence_critic":
             raise ValueError("use critic prepare/start with a successful input run")
+        if task == "strategy_plan":
+            raise ValueError("use strategy prepare/start with a recorded selection")
         question = question.strip()
         if not question or len(question) > 4000:
             raise ValueError("question must contain 1-4000 characters")
@@ -61,9 +63,9 @@ class AgentAnalysisService:
     def execute_reserved(self, prepared: PreparedAnalysis, run: AgentRun) -> AgentRun:
         # Called only by standalone analyze or the successful pipeline reservation
         # owner. Never expose this method directly as a CLI/MCP operation.
-        if prepared.task == "evidence_critic" and (prepared.review_target is None or
+        if prepared.task in {"evidence_critic", "strategy_plan"} and (prepared.review_target is None or
                 review_target_hash(prepared.review_target) != prepared.input_hash):
-            raise ValueError("critic target no longer matches its reserved hash")
+            raise ValueError("bound input no longer matches its reserved hash")
         if (run.status != "running" or self.runs.get(prepared.project_id, run.id) != run
                 or run.contexts != context_references(prepared)
                 or (run.question, run.query, run.model, run.prompt_version, run.task, run.input_run_id, run.input_hash) !=
