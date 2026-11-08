@@ -1,5 +1,7 @@
 # LangGraph в основном плане — 8 ноября 2026, 22:55 (Asia/Novosibirsk)
 
+**Историческая запись: решение отменено после сверки с требованиями.** Актуальная граница — IDE-агент + CLI/MCP и проверяемый workflow, см. [корректировку](2026-11-08-ide-orchestration-plan.md).
+
 По запросу пользователя LangGraph закреплён как целевой основной framework оркестрации полной системы и ближайший инфраструктурный подэтап 4.1. Начать на текущих срезах этапа 5, до расширения approval/export и автоматических субагентов/хуков.
 
 В основной план добавлены стек/границы и раздел 4.1: ADR/state/граф и SDK-независимый runner port, отдельные adapter modules, PostgreSQL checkpointer/setup/backup, durable operation keys, human interrupts, постепенный CLI/MCP rollout, совместимость legacy checkpoints и критерии приёмки с controlled failure scenarios. FastMCP, LiteLLM и domain services сохраняют свои роли; graph state не подменяет business ledgers. Неизвестный исход LLM-запроса не повторяется автоматически, перенос старых checkpoints не объявлен готовым.

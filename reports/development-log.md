@@ -193,3 +193,7 @@
 ## LangGraph в плане — 8 ноября 2026, 22:55 (Asia/Novosibirsk)
 
 LangGraph закреплён как целевой основной orchestration framework и ближайший подэтап 4.1 до расширения approval/export. В основной план/roadmap добавлены ADR/state/modules, PostgreSQL checkpointer, durable operation keys, human interrupts, legacy compatibility/rollout и failure/concurrency/project-isolation приёмка без живой модели. FastMCP/LiteLLM/domain ledgers сохраняют роли, knowledge integration остаётся этапом 6. Проверены официальные persistence/checkpointers/interrupts docs; библиотека не устанавливалась, код/.env/БД не менялись. Отчёт reports/2026-11-08-langgraph-plan.md. Длительность отдельно не замерялась.
+
+## Корректировка оркестрации — 8 ноября 2026, 22:59 (Asia/Novosibirsk)
+
+После сверки со specs/case.md отменён обязательный LangGraph 4.1: агентный цикл ведёт IDE-хост, CLI/MCP и общие сервисы обеспечивают состояние, проверки и gates. LiteLLM/pipeline сохранены как опциональные операции; основной путь без отдельного API-ключа ещё подлежит проверке. Следующие работы — approval/export и capability-backed promises, затем AGENTS.md/skills/адаптеры и knowledge integration. Обновлены основной план/roadmap, прошлый LangGraph-отчёт помечен историческим. Только документация; зависимости/код/.env/БД не менялись. Отчёт reports/2026-11-08-ide-orchestration-plan.md. Длительность отдельно не замерялась.
