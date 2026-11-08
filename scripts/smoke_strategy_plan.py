@@ -148,7 +148,13 @@ def main():
     before = mode["calls"]
     recovered = pipeline.resume(key,attempt.id,1)
     require(recovered.status == "draft_ready" and mode["calls"] == before,"recovery must not replay paid request")
+    from strategy_approval_checks import check_approval
+    approval, approval_command, approval_receipt = check_approval(key, done, critic, pipeline, context, env)
+    approval_calls = mode["calls"]
     SourceService(core.sources).register(key,"synthetic://selection","local_text","Export supports JSON.")
+    reject(lambda: approval.export(key, done.agent_run_id))
+    require(approval.record(key, approval_command) == approval_receipt, "historical approval replay survives stale sources")
+    require(mode["calls"] == approval_calls, "approval/export/replay must never call the model")
     reject(lambda: strategy.prepare(key,source_id,question))
     recovered = pipeline.resume(key,attempt.id,recovered.version)
     require(recovered.result["checks"]["source_freshness"] == "stale_at_review","mark evidence changes after generation")
@@ -174,7 +180,8 @@ def main():
         raise AssertionError("cross-project decision/input FK must reject write")
     print(json.dumps({"status":"passed","project_key":key,"pipeline_id":str(done.id),"run_id":str(done.agent_run_id),
         "decision_id":setup["decision_id"],"input_hash":prepared.input_hash,"critic_pipeline_id":str(review_done.id),
-        "recovered_pipeline_id":str(recovered.id),"mcp_tools":MAIN_TOOL_COUNT,"stdio":True,"live_model":False}))
+        "recovered_pipeline_id":str(recovered.id),"approval_id":approval_receipt["id"],
+        "internal_export":True,"mcp_tools":MAIN_TOOL_COUNT,"stdio":True,"live_model":False}))
 
 
 if __name__ == "__main__":

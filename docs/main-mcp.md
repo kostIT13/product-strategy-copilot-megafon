@@ -2,7 +2,7 @@
 
 Команда `psa-main-mcp` запускает отдельный FastMCP 4.x сервер по stdio. Он использует те же прикладные сервисы и JSON-представления агентного прохода, что и `psa-main`. Общая сборка зависимостей находится в `bootstrap.py`; server, agent tools, search tools и обработка ошибок разделены по модулям в `interfaces/mcp/`.
 
-`psa-mcp` продолжает обслуживать файловый MVP. Новый сервер работает с PostgreSQL и открывает четырнадцать инструментов:
+`psa-mcp` продолжает обслуживать файловый MVP. Новый сервер работает с PostgreSQL и открывает восемнадцать инструментов:
 
 | Инструмент | Что делает | Побочные эффекты |
 | --- | --- | --- |
@@ -20,6 +20,10 @@
 | `psa_main_get_selection` | Неизменяемая квитанция выбора по source run | Чтение в указанном проекте |
 | `psa_main_prepare_strategy` | Точный запрос внутренних стратегических черновиков по selection | Чтение; решение/заметки/источники возвращаются клиенту |
 | `psa_main_start_strategy` | Закрепляет decision input snapshot и pipeline | Запись без модели; генерация через resume |
+| `psa_main_preview_strategy_approval` | Стратегия, critic, основания и preview hash | Чтение; без модели |
+| `psa_main_approve_strategy` | Явное принятие человеком для internal_review | Идемпотентная атомарная запись receipt; без публикации/модели |
+| `psa_main_get_strategy_approval` | Историческая запись утверждения | Чтение в указанном проекте |
+| `psa_main_export_strategy` | Проверяет утверждение/актуальность и возвращает Markdown/JSON contents + SHA-256 | Чтение; без записи файлов/публикации/модели |
 
 Анализ остаётся черновиком: claims, решения и workflow не утверждаются автоматически. Повторный analyze создаёт новый run. Read-only инструменты не вызывают провайдера и не пишут runs. Поиск и подготовка работают без API-ключа. Материалы источников остаются недоверенными данными.
 
@@ -44,7 +48,7 @@ stdout занят протоколом; сервер не печатает пр�
 
 [Коды ошибок модельного провайдера и диагностика](model-provider-diagnostics.md) одинаковы в CLI и MCP: например provider_http_401, provider_timeout, provider_incomplete_completion. Ключи и сырые серверные ошибки в checkpoint не сохраняются.
 
-Prepare/analyze/start_pipeline принимают optional task: evidence_answer (default), [evidence_extraction](evidence-extraction.md) или [strategy_options](strategy-options.md). Для [critic](agent-critic.md) используются отдельные prepare_critic/start_critic с run_id; выполнение — через тот же resume_pipeline. Предложения и оценки не создают канонические claims/options/decisions и не меняют approvals. Inventory — четырнадцать; явный человеческий выбор описан в [strategy-selection.md](strategy-selection.md).
+Prepare/analyze/start_pipeline принимают optional task: evidence_answer (default), [evidence_extraction](evidence-extraction.md) или [strategy_options](strategy-options.md). Для [critic](agent-critic.md) используются отдельные prepare_critic/start_critic с run_id; выполнение — через тот же resume_pipeline. Предложения и оценки не создают канонические claims/options/decisions и не меняют approvals. Inventory — восемнадцать; явный человеческий выбор описан в [strategy-selection.md](strategy-selection.md).
 
 ## Проверка
 
@@ -63,3 +67,5 @@ Smoke использует настоящий PostgreSQL и LiteLLM SDK с httpx
 Первый [checkpointed pipeline и resume](agent-pipeline.md) реализован: evidence → checked draft → локальный review packet. Отдельный linked critic pipeline оценивает сохранённый результат. Они не повторяют completed шаги или запрос с неизвестным исходом. Полный стратегический workflow, автоматическое восстановление неизвестного внешнего ответа и независимая оценка качества остаются следующими срезами.
 
 Планирование по записанному выбору: [strategy-plan.md](strategy-plan.md). Результат internal-only и не даёт разрешения на публикацию.
+
+[Утверждение и экспорт](strategy-approval.md) доступны только для внутреннего использования; capability-backed customer promises остаются отдельным следующим срезом.

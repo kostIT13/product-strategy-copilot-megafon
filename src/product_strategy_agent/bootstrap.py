@@ -19,6 +19,8 @@ from product_strategy_agent.adapters.persistence.postgres.repositories.decision_
 from product_strategy_agent.adapters.persistence.postgres.repositories.option_repository import PostgresOptionStore
 from product_strategy_agent.application.services.strategy_plan_context import StrategyPlanContext
 from product_strategy_agent.application.services.strategy_plan_service import StrategyPlanService
+from product_strategy_agent.application.services.strategy_approval_service import StrategyApprovalService
+from product_strategy_agent.adapters.persistence.postgres.repositories.strategy_approval_repository import PostgresStrategyApprovalStore
 
 
 @dataclass(frozen=True)
@@ -29,6 +31,7 @@ class MainServices:
     critic: AgentCriticService
     selection: StrategySelectionService | None = None
     strategy: StrategyPlanService | None = None
+    strategy_approval: StrategyApprovalService | None = None
 
 
 def build_main_services() -> MainServices:
@@ -39,7 +42,7 @@ def build_main_services() -> MainServices:
     context = StrategyPlanContext(agent, selection, PostgresStrategyInputStore(), PostgresDecisionStore(), PostgresOptionStore())
     pipeline = AgentPipelineService(agent, PostgresAgentPipelineStore(), context)
     return MainServices(agent, search, pipeline, AgentCriticService(agent, pipeline),
-                        selection, StrategyPlanService(context, pipeline))
+                        selection, StrategyPlanService(context, pipeline), StrategyApprovalService(context, PostgresStrategyApprovalStore()))
 
 
 def build_agent_service() -> AgentAnalysisService:

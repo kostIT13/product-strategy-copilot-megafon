@@ -12,6 +12,7 @@ def create_server(services: MainServices | None = None):
         from .critic_tools import register_critic_tools
         from .selection_tools import register_selection_tools
         from .strategy_tools import register_strategy_tools
+        from .strategy_approval_tools import register_strategy_approval_tools
     except ImportError as exc:
         raise RuntimeError('install MCP support: python -m pip install -e ".[agent,mcp]"') from exc
     server = FastMCP("product-strategy-main", version=__version__, mask_error_details=True,
@@ -21,7 +22,9 @@ def create_server(services: MainServices | None = None):
                       "Critic assesses saved drafts in a separate linked pipeline and never grants human approval. "
                       "Analysis outputs are drafts. Canonical selection requires explicit human instruction, "
                       "preview hashes and a self-reported owner; never infer consent from a model verdict. "
-                      "Selection never grants workflow approval or creates verified facts/commitments."))
+                      "Selection never grants workflow approval or creates verified facts/commitments. "
+                      "Strategy acceptance also requires explicit human instruction and is internal-only; "
+                      "it never authorizes publication or customer promises."))
     services = services if services is not None else build_main_services()
     register_search_tools(server, services)
     register_agent_tools(server, services)
@@ -29,6 +32,7 @@ def create_server(services: MainServices | None = None):
     register_critic_tools(server, services)
     register_selection_tools(server, services)
     register_strategy_tools(server, services)
+    register_strategy_approval_tools(server, services)
     return server
 
 

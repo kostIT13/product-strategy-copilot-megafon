@@ -147,7 +147,7 @@ jobs:
       - run: uv sync --frozen --extra agent --extra documents --extra mcp --group dev
       - run: uv run --frozen --no-sync alembic upgrade head
       - run: uv run --frozen --no-sync alembic check
-      - name: Exercise PostgreSQL services and fixture-only agent pipelines
+      - name: Exercise PostgreSQL services, fixture pipelines and internal strategy approval
         shell: bash
         run: |
           set -euo pipefail

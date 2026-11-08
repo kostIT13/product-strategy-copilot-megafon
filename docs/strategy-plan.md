@@ -17,7 +17,7 @@ psa-main pipeline resume demo PIPELINE_UUID --expected-version 2
 
 Resume из prepared отправляет этот контекст настроенному LLM и может расходовать токены. Snapshot содержит self-reported owner и review notes: их тоже увидит провайдер. Лимит/extra body берутся из обычных LLM_* настроек, не повышаются автоматически. Неизвестный внешний исход не повторяется; успешный run восстанавливается без второй генерации.
 
-Main MCP добавляет `psa_main_prepare_strategy` и `psa_main_start_strategy`; теперь 14 tools. Они используют тот же core; get/resume остаются общими. Generic agent analyze/pipeline start с fresh task не принимает strategy_plan без selection.
+Main MCP добавляет `psa_main_prepare_strategy` и `psa_main_start_strategy`; теперь 18 tools с учётом отдельного approval/export среза. Они используют тот же core; get/resume остаются общими. Generic agent analyze/pipeline start с fresh task не принимает strategy_plan без selection.
 
 ## Состав черновика
 
@@ -35,7 +35,7 @@ Main MCP добавляет `psa_main_prepare_strategy` и `psa_main_start_strat
 
 На prepare и перед генерацией проверяется актуальность source revisions; при новой ревизии требуется новый reviewed выбор. Это проверка в момент подготовки, не блокировка БД на время внешнего LLM-вызова. Уже сгенерированный результат можно завершить на исходных ревизиях, но packet получает stale_source_ids и source_freshness=stale_at_review. Completed replay возвращает исторический packet; он не подтверждает сегодняшнюю актуальность источников. Изменившиеся decision/selection/snapshot блокируют reconstruction.
 
-Packet всегда requires_human_review=true, communication_internal_only=true, publication_approved=false. Он не переписывает решение, claims/capabilities и workflow approvals. Capability-backed customer commitments, утверждение/экспорт стратегии и публикация остаются следующими срезами. Учёт identity/RBAC также не добавлялся.
+Packet всегда requires_human_review=true, communication_internal_only=true, publication_approved=false. Он не переписывает решение, claims/capabilities и workflow approvals. Явное принятие для внутреннего использования и экспорт реализованы отдельно: [strategy-approval.md](strategy-approval.md). Capability-backed customer commitments и разрешение публикации остаются следующими срезами. Учёт identity/RBAC также не добавлялся.
 
 ## Critic и проверки
 

@@ -175,4 +175,6 @@ MCP integration is optional. Install with `python -m pip install -e ".[mcp]"`, l
 
 Продуктовая стратегия, внутренние коммуникационные гипотезы и эксперименты по сохранённому решению: [docs/strategy-plan.md](docs/strategy-plan.md).
 
+Явное человеческое принятие конкретной стратегии для внутреннего review и экспорт Markdown/JSON с SHA-256: [docs/strategy-approval.md](docs/strategy-approval.md). Нужна миграция `0017_strategy_approvals`; это не разрешение публикации или клиентских обещаний.
+
 Методики и чек-листы для ручной проверки сценария: [knowledge/README.md](knowledge/README.md). Источники, версии и ограничения указаны в каталоге; загрузка этих материалов работающим агентом ещё не подключена.
