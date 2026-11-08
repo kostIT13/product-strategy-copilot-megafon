@@ -20,7 +20,7 @@ class MainMCPTests(unittest.IsolatedAsyncioTestCase):
         self.fixture.setUp()
         self.fixture.reply()
         self.search = Mock()
-        self.services = MainServices(self.fixture.service, self.search)
+        self.services = MainServices(self.fixture.service, self.search, Mock(), Mock())
         self.client = Client(create_server(self.services))
         await self.client.__aenter__()
         self.addAsyncCleanup(self.client.__aexit__, None, None, None)
@@ -29,11 +29,13 @@ class MainMCPTests(unittest.IsolatedAsyncioTestCase):
     async def test_inventory_and_side_effect_annotations(self):
         tools = {tool.name: tool for tool in await self.client.list_tools()}
         self.assertEqual(set(tools), {"psa_main_search_sources", "psa_main_prepare_analysis",
-                                     "psa_main_analyze", "psa_main_get_agent_run"})
+                                     "psa_main_analyze", "psa_main_get_agent_run", "psa_main_start_pipeline",
+                                     "psa_main_get_pipeline", "psa_main_resume_pipeline",
+                                     "psa_main_prepare_critic", "psa_main_start_critic"})
         for name, tool in tools.items():
-            writes = name == "psa_main_analyze"
+            writes = name in {"psa_main_analyze", "psa_main_start_pipeline", "psa_main_resume_pipeline", "psa_main_start_critic"}
             self.assertEqual(tool.annotations.read_only_hint, not writes)
-            self.assertEqual(tool.annotations.open_world_hint, writes)
+            self.assertEqual(tool.annotations.open_world_hint, name in {"psa_main_analyze", "psa_main_resume_pipeline"})
             self.assertEqual(tool.annotations.idempotent_hint, not writes)
 
     async def test_preview_matches_cli_payload_without_call_or_write(self):
@@ -75,14 +77,14 @@ class MainMCPTests(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(self.fixture.runs.records)
 
     async def test_provider_failure_keeps_inspectable_failed_checkpoint(self):
-        self.fixture.provider.generate.side_effect = ProviderError("synthetic-secret")
+        self.fixture.provider.generate.side_effect = ProviderError("synthetic-secret", code="provider_http_401")
         result = await self.client.call_tool("psa_main_analyze", self.args, raise_on_error=False)
         self.assertTrue(result.is_error)
         self.assertNotIn("synthetic-secret", str(result.content))
         run_id = next(iter(self.fixture.runs.records))
         self.assertIn(str(run_id), str(result.content))
         shown = await self.client.call_tool("psa_main_get_agent_run", {"project_key": "demo", "run_id": str(run_id)})
-        self.assertEqual(shown.data["error_code"], "provider_error")
+        self.assertEqual(shown.data["error_code"], "provider_http_401")
         self.assertEqual(UUID(shown.data["id"]), run_id)
 
     async def test_backend_error_is_redacted(self):

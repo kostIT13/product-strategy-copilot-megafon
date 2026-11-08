@@ -18,10 +18,13 @@ def json_payload(value):
 
 
 def analysis_preview(prepared: PreparedAnalysis) -> dict:
-    return {"dry_run": True, "model": prepared.model, "prompt_version": prepared.prompt_version,
+    payload = {"dry_run": True, "task": prepared.task, "model": prepared.model, "prompt_version": prepared.prompt_version,
             "messages": prepared.messages,
             "contexts": [{key: value for key, value in context.items() if key != "text"}
                          for context in prepared.contexts]}
+    if prepared.input_run_id is not None:
+        payload.update(input_run_id=str(prepared.input_run_id), input_hash=prepared.input_hash)
+    return payload
 
 
 def agent_run_payload(run: AgentRun) -> dict:

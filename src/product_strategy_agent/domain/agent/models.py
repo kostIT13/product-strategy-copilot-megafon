@@ -5,6 +5,8 @@ from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+from product_strategy_agent.domain.agent.errors import ProviderError
+from product_strategy_agent.domain.agent.tasks import AgentTask
 
 
 class Citation(BaseModel):
@@ -39,10 +41,6 @@ class ModelReply:
     usage: dict
 
 
-class ProviderError(Exception):
-    """Sanitized model transport/configuration failure."""
-
-
 class AgentRunFailed(Exception):
     def __init__(self, run_id: UUID, code: str):
         self.run_id, self.code = run_id, code
@@ -58,6 +56,10 @@ class PreparedAnalysis:
     prompt_version: str
     messages: list[dict[str, str]]
     contexts: list[dict]
+    task: AgentTask = "evidence_answer"
+    input_run_id: UUID | None = None
+    input_hash: str | None = None
+    review_target: dict | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -75,3 +77,6 @@ class AgentRun:
     error_code: str | None
     created_at: datetime
     finished_at: datetime | None
+    task: AgentTask = "evidence_answer"
+    input_run_id: UUID | None = None
+    input_hash: str | None = None

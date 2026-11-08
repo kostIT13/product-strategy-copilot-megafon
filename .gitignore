@@ -8,6 +8,8 @@ wheels/
 
 # Virtual environments
 .venv
+.venv-ci/
+.ruff_cache/
 
 # Local secrets and runtime overrides
 .env

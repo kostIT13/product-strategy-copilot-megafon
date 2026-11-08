@@ -141,6 +141,33 @@ class AgentAnalysisTests(unittest.TestCase):
             self.service.analyze("demo", "Question?", "export")
         self.provider.generate.assert_not_called()
 
+    def test_provider_diagnostic_code_is_persisted_without_message(self):
+        self.provider.generate.side_effect = ProviderError("synthetic-secret", code="provider_http_401")
+        with self.assertRaises(AgentRunFailed) as error:
+            self.service.analyze("demo", "Question?", "export")
+        run = self.runs.records[error.exception.run_id]
+        self.assertEqual(run.error_code, "provider_http_401")
+        self.assertEqual(error.exception.code, "provider_http_401")
+        self.assertNotIn("synthetic-secret", str(error.exception))
+
+    def test_known_usage_on_provider_failure_is_not_discarded(self):
+        usage = {"input_tokens": 10, "output_tokens": 20, "total_tokens": 30, "cost": None}
+        self.provider.generate.side_effect = ProviderError(code="provider_output_limit", usage=usage)
+        with self.assertRaises(AgentRunFailed) as error:
+            self.service.analyze("demo", "Question?", "export")
+        run = self.runs.records[error.exception.run_id]
+        self.assertEqual(run.error_code, "provider_output_limit")
+        self.assertEqual(run.usage, usage)
+        self.assertIsNone(run.result)
+
+    def test_reserved_attempt_cannot_execute_a_different_request(self):
+        prepared = self.service.prepare("demo", "Original?", "export")
+        run = self.service.new_run(prepared)
+        self.runs.create(run)
+        with self.assertRaises(ValueError):
+            self.service.execute_reserved(replace(prepared, question="Changed?"), run)
+        self.provider.generate.assert_not_called()
+
     def test_run_lookup_is_project_scoped(self):
         self.reply()
         run = self.service.analyze("demo", "Question?", "export")
