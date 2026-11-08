@@ -79,7 +79,7 @@ class AgentAnalysisService:
                     raise CitationValidationError("model citation is outside supplied evidence")
                 seen.add(identity)
         except Exception as exc:
-            code = ("provider_error" if isinstance(exc, ProviderError) else
+            code = (exc.code if isinstance(exc, ProviderError) else
                     "invalid_citation" if isinstance(exc, CitationValidationError) else
                     "invalid_model_output" if isinstance(exc, (ValidationError, ValueError)) else "internal_error")
             self.runs.finish(run.id, "failed", usage=reply.usage if reply else None, error_code=code)

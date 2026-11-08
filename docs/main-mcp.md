@@ -32,6 +32,8 @@ stdout занят протоколом; сервер не печатает пр�
 
 Ошибки агента содержат ID запуска и безопасный код; этот run можно прочитать через get. Неожиданные ошибки backend заменяются общим сообщением. Проверка schema ограничивает длины question/query, UUID и search limit. Инструменты импорта произвольных файлов и URL в этот срез не входят.
 
+[Коды ошибок модельного провайдера и диагностика](model-provider-diagnostics.md) одинаковы в CLI и MCP: например provider_http_401, provider_timeout, provider_incomplete_completion. Ключи и сырые серверные ошибки в checkpoint не сохраняются.
+
 ## Проверка
 
 ```powershell

@@ -5,6 +5,7 @@ from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+from product_strategy_agent.domain.agent.errors import ProviderError
 
 
 class Citation(BaseModel):
@@ -37,10 +38,6 @@ class AnswerDraft(BaseModel):
 class ModelReply:
     content: str
     usage: dict
-
-
-class ProviderError(Exception):
-    """Sanitized model transport/configuration failure."""
 
 
 class AgentRunFailed(Exception):

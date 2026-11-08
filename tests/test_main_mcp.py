@@ -75,14 +75,14 @@ class MainMCPTests(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(self.fixture.runs.records)
 
     async def test_provider_failure_keeps_inspectable_failed_checkpoint(self):
-        self.fixture.provider.generate.side_effect = ProviderError("synthetic-secret")
+        self.fixture.provider.generate.side_effect = ProviderError("synthetic-secret", code="provider_http_401")
         result = await self.client.call_tool("psa_main_analyze", self.args, raise_on_error=False)
         self.assertTrue(result.is_error)
         self.assertNotIn("synthetic-secret", str(result.content))
         run_id = next(iter(self.fixture.runs.records))
         self.assertIn(str(run_id), str(result.content))
         shown = await self.client.call_tool("psa_main_get_agent_run", {"project_key": "demo", "run_id": str(run_id)})
-        self.assertEqual(shown.data["error_code"], "provider_error")
+        self.assertEqual(shown.data["error_code"], "provider_http_401")
         self.assertEqual(UUID(shown.data["id"]), run_id)
 
     async def test_backend_error_is_redacted(self):

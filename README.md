@@ -104,6 +104,8 @@ psa critic-pack demo
 
 Для основной PostgreSQL-системы добавлен отдельный FastMCP stdio-сервер `psa-main-mcp`: поиск, подготовка запроса, анализ и просмотр запуска. [Запуск, границы инструментов и проверка CLI/MCP](docs/main-mcp.md).
 
+При ошибке модельного API смотрите сохранённый `error_code` запуска: [диагностика провайдера](docs/model-provider-diagnostics.md). Имя модели должно точно совпадать с ID настроенного сервера.
+
 Явная загрузка веб-страницы: `psa-main web import demo https://example.com/`. [HTTP-политика и provenance](docs/web-import.md).
 
 Поиск по актуальным ревизиям источников: `psa-main search demo "retention" --json`. [Описание и ограничения поиска](docs/source-search.md).

@@ -141,6 +141,15 @@ class AgentAnalysisTests(unittest.TestCase):
             self.service.analyze("demo", "Question?", "export")
         self.provider.generate.assert_not_called()
 
+    def test_provider_diagnostic_code_is_persisted_without_message(self):
+        self.provider.generate.side_effect = ProviderError("synthetic-secret", code="provider_http_401")
+        with self.assertRaises(AgentRunFailed) as error:
+            self.service.analyze("demo", "Question?", "export")
+        run = self.runs.records[error.exception.run_id]
+        self.assertEqual(run.error_code, "provider_http_401")
+        self.assertEqual(error.exception.code, "provider_http_401")
+        self.assertNotIn("synthetic-secret", str(error.exception))
+
     def test_run_lookup_is_project_scoped(self):
         self.reply()
         run = self.service.analyze("demo", "Question?", "export")
