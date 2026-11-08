@@ -2,6 +2,8 @@
 
 Переносимый CLI и набор файловых артефактов для подготовки проверяемых продуктовых и коммуникационных стратегий. План MVP находится в [едином плане](docs/solution_plans/plan-main.md); краткий план основной разработки — в [roadmap полного решения](docs/solution_plans/roadmap-full-solution.md).
 
+Первый GitHub CI проверяет frozen-установку по `uv.lock`, unittest/Ruff и PostgreSQL/FastMCP smoke без внешней модели. Состав матрицы и локальный повтор — [docs/continuous-integration.md](docs/continuous-integration.md).
+
 ## CLI
 
 Требуется Python 3.11 или новее. Из корня репозитория установите пакет в editable-режиме и используйте команду `psa`:

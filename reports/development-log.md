@@ -161,3 +161,7 @@
 ## План GitHub Actions — 8 ноября 2026, 16:27 (Asia/Novosibirsk)
 
 В основной план добавлен раздел 14.1 и целевая структура .github/: ci/demo/release, unittest/Ruff/lock, PostgreSQL 17/Alembic/FastMCP smoke, synthetic demo без модели, secrets/docs и будущий instruction-sync. Команды адаптированы под psa/psa-main; несуществующие sf/replay/doctor flags не приняты за реализацию. Указаны порядок внедрения, приёмка чистого checkout/архива, ограничения PR permissions и запрет LLM-секретов/вызовов в CI. Обновлён roadmap, проверен diff; код и GitHub settings не менялись, тесты/Actions не запускались. Отчёт: reports/2026-11-08-github-actions-plan.md. Длительность отдельно не замерялась.
+
+## Первый GitHub CI — 8 ноября 2026, 16:36 (Asia/Novosibirsk)
+
+Реализован первый срез раздела 14.1: ci.yml с Ubuntu Python 3.11/3.12 + Windows 3.12 unit matrix, base-install и PostgreSQL 17/Alembic/FastMCP job. Добавлены dev-группа Ruff/build, uv 0.11.30 и uv.lock (119 packages); Actions закреплены на проверенные SHA, ключи/вызовы LLM не используются. Frozen install и 140 тестов прошли локально на Python 3.12, затем на Python 3.11 из чистой копии без .env; семь smoke и миграции 0001–0014 прошли в отдельной временной БД. Ruff/diff/YAML checks успешны. Тестовые БД/checkout очищены, рабочие .env/.venv/БД не менялись. Удалённый Actions status не подтверждён (API без авторизации 404). Обновлены планы/README и инструкция docs/continuous-integration.md; отчёт reports/2026-11-08-github-ci.md. Длительность отдельно не замерялась.

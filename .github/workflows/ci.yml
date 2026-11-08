@@ -1,0 +1,106 @@
+name: ci
+
+on:
+  push:
+    branches: [main, 'feature/**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  LLM_API_KEY: ''
+  LLM_BASE_URL: https://provider.invalid/v1
+  LITELLM_LOCAL_MODEL_COST_MAP: 'True'
+
+jobs:
+  unit:
+    name: unit (${{ matrix.os }}, Python ${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python: '3.11'
+          - os: ubuntu-latest
+            python: '3.12'
+          - os: windows-latest
+            python: '3.12'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: '0.11.30'
+          python-version: ${{ matrix.python }}
+          enable-cache: true
+      - run: uv lock --check
+      - run: uv sync --frozen --extra agent --extra documents --extra mcp --group dev
+      - run: uv run --frozen --no-sync ruff check .
+      - run: uv run --frozen --no-sync python -m unittest discover -s tests
+      - run: uv run --frozen --no-sync psa doctor
+      - run: uv run --frozen --no-sync psa-main --help
+
+  base-install:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: '0.11.30'
+          python-version: '3.11'
+          enable-cache: true
+      - run: uv sync --frozen --no-default-groups
+      - run: uv run --frozen --no-sync psa doctor
+      - run: uv run --frozen --no-sync psa --help
+      - run: uv run --frozen --no-sync psa-main --help
+
+  postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci-local-only
+          POSTGRES_DB: strategy_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci -d strategy_ci"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql+psycopg://ci:ci-local-only@127.0.0.1:5432/strategy_ci
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: '0.11.30'
+          python-version: '3.12'
+          enable-cache: true
+      - run: uv sync --frozen --extra agent --extra documents --extra mcp --group dev
+      - run: uv run --frozen --no-sync alembic upgrade head
+      - run: uv run --frozen --no-sync alembic check
+      - name: Exercise PostgreSQL services and fixture-only agent pipelines
+        shell: bash
+        run: |
+          set -euo pipefail
+          for scenario in main agent agent_pipeline evidence_extraction agent_critic strategy_options main_mcp; do
+            uv run --frozen --no-sync python "scripts/smoke_${scenario}.py"
+          done
