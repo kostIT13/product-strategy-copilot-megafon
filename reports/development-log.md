@@ -189,3 +189,7 @@
 ## Базовое knowledge/ — 8 ноября 2026, 22:46 (Asia/Novosibirsk)
 
 Созданы README/sources/catalog и 3 methods + 3 checklists версии 1.0.0, с provenance/авторством/датой/применимостью/ограничениями. Проверены 4 внешние первичные страницы; внутренние эвристики отделены от внешних адаптаций. База ручная, runtime/IDE/FTS/RAG интеграция не добавлялась. Knowledge включено в ZIP/sdist упаковку и required docs; 11 целевых distribution/CI tests, проверка catalog metadata и состава ZIP/sdist прошли, Ruff/diff — OK. Review bundle сохранён отдельно в игнорируемой .venv-ci, предыдущий release не заменялся. Обновлены планы/README; основной этап 5 ещё не закрыт. Отчёт reports/2026-11-08-knowledge-base.md. .env/БД/prompts не менялись, живой модели нет. Длительность отдельно не замерялась.
+
+## LangGraph в плане — 8 ноября 2026, 22:55 (Asia/Novosibirsk)
+
+LangGraph закреплён как целевой основной orchestration framework и ближайший подэтап 4.1 до расширения approval/export. В основной план/roadmap добавлены ADR/state/modules, PostgreSQL checkpointer, durable operation keys, human interrupts, legacy compatibility/rollout и failure/concurrency/project-isolation приёмка без живой модели. FastMCP/LiteLLM/domain ledgers сохраняют роли, knowledge integration остаётся этапом 6. Проверены официальные persistence/checkpointers/interrupts docs; библиотека не устанавливалась, код/.env/БД не менялись. Отчёт reports/2026-11-08-langgraph-plan.md. Длительность отдельно не замерялась.
