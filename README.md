@@ -112,6 +112,8 @@ psa critic-pack demo
 
 Для отдельной проверки сохранённого run: `psa-main critic prepare demo RUN_UUID`, затем `critic start` и обычный pipeline resume. [Critic, оценки и привязка к исходному черновику](docs/agent-critic.md).
 
+Для трёх стратегических альтернатив и качественного сравнения: `--task strategy_options` в agent analyze / pipeline start. [Поля вариантов, critic и человеческий выбор](docs/strategy-options.md).
+
 Явная загрузка веб-страницы: `psa-main web import demo https://example.com/`. [HTTP-политика и provenance](docs/web-import.md).
 
 Поиск по актуальным ревизиям источников: `psa-main search demo "retention" --json`. [Описание и ограничения поиска](docs/source-search.md).

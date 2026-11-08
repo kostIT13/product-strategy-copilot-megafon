@@ -18,7 +18,9 @@
 | `provider_connection_error` | Ошибка подключения/HTTP-транспорта |
 | `provider_response_too_large` | Ответ превысил 2 MiB |
 | `provider_invalid_json`, `provider_invalid_envelope` | Повреждённый JSON или несовместимый chat completion envelope |
-| `provider_incomplete_completion` | finish_reason отличается от stop, например исчерпан лимит токенов |
+| `provider_output_limit` | finish_reason=length: исчерпан выходной бюджет, включая возможный reasoning |
+| `provider_content_filtered` | finish_reason=content_filter |
+| `provider_incomplete_completion` | Другой finish_reason, отличный от stop |
 | `provider_empty_content` | Текст ответа пуст |
 | `provider_sdk_error` | Ошибка SDK/нормализации, не отнесённая к известным категориям |
 | `provider_error` | Общий код для прежних записей и провайдеров без уточнения |
@@ -34,4 +36,6 @@ python scripts/smoke_agent_live.py --live
 psa-main agent show PROJECT_KEY RUN_UUID
 ```
 
-Live smoke использует только новый синтетический источник, максимум 512 выходных токенов для evidence_answer или 2048 для evidence_extraction, не выше настроенного лимита. Timeout операций не более 45 секунд. Успешная техническая проверка не заменяет оценку качества модели, retrieval и обоснованности выводов.
+Live smoke использует только новый синтетический источник. Без override cap — 512 выходных токенов для answer или 2048 для extraction/options, не выше настройки. Явный --max-output-tokens задаёт разовый smoke-limit 1–8192 и может превышать конфигурационный; `.env` и production-команды не меняются. Timeout операций не более 45 секунд. Успешная техническая проверка не заменяет оценку качества модели, retrieval и обоснованности выводов.
+
+Если сервер вернул usage при незавершённой генерации, failed run сохраняет известные счётчики input/output/total/reasoning tokens, длины content/reasoning, длительность и выходной лимит. Сырой reasoning не сохраняется. Отсутствующие счётчики и стоимость остаются null; длина текста сама по себе не является числом токенов.

@@ -13,7 +13,7 @@ class AgentRunRecord(Base):
     __table_args__ = (
         ForeignKeyConstraint(["input_run_id", "project_id"], ["agent_runs.id", "agent_runs.project_id"], name="fk_agent_runs_input_project"),
         CheckConstraint("(task = 'evidence_critic' AND input_run_id IS NOT NULL AND input_hash IS NOT NULL) OR (task <> 'evidence_critic' AND input_run_id IS NULL AND input_hash IS NULL)", name="input_required"),
-        CheckConstraint("task IN ('evidence_answer', 'evidence_extraction', 'evidence_critic')", name="task_allowed"),
+        CheckConstraint("task IN ('evidence_answer', 'evidence_extraction', 'strategy_options', 'evidence_critic')", name="task_allowed"),
         CheckConstraint("status IN ('running', 'succeeded', 'failed')", name="status_allowed"),
         Index("ix_agent_runs_project_created", "project_id", "created_at"),
         UniqueConstraint("id", "project_id", name="uq_agent_runs_id_project"),

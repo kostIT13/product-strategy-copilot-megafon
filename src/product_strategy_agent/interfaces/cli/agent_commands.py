@@ -11,7 +11,7 @@ from product_strategy_agent.domain.agent.tasks import TASK_NAMES
 
 
 def add_agent_commands(commands: argparse._SubParsersAction):
-    agent = commands.add_parser("agent", help="Prepare checked evidence answers or extraction drafts")
+    agent = commands.add_parser("agent", help="Prepare checked answers, evidence extraction or strategy proposals")
     actions = agent.add_subparsers(dest="action", required=True)
     analyze = actions.add_parser("analyze", help="Retrieve sources and generate a citation-checked draft")
     analyze.add_argument("project_key")

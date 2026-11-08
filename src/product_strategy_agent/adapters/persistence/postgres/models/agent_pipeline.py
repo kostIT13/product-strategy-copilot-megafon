@@ -13,7 +13,7 @@ class AgentPipelineRecord(Base):
     __table_args__ = (
         ForeignKeyConstraint(["input_run_id", "project_id"], ["agent_runs.id", "agent_runs.project_id"], name="fk_agent_pipelines_input_project"),
         CheckConstraint("(task = 'evidence_critic' AND input_run_id IS NOT NULL AND input_hash IS NOT NULL) OR (task <> 'evidence_critic' AND input_run_id IS NULL AND input_hash IS NULL)", name="input_required"),
-        CheckConstraint("task IN ('evidence_answer', 'evidence_extraction', 'evidence_critic')", name="task_allowed"),
+        CheckConstraint("task IN ('evidence_answer', 'evidence_extraction', 'strategy_options', 'evidence_critic')", name="task_allowed"),
         CheckConstraint("status IN ('prepared', 'draft_running', 'draft_ready', 'completed', 'failed')", name="status_allowed"),
         CheckConstraint("version >= 0", name="version_nonnegative"),
         CheckConstraint("(status = 'prepared' AND agent_run_id IS NULL) OR (status <> 'prepared' AND agent_run_id IS NOT NULL)", name="run_required"),

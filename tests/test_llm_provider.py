@@ -72,7 +72,10 @@ class OpenAICompatibleProviderTests(unittest.TestCase):
         for content, code in (({}, "provider_invalid_envelope"),
                 (envelope(choices=[None]), "provider_invalid_envelope"),
                 (envelope(choices=["invalid"]), "provider_invalid_envelope"),
-                (envelope(choices=[{"finish_reason": "length", "message": {"content": "partial"}}]), "provider_incomplete_completion"),
+                (envelope(choices=[{"finish_reason": "length", "message": {"content": "partial"}}]), "provider_output_limit"),
+                (envelope(choices=[{"finish_reason": "content_filter", "message": {"content": "partial"}}]), "provider_content_filtered"),
+                (envelope(choices=[{"finish_reason": None, "message": {"content": "partial"}}]), "provider_incomplete_completion"),
+                (envelope(choices=[{"finish_reason": [], "message": {"content": "partial"}}]), "provider_invalid_envelope"),
                 (envelope(choices=[{"finish_reason": "stop", "message": {"content": None}}]), "provider_invalid_envelope"),
                 (envelope(choices=[{"finish_reason": "stop", "message": {"content": " "}}]), "provider_empty_content")):
             with self.subTest(content=content), self.assertRaises(ProviderError) as error:
@@ -208,3 +211,16 @@ class OpenAICompatibleProviderTests(unittest.TestCase):
                         {"llm_max_output_tokens": 1000}, {"llm_extra_body": {"enable_thinking": False}}):
             with self.subTest(changes=changes):
                 self.assertNotEqual(original, OpenAICompatibleProvider(settings(**changes)).configuration_hash)
+
+    def test_truncated_response_keeps_counters_without_reasoning_text(self):
+        body = envelope(choices=[{"finish_reason": "length", "message": {"content": "", "reasoning_content": "synthetic-secret"}}],
+                        usage={"prompt_tokens": 10, "completion_tokens": 20, "total_tokens": 30,
+                               "completion_tokens_details": {"reasoning_tokens": 20}, "debug": "synthetic-secret"})
+        with self.assertRaises(ProviderError) as error:
+            OpenAICompatibleProvider(settings(), httpx.MockTransport(lambda _: httpx.Response(200, json=body))).generate(MESSAGES)
+        self.assertEqual(error.exception.code, "provider_output_limit")
+        self.assertEqual(error.exception.usage["reasoning_tokens"], 20)
+        self.assertEqual(error.exception.usage["content_chars"], 0)
+        self.assertEqual(error.exception.usage["output_token_limit"], 2048)
+        self.assertIsNone(error.exception.usage["cost"])
+        self.assertNotIn("synthetic-secret", json.dumps(error.exception.usage))

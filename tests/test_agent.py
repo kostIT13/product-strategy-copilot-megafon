@@ -150,6 +150,16 @@ class AgentAnalysisTests(unittest.TestCase):
         self.assertEqual(error.exception.code, "provider_http_401")
         self.assertNotIn("synthetic-secret", str(error.exception))
 
+    def test_known_usage_on_provider_failure_is_not_discarded(self):
+        usage = {"input_tokens": 10, "output_tokens": 20, "total_tokens": 30, "cost": None}
+        self.provider.generate.side_effect = ProviderError(code="provider_output_limit", usage=usage)
+        with self.assertRaises(AgentRunFailed) as error:
+            self.service.analyze("demo", "Question?", "export")
+        run = self.runs.records[error.exception.run_id]
+        self.assertEqual(run.error_code, "provider_output_limit")
+        self.assertEqual(run.usage, usage)
+        self.assertIsNone(run.result)
+
     def test_reserved_attempt_cannot_execute_a_different_request(self):
         prepared = self.service.prepare("demo", "Original?", "export")
         run = self.service.new_run(prepared)

@@ -78,6 +78,8 @@ class AgentPipelineService:
                 result.update(input_run_id=str(pipeline.input_run_id), input_hash=pipeline.input_hash,
                               critic_verdict=critic_verdict(answer))
                 result["checks"]["semantic_entailment"] = "model_assessed_not_verified"
+            if pipeline.task == "strategy_options":
+                result.update(proposal_only=True, selection_required=True)
             return self.store.advance(pipeline.project_id, pipeline.id, pipeline.version, "completed", result=result)
         raise PipelineConflict("unsupported pipeline state")
 

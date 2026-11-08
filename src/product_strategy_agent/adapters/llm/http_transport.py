@@ -5,6 +5,7 @@ import httpx
 
 from product_strategy_agent.domain.agent.models import ProviderError
 from product_strategy_agent.adapters.llm.response_envelope import sdk_response_body
+from product_strategy_agent.adapters.llm.usage import response_usage
 
 
 class BoundedTransport(httpx.BaseTransport):
@@ -37,7 +38,11 @@ class BoundedTransport(httpx.BaseTransport):
                 choice = choices[0]
                 message = choice.get("message")
                 if choice.get("finish_reason") != "stop":
-                    raise ProviderError("model completion did not finish normally", code="provider_incomplete_completion")
+                    if choice.get("finish_reason") is not None and not isinstance(choice.get("finish_reason"), str):
+                        raise ProviderError("model finish reason is invalid", code="provider_invalid_envelope")
+                    code = {"length": "provider_output_limit", "content_filter": "provider_content_filtered"}.get(
+                        choice.get("finish_reason"), "provider_incomplete_completion")
+                    raise ProviderError("model completion did not finish normally", code=code)
                 if not isinstance(message, dict) or not isinstance(message.get("content"), str):
                     raise ProviderError("model message is invalid", code="provider_invalid_envelope")
                 if not message["content"].strip():
@@ -52,6 +57,8 @@ class BoundedTransport(httpx.BaseTransport):
             return httpx.Response(response.status_code, headers=headers,
                                   content=body, request=request)
         except ProviderError as exc:
+            if exc.usage is None:
+                exc.usage = response_usage(self.envelope)
             self.failure = exc
             raise
         except httpx.TimeoutException:

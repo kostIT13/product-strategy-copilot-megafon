@@ -8,6 +8,7 @@ from urllib.parse import urlsplit
 
 from product_strategy_agent.config import Settings
 from product_strategy_agent.domain.agent.models import ModelReply, ProviderError
+from product_strategy_agent.adapters.llm.usage import response_usage
 
 
 class OpenAICompatibleProvider:
@@ -83,24 +84,20 @@ class OpenAICompatibleProvider:
             content = choice["message"]["content"]
             if not isinstance(content, str) or not content.strip():
                 raise ProviderError("model returned no text content", code="provider_empty_content")
-            raw_usage = envelope.get("usage") or {}
-            if not isinstance(raw_usage, dict):
-                raw_usage = {}
-            def tokens(name):
-                value = raw_usage.get(name)
-                return value if isinstance(value, int) and not isinstance(value, bool) and value >= 0 else None
             if response.choices[0].message.content != content:
                 raise ProviderError("model response normalization changed content", code="provider_invalid_envelope")
-            return ModelReply(content, {
-                "input_tokens": tokens("prompt_tokens"), "output_tokens": tokens("completion_tokens"),
-                "total_tokens": tokens("total_tokens"), "cost": None,
-                "duration_ms": int((time.monotonic() - started) * 1000),
-                "reported_model": envelope.get("model") if isinstance(envelope.get("model"), str) else None,
-            })
-        except ProviderError:
+            usage = response_usage(envelope) or {"input_tokens": None, "output_tokens": None, "total_tokens": None, "cost": None}
+            usage.update(duration_ms=int((time.monotonic() - started) * 1000), output_token_limit=settings.llm_max_output_tokens)
+            return ModelReply(content, usage)
+        except ProviderError as exc:
+            if exc.usage is not None:
+                exc.usage.update(duration_ms=int((time.monotonic() - started) * 1000), output_token_limit=settings.llm_max_output_tokens)
             raise
         except Exception:
             # Never expose response bodies, headers, endpoint secrets or raw prompts.
             if transport is not None and transport.failure is not None:
+                if transport.failure.usage is not None:
+                    transport.failure.usage.update(duration_ms=int((time.monotonic() - started) * 1000),
+                                                   output_token_limit=settings.llm_max_output_tokens)
                 raise transport.failure from None
             raise ProviderError("model SDK or response normalization failed", code="provider_sdk_error") from None

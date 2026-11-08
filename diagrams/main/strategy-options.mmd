@@ -1,0 +1,13 @@
+flowchart LR
+    evidence[Pinned source revisions] --> task[Strategy options draft task]
+    task --> o1[O1 proposal]
+    task --> o2[O2 proposal]
+    task --> o3[O3 proposal]
+    o1 --> compare[Complete qualitative comparison]
+    o2 --> compare
+    o3 --> compare
+    compare --> packet[Review packet with assumptions, risks and experiments]
+    packet --> critic[Optional linked critic]
+    critic --> human[Human review and choice]
+    packet --> human
+    human --> canonical[Explicit canonical option and decision recording]

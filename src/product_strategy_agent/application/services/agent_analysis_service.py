@@ -79,7 +79,8 @@ class AgentAnalysisService:
             code = (exc.code if isinstance(exc, ProviderError) else
                     "invalid_citation" if isinstance(exc, CitationValidationError) else
                     "invalid_model_output" if isinstance(exc, (ValidationError, ValueError)) else "internal_error")
-            self.runs.finish(run.id, "failed", usage=reply.usage if reply else None, error_code=code)
+            usage = reply.usage if reply else exc.usage if isinstance(exc, ProviderError) else None
+            self.runs.finish(run.id, "failed", usage=usage, error_code=code)
             raise AgentRunFailed(run.id, code) from None
         return self.runs.finish(run.id, "succeeded", result=answer.model_dump(mode="json"), usage=reply.usage)
 
