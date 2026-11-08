@@ -4,6 +4,8 @@
 
 GitHub CI проверяет frozen-установку по `uv.lock`, unittest/Ruff, PostgreSQL/FastMCP smoke, локальные Markdown-ссылки и секреты в истории. Отдельный demo workflow воспроизводит синтетические артефакты без внешней модели. Состав матрицы и локальный повтор — [docs/continuous-integration.md](docs/continuous-integration.md).
 
+Сборка проверяемого ZIP, wheel/sdist и Docker smoke описана в [docs/distribution.md](docs/distribution.md). Теговый release workflow готовит draft после CI и проверки установки.
+
 ## CLI
 
 Требуется Python 3.11 или новее. Из корня репозитория установите пакет в editable-режиме и используйте команду `psa`:

@@ -53,6 +53,10 @@ PostgreSQL smoke создают синтетические проекты и fai
 
 Demo runner сам использует временные копии и не изменяет projects/. Secrets scanner не сканирует весь локальный каталог с .env/.venv; в экспорт попадают Git-tracked и новые неигнорируемые файлы.
 
+## Дистрибутив и Docker
+
+В ci.yml добавлен Docker job: frozen runtime image с extras agent/documents/mcp, непривилегированный пользователь, CLI/offline Alembic/FastMCP startup и demo smoke без сети с read-only filesystem. release.yml переиспользует ci/demo через workflow_call, затем строит ZIP/wheel/sdist и проверяет установку вне src. Только теговый draft job получает contents: write; ручной запуск на ветке сохраняет artifact. Подробности и локальные команды — [distribution.md](distribution.md).
+
 ## Что остаётся
 
-Release packaging, instruction-sync, Docker build smoke и настройки required checks пока не реализованы. Общего replay engine нет; фикстурные smoke не подменяют независимую оценку качества стратегий и отложенные пользовательские приёмки. Бейдж CI добавляется после подтверждённого удалённого зелёного прогона. План: раздел 14.1 в `docs/solution_plans/plan-main.md`.
+Instruction-sync и настройки required checks пока не реализованы; удалённый результат release/Docker jobs ещё требует подтверждения. Общего replay engine нет; фикстурные smoke не подменяют независимую оценку качества стратегий и отложенные пользовательские приёмки. Бейдж CI добавляется после подтверждённого удалённого зелёного прогона. План: раздел 14.1 в `docs/solution_plans/plan-main.md`.
