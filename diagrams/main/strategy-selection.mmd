@@ -1,0 +1,17 @@
+flowchart TD
+    D[Successful options run] --> P[Preview pinned draft and linked critic]
+    C[Successful linked critic] --> P
+    P --> H[Human reviews sources, hypotheses and critic concerns]
+    H --> R[Explicit command with hashes and all dispositions]
+    R --> E{Same source run already recorded?}
+    E -->|Identical command| I[Return immutable receipt]
+    E -->|Different command| F[Reject conflict]
+    E -->|No| V[Lock project, runs and sources; recheck hashes and revisions]
+    V -->|Stale or invalid| F
+    V --> T[One PostgreSQL transaction]
+    T --> O[Three proposed canonical options]
+    O --> Q[Human decision with selected/rejected/deferred]
+    Q --> A[Audit snapshot and project-bound references]
+    A --> I
+    T -->|Constraint conflict| B[Rollback all inserts]
+    I -.-> N[No auto claims, capabilities or workflow approval]

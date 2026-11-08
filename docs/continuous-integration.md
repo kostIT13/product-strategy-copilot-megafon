@@ -6,7 +6,7 @@
 
 - Ubuntu: Python 3.11 и 3.12, Windows: Python 3.12. Проверка актуальности lock, frozen install extras agent/documents/mcp и dev-группы, Ruff, unittest, `psa doctor`, `psa-main --help`.
 - Отдельная Ubuntu/Python 3.11 установка без extras/dev: doctor и help обоих CLI. Отсутствие FastMCP в этом job — ожидаемое предупреждение optional component.
-- Ubuntu/Python 3.12 и PostgreSQL 17 service: все миграции с нуля, Alembic check и семь smoke-сценариев main/agent/agent_pipeline/evidence_extraction/agent_critic/strategy_options/main_mcp. Agent-ответы фиксированы через MockTransport; проверяется настоящий FastMCP stdio subprocess.
+- Ubuntu/Python 3.12 и PostgreSQL 17 service: все миграции с нуля, Alembic check и восемь smoke-сценариев main/agent/agent_pipeline/evidence_extraction/agent_critic/strategy_options/strategy_selection/main_mcp. Agent-ответы фиксированы через MockTransport; проверяется настоящий FastMCP stdio subprocess.
 
 Используются uv 0.11.30 и `uv.lock` из публичного PyPI. Полные SHA checkout v7.0.1 и setup-uv v10.3.3 сверены с официальными Git tags; Actions закреплены на commit. Источники: [checkout](https://github.com/actions/checkout/releases/tag/v7.0.1), [setup-uv](https://github.com/astral-sh/setup-uv/releases/tag/v10.3.3), [интеграция uv](https://docs.astral.sh/uv/guides/integration/github/).
 

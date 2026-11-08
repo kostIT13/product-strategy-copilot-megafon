@@ -15,7 +15,7 @@ psa-main pipeline resume demo CRITIC_PIPELINE_UUID --expected-version 2
 
 Берите actual version из show/последнего ответа. Prepare показывает полный запрос без обращения к LLM и без записи состояния. Start фиксирует critic pipeline, также без LLM. Resume из prepared выполняет один модельный вызов; следующий resume собирает review packet локально. Повтор completed возвращает прежний пакет. Это отдельный pipeline со ссылкой на input_run_id, а не дополнительная мутация уже завершённого исходного пайплайна.
 
-MCP: `psa_main_prepare_critic(project_key, run_id)` и `psa_main_start_critic(project_key, run_id)`, затем существующие get/resume_pipeline. Prepare возвращает полный текст исходников и черновика MCP-клиенту. Всего в main server девять tools. `evidence_critic` — внутренний task с обязательным input binding; обычный agent analyze --task / pipeline start --task его не принимают.
+MCP: `psa_main_prepare_critic(project_key, run_id)` и `psa_main_start_critic(project_key, run_id)`, затем существующие get/resume_pipeline. Prepare возвращает полный текст исходников и черновика MCP-клиенту. С учётом явного selection в main server 12 tools. `evidence_critic` — внутренний task с обязательным input binding; обычный agent analyze --task / pipeline start --task его не принимают.
 
 ## Что оценивается
 

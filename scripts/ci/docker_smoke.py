@@ -1,4 +1,5 @@
 """Build the runtime image and exercise CLI/MCP/demo without network or secrets."""
+from product_strategy_agent.interfaces.mcp.inventory import MAIN_TOOL_COUNT
 import argparse
 import json
 from pathlib import Path
@@ -27,7 +28,7 @@ def smoke(root):
     finally:
         subprocess.run(["docker", "image", "rm", image], check=False, capture_output=True)
     return {"ok": True, "network": "none", "read_only": True, "non_root": True,
-            "mcp_tools": 9, "model_calls": 0}
+            "mcp_tools": MAIN_TOOL_COUNT, "model_calls": 0}
 
 
 def main():

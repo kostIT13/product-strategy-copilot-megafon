@@ -2,7 +2,7 @@
 
 Команда `psa-main-mcp` запускает отдельный FastMCP 4.x сервер по stdio. Он использует те же прикладные сервисы и JSON-представления агентного прохода, что и `psa-main`. Общая сборка зависимостей находится в `bootstrap.py`; server, agent tools, search tools и обработка ошибок разделены по модулям в `interfaces/mcp/`.
 
-`psa-mcp` продолжает обслуживать файловый MVP. Новый сервер работает с PostgreSQL и открывает девять инструментов:
+`psa-mcp` продолжает обслуживать файловый MVP. Новый сервер работает с PostgreSQL и открывает двенадцать инструментов:
 
 | Инструмент | Что делает | Побочные эффекты |
 | --- | --- | --- |
@@ -15,6 +15,9 @@
 | `psa_main_resume_pipeline` | Продолжение одного этапа с expected_version | Из prepared — платный вызов; review/recovery/completed без нового вызова |
 | `psa_main_prepare_critic` | Точный запрос для проверки сохранённого run | Чтение; текст источников и черновика возвращается клиенту |
 | `psa_main_start_critic` | Новый critic pipeline с input_run_id/hash | Запись checkpoint без вызова модели |
+| `psa_main_preview_selection` | Варианты, связанный critic, hashes и stale-source flags | Чтение; без модели |
+| `psa_main_record_selection` | Явная человеческая команда сохраняет три варианта, решение и аудит | Атомарная идемпотентная запись; без claims/approvals/модели |
+| `psa_main_get_selection` | Неизменяемая квитанция выбора по source run | Чтение в указанном проекте |
 
 Анализ остаётся черновиком: claims, решения и workflow не утверждаются автоматически. Повторный analyze создаёт новый run. Read-only инструменты не вызывают провайдера и не пишут runs. Поиск и подготовка работают без API-ключа. Материалы источников остаются недоверенными данными.
 
@@ -39,7 +42,7 @@ stdout занят протоколом; сервер не печатает пр�
 
 [Коды ошибок модельного провайдера и диагностика](model-provider-diagnostics.md) одинаковы в CLI и MCP: например provider_http_401, provider_timeout, provider_incomplete_completion. Ключи и сырые серверные ошибки в checkpoint не сохраняются.
 
-Prepare/analyze/start_pipeline принимают optional task: evidence_answer (default), [evidence_extraction](evidence-extraction.md) или [strategy_options](strategy-options.md). Для [critic](agent-critic.md) используются отдельные prepare_critic/start_critic с run_id; выполнение — через тот же resume_pipeline. Предложения и оценки не создают канонические claims/options/decisions и не меняют approvals. Inventory — девять.
+Prepare/analyze/start_pipeline принимают optional task: evidence_answer (default), [evidence_extraction](evidence-extraction.md) или [strategy_options](strategy-options.md). Для [critic](agent-critic.md) используются отдельные prepare_critic/start_critic с run_id; выполнение — через тот же resume_pipeline. Предложения и оценки не создают канонические claims/options/decisions и не меняют approvals. Inventory — двенадцать; явный человеческий выбор описан в [strategy-selection.md](strategy-selection.md).
 
 ## Проверка
 
@@ -53,6 +56,6 @@ Smoke использует настоящий PostgreSQL и LiteLLM SDK с httpx
 
 Отдельная живая проверка запускается явно: `python scripts/smoke_agent_live.py --live`. Она создаёт новый синтетический проект и делает одну попытку анализа через настроенный провайдер. Без override cap — 512 выходных токенов для answer либо 2048 для extraction/options, не выше конфигурации. Явный `--max-output-tokens N` задаёт разовый предел smoke от 1 до 8192, в том числе выше настройки `.env`; production-команды от этого не меняются. Timeout операций не более 45 секунд. Может расходовать токены. Это не жёсткий process timeout и не оценка качества модели; автоматического повтора нет. Результат и ID запуска выводятся без ключа и сырых ошибок сервера.
 
-Текущий Docker-образ включает documents/agent, но не optional extra mcp: этот MCP-сервер пока проверяется в локальном Python-окружении. Автоматическая регистрация в IDE и проверка UI Codex/Qwen Coder/SourceCraft не выполняются. Semantic entailment и оценка качества реальной модели остаются следующими срезами.
+Текущий frozen Docker-образ включает documents/agent/mcp; stdio inventory и startup проверяются offline smoke. Автоматическая регистрация в IDE и проверка UI Codex/Qwen Coder/SourceCraft не выполняются. Semantic entailment и оценка качества реальной модели остаются следующими срезами.
 
 Первый [checkpointed pipeline и resume](agent-pipeline.md) реализован: evidence → checked draft → локальный review packet. Отдельный linked critic pipeline оценивает сохранённый результат. Они не повторяют completed шаги или запрос с неизвестным исходом. Полный стратегический workflow, автоматическое восстановление неизвестного внешнего ответа и независимая оценка качества остаются следующими срезами.

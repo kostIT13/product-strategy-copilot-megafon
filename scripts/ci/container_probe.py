@@ -1,4 +1,5 @@
 """Read-only startup probe: non-root process and real main FastMCP inventory."""
+from product_strategy_agent.interfaces.mcp.inventory import MAIN_TOOL_COUNT
 import asyncio
 import json
 import os
@@ -12,7 +13,7 @@ async def main():
         raise ValueError("container must run as a non-root user")
     async with Client(StdioTransport(command="psa-main-mcp", args=[], keep_alive=False), timeout=30) as client:
         tools = await client.list_tools()
-        if len(tools) != 9:
+        if len(tools) != MAIN_TOOL_COUNT:
             raise ValueError("unexpected main MCP inventory")
     print(json.dumps({"ok": True, "uid": os.getuid(), "mcp_tools": len(tools), "model_calls": 0}))
 
