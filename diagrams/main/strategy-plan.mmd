@@ -1,0 +1,17 @@
+flowchart TD
+    S[Recorded human selection] --> V[Validate decision, selected option and review hashes]
+    V --> P[Read-only request preview]
+    P --> I[Immutable strategy input snapshot]
+    I --> A[Prepared pipeline with parent run and input hash]
+    A --> F{Inputs unchanged and sources current?}
+    F -->|No| X[Reject before generation]
+    F -->|Yes, explicit resume| R[Atomically reserve one model attempt]
+    R --> M[LLM returns internal strategy hypotheses]
+    M --> C[Validate schema, decision IDs and exact source quotes]
+    C -->|Invalid| E[Preserve failed run, no automatic retry]
+    C -->|Valid| D[Durable draft checkpoint]
+    D --> H[Human review packet with freshness flags]
+    D --> REC[Recovery uses saved run without second generation]
+    H --> K[Separate linked critic for all sections]
+    K --> U[Human review required]
+    H -.-> N[No publication, canonical edits or workflow approval]

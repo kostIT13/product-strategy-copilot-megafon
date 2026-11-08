@@ -10,7 +10,7 @@ from product_strategy_agent.adapters.persistence.postgres.models import (
     SourceRecord, SourceRevisionRecord, StrategySelectionRecord)
 from product_strategy_agent.adapters.persistence.postgres.repositories.agent_run_repository import PostgresAgentRunStore
 from product_strategy_agent.application.services.agent_context import source_context
-from product_strategy_agent.domain.decisions.selection import run_fingerprint
+from product_strategy_agent.domain.decisions.selection import run_fingerprint, option_description
 
 
 class PostgresStrategySelectionStore:
@@ -54,12 +54,9 @@ class PostgresStrategySelectionStore:
                 ids = {item: uuid4() for item in ("O1", "O2", "O3")}
                 draft = preview["draft"]
                 for option in draft["options"]:
-                    description = "Human-reviewed proposal; hypotheses remain unverified.\n" + "\n".join(
-                        f"{key}: {option[key]}" for key in ("segment_hypothesis", "approach", "value_hypothesis"))
-                    description += "\nExperiment: " + "; ".join(f"{key}: {value}" for key, value in option["experiment"].items())
                     session.add(OptionRecord(id=ids[option["option_id"]], project_id=project_id,
                         key=f"ai-{command.source_run_id.hex}-{option['option_id'].lower()}", name=option["name"],
-                        description=description, strengths=[], risks=option["risks"],
+                        description=option_description(option), strengths=[], risks=option["risks"],
                         assumptions=[f"{item['text']} Validate: {item['validation_question']}" for item in option["assumptions"]],
                         status="proposed", created_at=now))
                 session.flush()

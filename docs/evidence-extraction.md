@@ -12,7 +12,7 @@ psa-main agent analyze demo --task evidence_extraction --question "Выдели 
 psa-main pipeline start demo --task evidence_extraction --question "Выдели факты, гипотезы и пробелы об экспорте" --query "экспорт"
 ```
 
-Пайплайн продолжается обычными pipeline show/resume с expected_version. Task фиксируется при start и не меняется при resume. В MCP передайте `task: "evidence_extraction"` в psa_main_prepare_analysis, psa_main_analyze или psa_main_start_pipeline. Сама extraction-задача не добавляет новых инструментов, параметр optional с прежним default. С учётом critic и явного selection текущий main inventory — 12.
+Пайплайн продолжается обычными pipeline show/resume с expected_version. Task фиксируется при start и не меняется при resume. В MCP передайте `task: "evidence_extraction"` в psa_main_prepare_analysis, psa_main_analyze или psa_main_start_pipeline. Сама extraction-задача не добавляет новых инструментов, параметр optional с прежним default. С учётом critic и явного selection текущий main inventory — 14.
 
 ## Схема черновика
 

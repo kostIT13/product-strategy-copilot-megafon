@@ -14,6 +14,11 @@ from product_strategy_agent.adapters.persistence.postgres.repositories.agent_pip
 from product_strategy_agent.application.services.agent_critic_service import AgentCriticService
 from product_strategy_agent.application.services.strategy_selection_service import StrategySelectionService
 from product_strategy_agent.adapters.persistence.postgres.repositories.strategy_selection_repository import PostgresStrategySelectionStore
+from product_strategy_agent.adapters.persistence.postgres.repositories.strategy_input_repository import PostgresStrategyInputStore
+from product_strategy_agent.adapters.persistence.postgres.repositories.decision_repository import PostgresDecisionStore
+from product_strategy_agent.adapters.persistence.postgres.repositories.option_repository import PostgresOptionStore
+from product_strategy_agent.application.services.strategy_plan_context import StrategyPlanContext
+from product_strategy_agent.application.services.strategy_plan_service import StrategyPlanService
 
 
 @dataclass(frozen=True)
@@ -23,15 +28,18 @@ class MainServices:
     pipeline: AgentPipelineService
     critic: AgentCriticService
     selection: StrategySelectionService | None = None
+    strategy: StrategyPlanService | None = None
 
 
 def build_main_services() -> MainServices:
     search = SourceSearchService(PostgresSourceSearch())
     agent = AgentAnalysisService(PostgresProjectStore(), PostgresSourceStore(), search,
         OpenAICompatibleProvider(get_settings()), PostgresAgentRunStore())
-    pipeline = AgentPipelineService(agent, PostgresAgentPipelineStore())
+    selection = StrategySelectionService(agent, PostgresStrategySelectionStore())
+    context = StrategyPlanContext(agent, selection, PostgresStrategyInputStore(), PostgresDecisionStore(), PostgresOptionStore())
+    pipeline = AgentPipelineService(agent, PostgresAgentPipelineStore(), context)
     return MainServices(agent, search, pipeline, AgentCriticService(agent, pipeline),
-                        StrategySelectionService(agent, PostgresStrategySelectionStore()))
+                        selection, StrategyPlanService(context, pipeline))
 
 
 def build_agent_service() -> AgentAnalysisService:

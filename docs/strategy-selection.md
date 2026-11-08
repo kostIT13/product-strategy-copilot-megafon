@@ -45,7 +45,7 @@ Preview ничего не записывает и не вызывает моде
 
 ## MCP и проверки
 
-Main FastMCP теперь содержит 12 tools: добавлены psa_main_preview_selection, psa_main_record_selection (idempotent write) и psa_main_get_selection. Record принимает `selection` объект той же SelectionCommand, что CLI input JSON. Доступ к файлам клиента для этой операции не нужен; ключи модели не требуются.
+Main FastMCP теперь содержит 14 tools: добавлены psa_main_preview_selection, psa_main_record_selection (idempotent write) и psa_main_get_selection. Record принимает `selection` объект той же SelectionCommand, что CLI input JSON. Доступ к файлам клиента для этой операции не нужен; ключи модели не требуются.
 
 ```powershell
 python -m unittest discover -s tests

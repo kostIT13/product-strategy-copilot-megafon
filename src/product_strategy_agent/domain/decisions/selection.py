@@ -46,3 +46,9 @@ def run_fingerprint(run):
     return fingerprint({key: getattr(run, key) for key in
                         ("id", "project_id", "status", "task", "question", "query", "model", "prompt_version",
                          "contexts", "result", "input_run_id", "input_hash")})
+
+
+def option_description(option):
+    description = "Human-reviewed proposal; hypotheses remain unverified.\n" + "\n".join(
+        f"{key}: {option[key]}" for key in ("segment_hypothesis", "approach", "value_hypothesis"))
+    return description + "\nExperiment: " + "; ".join(f"{key}: {option['experiment'][key]}" for key in ("question", "method", "success_signal"))

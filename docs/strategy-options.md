@@ -13,7 +13,7 @@ psa-main pipeline resume demo PIPELINE_UUID --expected-version 0
 psa-main pipeline resume demo PIPELINE_UUID --expected-version 2
 ```
 
-Берите actual version из возвращённого состояния. MCP prepare_analysis/analyze/start_pipeline принимают `task: "strategy_options"`; get/resume остаются общими. Сама задача не добавляет tools; с явным selection текущий inventory — 12. Review packet имеет proposal_only=true, selection_required=true и requires_human_review=true.
+Берите actual version из возвращённого состояния. MCP prepare_analysis/analyze/start_pipeline принимают `task: "strategy_options"`; get/resume остаются общими. Сама задача не добавляет tools; с явным selection текущий inventory — 14. Review packet имеет proposal_only=true, selection_required=true и requires_human_review=true.
 
 ## Состав результата
 

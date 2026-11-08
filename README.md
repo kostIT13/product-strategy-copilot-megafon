@@ -172,3 +172,5 @@ MCP integration is optional. Install with `python -m pip install -e ".[mcp]"`, l
 - [Шаблон записи равноусловного запуска M6](evals/demo/blind-review/run-record-template.md).
 
 Явное сохранение проверенных AI-вариантов и человеческого решения, без автоматических claims/approvals: [docs/strategy-selection.md](docs/strategy-selection.md).
+
+Продуктовая стратегия, внутренние коммуникационные гипотезы и эксперименты по сохранённому решению: [docs/strategy-plan.md](docs/strategy-plan.md).

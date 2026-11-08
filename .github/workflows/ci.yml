@@ -151,6 +151,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for scenario in main agent agent_pipeline evidence_extraction agent_critic strategy_options strategy_selection main_mcp; do
+          for scenario in main agent agent_pipeline evidence_extraction agent_critic strategy_options strategy_selection strategy_plan main_mcp; do
             uv run --frozen --no-sync python "scripts/smoke_${scenario}.py"
           done

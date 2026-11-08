@@ -1,2 +1,2 @@
 """Expected inventory shared by startup/integration checks."""
-MAIN_TOOL_COUNT = 12
+MAIN_TOOL_COUNT = 14

@@ -31,6 +31,7 @@ def register_pipeline_tools(server, services):
         """Continue one checkpoint. May spend tokens from prepared; ready review is local.
 
         Never repeat a running/unknown attempt. Completed calls are no-ops.
+        Strategy generation also sends the pinned human decision and review notes to the provider.
         Does not approve human project workflow or commitments.
         """
         return invoke(lambda: json_payload(asdict(services.pipeline.resume(project_key, pipeline_id, expected_version))))

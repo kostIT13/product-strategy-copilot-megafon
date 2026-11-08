@@ -11,6 +11,7 @@ def create_server(services: MainServices | None = None):
         from .pipeline_tools import register_pipeline_tools
         from .critic_tools import register_critic_tools
         from .selection_tools import register_selection_tools
+        from .strategy_tools import register_strategy_tools
     except ImportError as exc:
         raise RuntimeError('install MCP support: python -m pip install -e ".[agent,mcp]"') from exc
     server = FastMCP("product-strategy-main", version=__version__, mask_error_details=True,
@@ -27,6 +28,7 @@ def create_server(services: MainServices | None = None):
     register_pipeline_tools(server, services)
     register_critic_tools(server, services)
     register_selection_tools(server, services)
+    register_strategy_tools(server, services)
     return server
 
 

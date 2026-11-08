@@ -32,9 +32,9 @@ class MainMCPTests(unittest.IsolatedAsyncioTestCase):
                                      "psa_main_analyze", "psa_main_get_agent_run", "psa_main_start_pipeline",
                                      "psa_main_get_pipeline", "psa_main_resume_pipeline",
                                      "psa_main_prepare_critic", "psa_main_start_critic", "psa_main_preview_selection",
-                                     "psa_main_record_selection", "psa_main_get_selection"})
+                                     "psa_main_record_selection", "psa_main_get_selection", "psa_main_prepare_strategy", "psa_main_start_strategy"})
         for name, tool in tools.items():
-            writes = name in {"psa_main_analyze", "psa_main_start_pipeline", "psa_main_resume_pipeline", "psa_main_start_critic", "psa_main_record_selection"}
+            writes = name in {"psa_main_analyze", "psa_main_start_pipeline", "psa_main_resume_pipeline", "psa_main_start_critic", "psa_main_record_selection", "psa_main_start_strategy"}
             self.assertEqual(tool.annotations.read_only_hint, not writes)
             self.assertEqual(tool.annotations.open_world_hint, name in {"psa_main_analyze", "psa_main_resume_pipeline"})
             self.assertEqual(tool.annotations.idempotent_hint, not writes or name == "psa_main_record_selection")

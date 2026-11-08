@@ -1,0 +1,31 @@
+# Стратегические черновики по сохранённому решению — 8 ноября 2026, 22:22 (Asia/Novosibirsk)
+
+Продолжен основной агентный сценарий этапа 5, ветка feature/main-solution-roadmap. Длительность отдельно не замерялась.
+
+## Изменения
+
+- StrategyPlanDraft в отдельном доменном модуле: product strategy (segment/value/scope hypotheses, non-goals, assumptions, risks и evidence), internal communication hypotheses/questions, qualitative experiments со success/stop signals, gaps/caveats. Decision/selected-option UUID фиксируются сервером и проверяются в ответе. Commitment kind/extra fields запрещены; insufficient_evidence не содержит частичного плана.
+- Версионированный prompt strategy-plan-v1, bound task strategy_plan и отдельные StrategyPlanContext/Service/InputStore. Fresh-retrieval agent analyze его не принимает: нужен options run с записанной selection. Preview не пишет и не вызывает модель; start сохраняет cached immutable input и prepared pipeline, resume отдельно выполняет генерацию.
+- Snapshot закрепляет selection receipt hash, source/critic fingerprints, каноническое решение, выбранный OptionRecord, исходное предложение, historical gaps/caveats/сравнение этапа вариантов, critic concerns/resolution, human review notes и source references. Canonical values сверяются с записанным выбором; на resume повторно проверяются fingerprint/hash и неизменяемые source text/metadata. Нет нового FTS-поиска.
+- Migration 0016 добавляет project-bound strategy_inputs (FK к исходному run и decision) и расширяет task/input guards agent_runs/agent_pipelines. Существующие датаклассы/столбцы bound input используются без переименования старых полей. Downgrade блокируется при сохранённых input/planning records. Cached input и создание pipeline — отдельные записи; при неудаче второй может остаться неиспользованный snapshot, без LLM/canonical side effects.
+- Для новой задачи канонизирован JSON context перед созданием request messages: JSONB reorder больше не меняет request hash на resume. Старые answer/extraction/options/critic prompts и форматы запросов не менялись. Экспериментальные prepared planning checkpoints до исправления serialization сохранены и не переписывались.
+- Актуальность источников проверяется при prepare/перед generation. Уже сгенерированный результат можно завершить по закреплённым ревизиям, получив stale_source_ids/source_freshness=stale_at_review; это не блокировка источников на время внешнего вызова. Completed replay исторический и не утверждает сегодняшнюю актуальность.
+- Linked critic принимает strategy run: product_strategy, communication/N, experiments/N, gaps/N; полное coverage, те же источники, strategy_input_hash и decision/option linkage. Verdict advisory.
+- CLI strategy prepare/start; MCP psa_main_prepare_strategy/psa_main_start_strategy, общий inventory 14. Общие get/resume/critic переиспользуются. Preview показывает top-level decision/option UUID и internal-only flags. Notes/owner являются данными и входят в будущий запрос провайдеру; модельных ключей в request context нет.
+- Review packet всегда requires_human_review=true, communication_internal_only=true, publication_approved=false. Решения/claims/capabilities/workflow approvals не изменяются. Каноническое описание option стабилизировано по порядку experiment fields при JSONB roundtrip.
+- Добавлены PostgreSQL fixture smoke и CI job entry, инструкция docs/strategy-plan.md, диаграмма diagrams/main/strategy-plan.mmd; обновлены текущие docs/README/планы и MCP inventory.
+
+## Проверки
+
+- Все 170 unittest — OK; 10 новых planning tests проверяют read-only preview/no retrieval, checkpoint/replay, wrong decision/option/commitment/quote failures, changed decision/input snapshot before paid call, stale-source guard/flag, insufficient output, critic section coverage, JSON object key reorder и MCP prepare/start/resume.
+- 0015→0016 применена к PostgreSQL; Alembic check — No new upgrade operations detected. .env не менялся.
+- Итоговый PostgreSQL scenario: project selection-ee719c5f6fa5, strategy pipeline d25eb45b-8a4a-41ef-917a-a9cf67e4ea82, run c16f7ed4-dd88-4d48-8227-31e42cda5f69, decision 00ae604a-3495-4ba6-a9a3-3ab915ba266d; input_hash f6b4a434a6d0d42ee8cc20a07ad7f011efc552b775797f222583de11f0b470c4; critic pipeline 81b8e951-cf71-456c-806e-32c8f2c92e14; recovered pipeline 5dea8535-13e3-45f2-8f4a-99aec7b8bed1. Concurrency дала одну генерацию, synthetic interruption после run checkpoint восстановлен без повторного HTTP-запроса; CLI/real stdio parity, invalid-output отказы, source freshness, four-item critic coverage, immutable input/project FK и counts (3 options/1 decision/1 selection/0 claims/1 input/no workflow) прошли.
+- Первый PostgreSQL planning smoke остановился до резервирования генерации из-за JSONB key-order request mismatch; тестовый memory store теперь намеренно переупорядочивает keys, исправленный полный сценарий прошёл. Автоматического retry живой модели не было.
+- Регрессия old critic: project critic-90ce4c6c3b62, run 392b177a-cf73-4610-be4b-157521daed46 — passed. Production main MCP: project mcp-main-68144aeee8a0, run 7b371093-5649-4a84-afb7-71902a80255f — passed, stdio/CLI parity, 14 tools.
+- Docker Linux — passed: frozen runtime, non-root/read-only/network none, offline SQL через 0016, 14 tools, оба synthetic demo, model_calls=0. Временный image tag удалён. Ruff/diff/YAML checks — OK; Gitleaks проверил историю/рабочий экспорт без находок, отрицательные пробы прошли. Итоговый docs gate включает новые инструкцию и отчёт.
+
+## Границы
+
+Все analysis/critic в этой итерации использовали MockTransport/фиксированные ответы. Новый task не проверялся живой моделью, стоимость реальной генерации/качество стратегий не оценивались. Свободный текст может содержать смысловые ошибки даже при правильном kind/цитате; schema не доказывает отсутствие скрытого обещания или экономическую обоснованность. Communication предназначена для внутреннего review, не автоматически публикуемого маркетинга. Identity/RBAC и approval/export артефактов ещё не реализованы.
+
+Следующий срез — явное человеческое утверждение/экспорт стратегии и capability-backed promise controls. Полный workflow/revisit, IDE instructions, remote Actions acceptance и независимая оценка остаются открытыми; M6/M8 не закрываются этими проверками.
