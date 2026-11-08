@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "project_id": "demo",
+  "created_at": "2026-11-05T15:31:56Z",
+  "updated_at": "2026-11-05T15:33:23Z",
+  "status": "validation",
+  "stages": {
+    "intake": "done",
+    "research_plan": "done",
+    "source_collection": "done",
+    "evidence_review": "done",
+    "options": "done",
+    "strategy": "done",
+    "validation": "in_progress",
+    "completed": "not_started"
+  },
+  "next_action": "Заполнить план проверки, выполнить render и утвердить план",
+  "open_questions": [],
+  "approvals": [
+    {
+      "schema_version": 1,
+      "event_id": "GATE-001",
+      "stage": "intake",
+      "approved_by": "Демо-роль руководителя",
+      "approved_at": "2026-11-05T15:33:19Z",
+      "reason": "Учебный бриф заполнен",
+      "next_stage": "research_plan"
+    },
+    {
+      "schema_version": 1,
+      "event_id": "GATE-002",
+      "stage": "research_plan",
+      "approved_by": "Демо-роль руководителя",
+      "approved_at": "2026-11-05T15:33:20Z",
+      "reason": "План ограничен открытыми и синтетическими данными",
+      "next_stage": "source_collection"
+    },
+    {
+      "schema_version": 1,
+      "event_id": "GATE-003",
+      "stage": "source_collection",
+      "approved_by": "Демо-роль руководителя",
+      "approved_at": "2026-11-05T15:33:21Z",
+      "reason": "Добавлен один синтетический источник",
+      "next_stage": "evidence_review"
+    },
+    {
+      "schema_version": 1,
+      "event_id": "GATE-004",
+      "stage": "evidence_review",
+      "approved_by": "Демо-роль руководителя",
+      "approved_at": "2026-11-05T15:33:21Z",
+      "reason": "Синтетические сведения отделены от гипотез",
+      "next_stage": "options"
+    },
+    {
+      "schema_version": 1,
+      "event_id": "GATE-005",
+      "stage": "options",
+      "approved_by": "Демо-роль руководителя",
+      "approved_at": "2026-11-05T15:33:22Z",
+      "reason": "Сравнены статус-кво, закрытие и пилот",
+      "next_stage": "strategy"
+    },
+    {
+      "schema_version": 1,
+      "event_id": "GATE-006",
+      "stage": "strategy",
+      "approved_by": "Демо-роль руководителя",
+      "approved_at": "2026-11-05T15:33:23Z",
+      "reason": "Учебная рекомендация и черновики собраны",
+      "next_stage": "validation"
+    }
+  ]
+}

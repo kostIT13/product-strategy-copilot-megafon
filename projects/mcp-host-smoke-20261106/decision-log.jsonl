@@ -1,0 +1,1 @@
+{"assumptions": [], "chosen_option": "Keep", "claim_ids": ["C-001"], "decided_at": "2026-11-05T17:27:17Z", "decision_id": "D-001", "option_id": "O-001", "owner": "demo-owner", "rationale": "Claim remains supported.", "rejected_alternatives": [], "revisit_when": "After source review", "risks": [], "schema_version": 1, "status": "recorded"}

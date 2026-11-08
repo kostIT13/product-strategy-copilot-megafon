@@ -1,0 +1,9 @@
+week,arm,eligible,renewed,opted_out,complaints
+W1,control,250,188,3,1
+W1,reminder,250,193,7,2
+W2,control,250,187,4,1
+W2,reminder,250,192,8,2
+W3,control,250,188,4,1
+W3,reminder,250,193,8,2
+W4,control,250,187,4,1
+W4,reminder,250,192,9,3

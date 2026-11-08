@@ -8,3 +8,28 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Local secrets and runtime overrides
+.env
+.env.*
+!.env.example
+
+# Local database and container state
+postgres-data/
+backups/
+*.sqlite3
+
+# Local project source material
+projects/*/sources/
+
+# Keep the reproducible synthetic demo corpus
+!projects/demo/sources/
+
+# Reproducible extracted text for the synthetic CSV case
+!projects/table-demo/sources/
+
+# Reproducible synthetic source revision demo
+!projects/revisit-demo-20261106/sources/
+
+# Reproducible local MCP stdio acceptance scenario
+!projects/mcp-host-smoke-20261106/sources/

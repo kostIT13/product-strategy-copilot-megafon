@@ -1,3 +1,5 @@
+> **Архивный вариант:** этот документ сохранён для истории и не является актуальным решением по хранилищу. Для полной системы принято PostgreSQL, для MVP — файловое хранение. См. [единый план](plan-main.md) и [roadmap](roadmap-full-solution.md).
+
 # План реализации: «Стратег Фабрики продуктов» (Codex + SourceCraft + Qwen Coder)
 
 Версия плана, адаптированная под доступные инструменты: **OpenAI Codex**, **SourceCraft Code Assistant** (Яндекс) и **Qwen Code / Qwen Coder**. Claude Code и Cursor не используются.

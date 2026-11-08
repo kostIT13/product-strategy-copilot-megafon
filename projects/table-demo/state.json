@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "project_id": "table-demo",
+  "created_at": "2026-11-05T16:25:55Z",
+  "updated_at": "2026-11-05T16:26:06Z",
+  "status": "completed",
+  "mode": "quick_scan",
+  "mode_history": [
+    {
+      "schema_version": 1,
+      "event_id": "MODE-001",
+      "event_type": "mode_changed",
+      "from": "decision_grade",
+      "to": "quick_scan",
+      "changed_by": "Demo owner",
+      "changed_at": "2026-11-05T16:25:56Z",
+      "reason": "Synthetic tabular analysis example"
+    }
+  ],
+  "stages": {
+    "intake": "done",
+    "research_plan": "done",
+    "source_collection": "done",
+    "evidence_review": "done",
+    "options": "done",
+    "strategy": "done",
+    "validation": "done",
+    "completed": "done"
+  },
+  "next_action": "Рабочий процесс проекта завершён",
+  "open_questions": [],
+  "approvals": [
+    {
+      "schema_version": 1,
+      "event_id": "GATE-001",
+      "stage": "intake",
+      "approved_by": "Demo owner",
+      "approved_at": "2026-11-05T16:25:57Z",
+      "reason": "Brief defines synthetic tabular question",
+      "next_stage": "research_plan"
+    },
+    {
+      "schema_version": 1,
+      "event_id": "GATE-002",
+      "stage": "research_plan",
+      "approved_by": "Demo owner",
+      "approved_at": "2026-11-05T16:25:58Z",
+      "reason": "Aggregation and limitations are specified",
+      "next_stage": "source_collection"
+    },
+    {
+      "schema_version": 1,
+      "event_id": "GATE-003",
+      "stage": "source_collection",
+      "approved_by": "Demo owner",
+      "approved_at": "2026-11-05T16:26:00Z",
+      "reason": "One synthetic CSV imported for quick_scan",
+      "next_stage": "evidence_review"
+    },
+    {
+      "schema_version": 1,
+      "event_id": "GATE-004",
+      "stage": "evidence_review",
+      "approved_by": "Demo owner",
+      "approved_at": "2026-11-05T16:26:01Z",
+      "reason": "Fact derived from quoted CSV; high priority limitation recorded",
+      "next_stage": "options"
+    },
+    {
+      "schema_version": 1,
+      "event_id": "GATE-005",
+      "stage": "options",
+      "approved_by": "Demo owner",
+      "approved_at": "2026-11-05T16:26:03Z",
+      "reason": "Three distinct mechanisms recorded",
+      "next_stage": "strategy"
+    },
+    {
+      "schema_version": 1,
+      "event_id": "GATE-006",
+      "stage": "strategy",
+      "approved_by": "Demo owner",
+      "approved_at": "2026-11-05T16:26:04Z",
+      "reason": "Synthetic-only recommendation with explicit causal limitation",
+      "next_stage": "validation"
+    },
+    {
+      "schema_version": 1,
+      "event_id": "GATE-007",
+      "stage": "validation",
+      "approved_by": "Demo owner",
+      "approved_at": "2026-11-05T16:26:06Z",
+      "reason": "Plan defines comparison, metrics, window, and stop rule",
+      "next_stage": "completed"
+    }
+  ]
+}
