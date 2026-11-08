@@ -29,7 +29,7 @@ class Settings(BaseSettings):
 
     # QWEN_* aliases allow existing local environments to migrate gradually.
     llm_base_url: str = Field(default="https://provider.example/v1", validation_alias=AliasChoices("LLM_BASE_URL", "QWEN_BASE_URL"))
-    llm_model: str = Field(default="qwen3.8:27b", min_length=1, max_length=250,
+    llm_model: str = Field(default="Qwen3.8-27B", min_length=1, max_length=250,
                            validation_alias=AliasChoices("LLM_MODEL", "QWEN_MODEL"))
     llm_api_key: SecretStr = Field(default=SecretStr(""), validation_alias=AliasChoices("LLM_API_KEY", "QWEN_API_KEY"))
     llm_max_output_tokens: int = Field(default=2048, gt=0, le=8192,

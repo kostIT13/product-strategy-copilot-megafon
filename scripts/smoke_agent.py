@@ -58,7 +58,7 @@ def main():
     rejects(ValueError, lambda: service.get_run(key + "-other", success.id))
 
     failed_ids = []
-    for kind, expected_code in (("bad_quote", "invalid_citation"), ("bad_json", "invalid_model_output"), ("provider_error", "provider_error")):
+    for kind, expected_code in (("bad_quote", "invalid_citation"), ("bad_json", "invalid_model_output"), ("provider_error", "provider_http_429")):
         mode["value"] = kind
         try:
             service.analyze(key, "Can we export?", "export")

@@ -1,0 +1,14 @@
+flowchart LR
+    original[Successful answer or extraction run] --> prepare[Restore pinned source revisions and canonical target]
+    prepare --> hash[Pin input_run_id and input_hash]
+    hash --> ready[Critic pipeline prepared]
+    ready --> reserve[Atomic attempt reservation with expected_version]
+    reserve --> model[One critic model call]
+    model --> validate[Schema, complete item coverage and exact quotes]
+    validate --> saved[Durable critic run]
+    saved --> packet[Local review packet and computed verdict]
+    packet --> human[Human review still required]
+    saved --> recovery[Resume uses saved success without model replay]
+    recovery --> packet
+    ready --> changed[Changed input hash blocks execution]
+    reserve --> unknown[Unknown outcome blocks automatic retry]

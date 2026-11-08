@@ -1,24 +1,20 @@
-"""First agent slice: retrieval, model draft, citation validation, run checkpoint."""
+"""Retrieval, task-specific model drafts, citation checks and run checkpoints."""
 from datetime import datetime, timezone
-import json
-import hashlib
 from uuid import UUID, uuid4
 
 from pydantic import ValidationError
+from product_strategy_agent.application.agent_tasks import task_profile, validate_task_citations
 from product_strategy_agent.application.ports.agent_run_store import AgentRunStore
 from product_strategy_agent.application.ports.model_provider import ModelProvider
 from product_strategy_agent.application.ports.project_store import ProjectStore
 from product_strategy_agent.application.ports.source_store import SourceStore
 from product_strategy_agent.application.services.source_search_service import SourceSearchService
-from product_strategy_agent.application.prompts.evidence_answer_v1 import SYSTEM, VERSION
+from product_strategy_agent.application.services.agent_context import source_context, prepare_request, context_references, review_target_hash
+from product_strategy_agent.application.services.agent_validation import CitationValidationError
 from product_strategy_agent.domain.agent.models import (
-    AgentRun, AgentRunFailed, AnswerDraft, PreparedAnalysis, ProviderError,
+    AgentRun, AgentRunFailed, PreparedAnalysis, ProviderError,
 )
 from product_strategy_agent.domain.projects.errors import ProjectNotFound
-
-
-class CitationValidationError(ValueError):
-    pass
 
 
 class AgentAnalysisService:
@@ -27,7 +23,10 @@ class AgentAnalysisService:
         self.projects, self.sources, self.search = projects, sources, search
         self.provider, self.runs = provider, runs
 
-    def prepare(self, project_key: str, question: str, query: str) -> PreparedAnalysis:
+    def prepare(self, project_key: str, question: str, query: str, task: str = "evidence_answer") -> PreparedAnalysis:
+        task_profile(task)
+        if task == "evidence_critic":
+            raise ValueError("use critic prepare/start with a successful input run")
         question = question.strip()
         if not question or len(question) > 4000:
             raise ValueError("question must contain 1-4000 characters")
@@ -41,48 +40,47 @@ class AgentAnalysisService:
         for hit in hits:
             source = self.sources.get_revision(hit.source_id, hit.revision)
             if (source is None or source.project_id != project.id or source.revision.id != hit.revision_id
-                    or source.revision.content_hash != hit.content_hash
-                    or hashlib.sha256(source.revision.extracted_text.encode("utf-8")).hexdigest() != hit.content_hash):
+                    or source.revision.content_hash != hit.content_hash):
                 raise ValueError("retrieved evidence does not match its immutable project revision")
-            text = source.revision.extracted_text[:8000]
-            contexts.append({
-                "source_id": str(source.id), "revision_id": str(source.revision.id),
-                "revision": source.revision.revision, "locator": source.revision.locator,
-                "content_hash": source.revision.content_hash, "uri": source.uri,
-                "title": source.revision.title, "text": text,
-                "text_truncated": len(text) < len(source.revision.extracted_text),
-            })
-        messages = [{"role": "system", "content": SYSTEM}, {"role": "user", "content": json.dumps({
-            "question": question, "evidence": contexts, "output_schema": AnswerDraft.model_json_schema(),
-        }, ensure_ascii=False)}]
-        return PreparedAnalysis(project.id, question, query.strip(), self.provider.model, VERSION, messages, contexts)
+            contexts.append(source_context(source))
+        return prepare_request(project.id, question, query, self.provider.model, contexts, task)
 
-    def analyze(self, project_key: str, question: str, query: str) -> AgentRun:
-        prepared = self.prepare(project_key, question, query)
-        references = [{**{key: value for key, value in context.items() if key != "text"},
-                       "context_chars": len(context["text"])} for context in prepared.contexts]
-        run = AgentRun(uuid4(), prepared.project_id, "running", prepared.question, prepared.query,
-                       prepared.model, prepared.prompt_version, references, None, None, None,
-                       datetime.now(timezone.utc), None)
+    def analyze(self, project_key: str, question: str, query: str, task: str = "evidence_answer") -> AgentRun:
+        prepared = self.prepare(project_key, question, query, task)
+        run = self.new_run(prepared)
         self.runs.create(run)
+        return self.execute_reserved(prepared, run)
+
+    @staticmethod
+    def new_run(prepared: PreparedAnalysis) -> AgentRun:
+        return AgentRun(uuid4(), prepared.project_id, "running", prepared.question, prepared.query,
+                        prepared.model, prepared.prompt_version, context_references(prepared), None, None, None,
+                        datetime.now(timezone.utc), None, task=prepared.task,
+                        input_run_id=prepared.input_run_id, input_hash=prepared.input_hash)
+
+    def execute_reserved(self, prepared: PreparedAnalysis, run: AgentRun) -> AgentRun:
+        # Called only by standalone analyze or the successful pipeline reservation
+        # owner. Never expose this method directly as a CLI/MCP operation.
+        if prepared.task == "evidence_critic" and (prepared.review_target is None or
+                review_target_hash(prepared.review_target) != prepared.input_hash):
+            raise ValueError("critic target no longer matches its reserved hash")
+        if (run.status != "running" or self.runs.get(prepared.project_id, run.id) != run
+                or run.contexts != context_references(prepared)
+                or (run.question, run.query, run.model, run.prompt_version, run.task, run.input_run_id, run.input_hash) !=
+                   (prepared.question, prepared.query, prepared.model, prepared.prompt_version, prepared.task,
+                    prepared.input_run_id, prepared.input_hash)):
+            raise ValueError("reserved agent run no longer matches its checkpoint")
         reply = None
         try:
             reply = self.provider.generate(prepared.messages)
-            answer = AnswerDraft.model_validate_json(reply.content)
-            allowed = {(context["source_id"], context["revision"]): context for context in prepared.contexts}
-            seen = set()
-            for citation in answer.citations:
-                context = allowed.get((str(citation.source_id), citation.revision))
-                identity = (str(citation.source_id), citation.revision, citation.quote)
-                if (context is None or citation.locator != context["locator"] or not citation.quote.strip()
-                        or citation.quote not in context["text"] or identity in seen):
-                    raise CitationValidationError("model citation is outside supplied evidence")
-                seen.add(identity)
+            answer = task_profile(prepared.task).output_model.model_validate_json(reply.content)
+            validate_task_citations(prepared.task, answer, prepared.contexts, prepared.review_target)
         except Exception as exc:
-            code = ("provider_error" if isinstance(exc, ProviderError) else
+            code = (exc.code if isinstance(exc, ProviderError) else
                     "invalid_citation" if isinstance(exc, CitationValidationError) else
                     "invalid_model_output" if isinstance(exc, (ValidationError, ValueError)) else "internal_error")
-            self.runs.finish(run.id, "failed", usage=reply.usage if reply else None, error_code=code)
+            usage = reply.usage if reply else exc.usage if isinstance(exc, ProviderError) else None
+            self.runs.finish(run.id, "failed", usage=usage, error_code=code)
             raise AgentRunFailed(run.id, code) from None
         return self.runs.finish(run.id, "succeeded", result=answer.model_dump(mode="json"), usage=reply.usage)
 

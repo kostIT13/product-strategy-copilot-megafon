@@ -2,6 +2,8 @@
 
 Переносимый CLI и набор файловых артефактов для подготовки проверяемых продуктовых и коммуникационных стратегий. План MVP находится в [едином плане](docs/solution_plans/plan-main.md); краткий план основной разработки — в [roadmap полного решения](docs/solution_plans/roadmap-full-solution.md).
 
+GitHub CI проверяет frozen-установку по `uv.lock`, unittest/Ruff, PostgreSQL/FastMCP smoke, локальные Markdown-ссылки и секреты в истории. Отдельный demo workflow воспроизводит синтетические артефакты без внешней модели. Состав матрицы и локальный повтор — [docs/continuous-integration.md](docs/continuous-integration.md).
+
 ## CLI
 
 Требуется Python 3.11 или новее. Из корня репозитория установите пакет в editable-режиме и используйте команду `psa`:
@@ -103,6 +105,16 @@ psa critic-pack demo
 Первый агентный проход по импортированным источникам: `psa-main agent analyze demo --question "Что известно об экспорте?" --query "экспорт" --dry-run`. Клиент использует LiteLLM и OpenAI-совместимый endpoint; Qwen задаётся именем модели через `LLM_MODEL`, адрес и ключ — через `LLM_BASE_URL` и `LLM_API_KEY`. [Настройка модели, вызов и аудит черновиков](docs/agent-analysis.md).
 
 Для основной PostgreSQL-системы добавлен отдельный FastMCP stdio-сервер `psa-main-mcp`: поиск, подготовка запроса, анализ и просмотр запуска. [Запуск, границы инструментов и проверка CLI/MCP](docs/main-mcp.md).
+
+При ошибке модельного API смотрите сохранённый `error_code` запуска: [диагностика провайдера](docs/model-provider-diagnostics.md). Имя модели должно точно совпадать с ID настроенного сервера.
+
+Для выполнения с контрольными точками: `psa-main pipeline start demo --question "Что известно об экспорте?" --query "экспорт"`, затем `pipeline resume ... --expected-version N`. [Состояния, восстановление и границы повторных вызовов](docs/agent-pipeline.md).
+
+Для черновиков фактов, гипотез и пробелов используйте `--task evidence_extraction` в agent analyze или pipeline start. [Схемы, цитаты и границы извлечения](docs/evidence-extraction.md).
+
+Для отдельной проверки сохранённого run: `psa-main critic prepare demo RUN_UUID`, затем `critic start` и обычный pipeline resume. [Critic, оценки и привязка к исходному черновику](docs/agent-critic.md).
+
+Для трёх стратегических альтернатив и качественного сравнения: `--task strategy_options` в agent analyze / pipeline start. [Поля вариантов, critic и человеческий выбор](docs/strategy-options.md).
 
 Явная загрузка веб-страницы: `psa-main web import demo https://example.com/`. [HTTP-политика и provenance](docs/web-import.md).
 
