@@ -2,8 +2,8 @@
 import hashlib
 import json
 
-from product_strategy_agent.application.prompts.evidence_answer_v1 import SYSTEM, VERSION
-from product_strategy_agent.domain.agent.models import AnswerDraft, PreparedAnalysis
+from product_strategy_agent.application.agent_tasks import task_profile
+from product_strategy_agent.domain.agent.models import PreparedAnalysis
 
 
 def source_context(source, length=8000):
@@ -16,11 +16,12 @@ def source_context(source, length=8000):
             "title": revision.title, "text": text, "text_truncated": len(text) < len(revision.extracted_text)}
 
 
-def prepare_request(project_id, question, query, model, contexts):
-    messages = [{"role": "system", "content": SYSTEM}, {"role": "user", "content": json.dumps({
-        "question": question, "evidence": contexts, "output_schema": AnswerDraft.model_json_schema(),
+def prepare_request(project_id, question, query, model, contexts, task="evidence_answer"):
+    profile = task_profile(task)
+    messages = [{"role": "system", "content": profile.system}, {"role": "user", "content": json.dumps({
+        "question": question, "evidence": contexts, "output_schema": profile.output_model.model_json_schema(),
     }, ensure_ascii=False)}]
-    return PreparedAnalysis(project_id, question, query.strip(), model, VERSION, messages, contexts)
+    return PreparedAnalysis(project_id, question, query.strip(), model, profile.version, messages, contexts, task)
 
 
 def context_references(prepared):

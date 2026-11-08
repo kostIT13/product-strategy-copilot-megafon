@@ -456,6 +456,7 @@ CLI `psa usage add` добавляет provider-отчёт или явную о�
 │   │   ├── decisions/
 │   │   └── workflow/
 │   ├── application/              # прикладные сценарии и порты
+│   │   ├── agent_tasks.py        # whitelist task → prompt/schema/проверки цитат
 │   │   ├── services/              # один модуль на сервис/ответственность
 │   │   │   ├── project_service.py
 │   │   │   ├── source_service.py

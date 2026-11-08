@@ -108,6 +108,8 @@ psa critic-pack demo
 
 Для выполнения с контрольными точками: `psa-main pipeline start demo --question "Что известно об экспорте?" --query "экспорт"`, затем `pipeline resume ... --expected-version N`. [Состояния, восстановление и границы повторных вызовов](docs/agent-pipeline.md).
 
+Для черновиков фактов, гипотез и пробелов используйте `--task evidence_extraction` в agent analyze или pipeline start. [Схемы, цитаты и границы извлечения](docs/evidence-extraction.md).
+
 Явная загрузка веб-страницы: `psa-main web import demo https://example.com/`. [HTTP-политика и provenance](docs/web-import.md).
 
 Поиск по актуальным ревизиям источников: `psa-main search demo "retention" --json`. [Описание и ограничения поиска](docs/source-search.md).

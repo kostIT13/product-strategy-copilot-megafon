@@ -11,6 +11,7 @@ from product_strategy_agent.adapters.persistence.postgres.base import Base
 class AgentRunRecord(Base):
     __tablename__ = "agent_runs"
     __table_args__ = (
+        CheckConstraint("task IN ('evidence_answer', 'evidence_extraction')", name="task_allowed"),
         CheckConstraint("status IN ('running', 'succeeded', 'failed')", name="status_allowed"),
         Index("ix_agent_runs_project_created", "project_id", "created_at"),
         UniqueConstraint("id", "project_id", name="uq_agent_runs_id_project"),
@@ -28,3 +29,5 @@ class AgentRunRecord(Base):
     error_code: Mapped[str | None] = mapped_column(String(100), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    task: Mapped[str] = mapped_column(String(40), nullable=False, server_default="evidence_answer")

@@ -2,6 +2,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID
+from product_strategy_agent.domain.agent.tasks import AgentTask
 
 
 class PipelineConflict(ValueError):
@@ -30,3 +31,4 @@ class AgentPipeline:
     error_code: str | None
     created_at: datetime
     updated_at: datetime
+    task: AgentTask = "evidence_answer"

@@ -6,6 +6,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from product_strategy_agent.domain.agent.errors import ProviderError
+from product_strategy_agent.domain.agent.tasks import AgentTask
 
 
 class Citation(BaseModel):
@@ -55,6 +56,7 @@ class PreparedAnalysis:
     prompt_version: str
     messages: list[dict[str, str]]
     contexts: list[dict]
+    task: AgentTask = "evidence_answer"
 
 
 @dataclass(frozen=True, slots=True)
@@ -72,3 +74,4 @@ class AgentRun:
     error_code: str | None
     created_at: datetime
     finished_at: datetime | None
+    task: AgentTask = "evidence_answer"

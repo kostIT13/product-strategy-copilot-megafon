@@ -11,6 +11,7 @@ from product_strategy_agent.adapters.persistence.postgres.base import Base
 class AgentPipelineRecord(Base):
     __tablename__ = "agent_pipelines"
     __table_args__ = (
+        CheckConstraint("task IN ('evidence_answer', 'evidence_extraction')", name="task_allowed"),
         CheckConstraint("status IN ('prepared', 'draft_running', 'draft_ready', 'completed', 'failed')", name="status_allowed"),
         CheckConstraint("version >= 0", name="version_nonnegative"),
         CheckConstraint("(status = 'prepared' AND agent_run_id IS NULL) OR (status <> 'prepared' AND agent_run_id IS NOT NULL)", name="run_required"),
@@ -33,3 +34,5 @@ class AgentPipelineRecord(Base):
     error_code: Mapped[str | None] = mapped_column(String(100), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+    task: Mapped[str] = mapped_column(String(40), nullable=False, server_default="evidence_answer")

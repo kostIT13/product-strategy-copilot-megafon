@@ -37,6 +37,8 @@ stdout занят протоколом; сервер не печатает пр�
 
 [Коды ошибок модельного провайдера и диагностика](model-provider-diagnostics.md) одинаковы в CLI и MCP: например provider_http_401, provider_timeout, provider_incomplete_completion. Ключи и сырые серверные ошибки в checkpoint не сохраняются.
 
+Prepare/analyze/start_pipeline принимают optional task: evidence_answer (default) либо [evidence_extraction](evidence-extraction.md). Типизированное извлечение не создаёт канонические claims и не меняет approvals. Inventory остаётся семь.
+
 ## Проверка
 
 ```powershell
@@ -47,7 +49,7 @@ python scripts/smoke_main_mcp.py
 
 Smoke использует настоящий PostgreSQL и LiteLLM SDK с httpx.MockTransport для двух in-process анализов. Затем запускает production-сервер отдельным stdio-процессом и сравнивает поиск, подготовку и чтение с CLI; внешняя модель не вызывается. Синтетический проект остаётся в development-БД.
 
-Отдельная живая проверка запускается явно: `python scripts/smoke_agent_live.py --live`. Она создаёт новый синтетический проект с текстом «Export is available.» и делает одну попытку анализа через настроенный провайдер, максимум 512 выходных токенов и timeout не более 45 секунд на операции транспорта. Может расходовать токены. Это не жёсткий process timeout и не оценка качества модели; автоматического повтора нет. Результат и ID запуска выводятся без ключа и сырых ошибок сервера.
+Отдельная живая проверка запускается явно: `python scripts/smoke_agent_live.py --live`. Она создаёт новый синтетический проект и делает одну попытку анализа через настроенный провайдер: максимум 512 выходных токенов для evidence_answer либо 2048 для `--task evidence_extraction`, не выше настроенного лимита. Timeout операций не более 45 секунд. Может расходовать токены. Это не жёсткий process timeout и не оценка качества модели; автоматического повтора нет. Результат и ID запуска выводятся без ключа и сырых ошибок сервера.
 
 Текущий Docker-образ включает documents/agent, но не optional extra mcp: этот MCP-сервер пока проверяется в локальном Python-окружении. Автоматическая регистрация в IDE и проверка UI Codex/Qwen Coder/SourceCraft не выполняются. Semantic entailment и оценка качества реальной модели остаются следующими срезами.
 

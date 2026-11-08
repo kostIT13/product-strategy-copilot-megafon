@@ -5,6 +5,7 @@ from uuid import UUID
 from product_strategy_agent.bootstrap import build_main_services
 from product_strategy_agent.domain.projects.errors import ProjectNotFound
 from product_strategy_agent.interfaces.payloads import json_payload
+from product_strategy_agent.domain.agent.tasks import TASK_NAMES
 
 
 def add_pipeline_commands(commands):
@@ -14,6 +15,7 @@ def add_pipeline_commands(commands):
     start.add_argument("project_key")
     start.add_argument("--question", required=True)
     start.add_argument("--query", required=True)
+    start.add_argument("--task", choices=TASK_NAMES, default="evidence_answer")
     for name in ("show", "resume"):
         command = actions.add_parser(name)
         command.add_argument("project_key")
@@ -26,7 +28,7 @@ def handle_pipeline_command(args):
     try:
         service = build_main_services().pipeline
         if args.action == "start":
-            pipeline = service.start(args.project_key, args.question, args.query)
+            pipeline = service.start(args.project_key, args.question, args.query, args.task)
         elif args.action == "show":
             pipeline = service.show(args.project_key, args.pipeline_id)
         else:

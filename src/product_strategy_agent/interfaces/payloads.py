@@ -18,7 +18,7 @@ def json_payload(value):
 
 
 def analysis_preview(prepared: PreparedAnalysis) -> dict:
-    return {"dry_run": True, "model": prepared.model, "prompt_version": prepared.prompt_version,
+    return {"dry_run": True, "task": prepared.task, "model": prepared.model, "prompt_version": prepared.prompt_version,
             "messages": prepared.messages,
             "contexts": [{key: value for key, value in context.items() if key != "text"}
                          for context in prepared.contexts]}

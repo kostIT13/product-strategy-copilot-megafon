@@ -1,17 +1,18 @@
-"""First agent slice: retrieval, model draft, citation validation, run checkpoint."""
+"""Retrieval, task-specific model drafts, citation checks and run checkpoints."""
 from datetime import datetime, timezone
 from uuid import UUID, uuid4
 
 from pydantic import ValidationError
+from product_strategy_agent.application.agent_tasks import task_profile, validate_task_citations
 from product_strategy_agent.application.ports.agent_run_store import AgentRunStore
 from product_strategy_agent.application.ports.model_provider import ModelProvider
 from product_strategy_agent.application.ports.project_store import ProjectStore
 from product_strategy_agent.application.ports.source_store import SourceStore
 from product_strategy_agent.application.services.source_search_service import SourceSearchService
 from product_strategy_agent.application.services.agent_context import source_context, prepare_request, context_references
-from product_strategy_agent.application.services.agent_validation import CitationValidationError, validate_citations
+from product_strategy_agent.application.services.agent_validation import CitationValidationError
 from product_strategy_agent.domain.agent.models import (
-    AgentRun, AgentRunFailed, AnswerDraft, PreparedAnalysis, ProviderError,
+    AgentRun, AgentRunFailed, PreparedAnalysis, ProviderError,
 )
 from product_strategy_agent.domain.projects.errors import ProjectNotFound
 
@@ -22,7 +23,8 @@ class AgentAnalysisService:
         self.projects, self.sources, self.search = projects, sources, search
         self.provider, self.runs = provider, runs
 
-    def prepare(self, project_key: str, question: str, query: str) -> PreparedAnalysis:
+    def prepare(self, project_key: str, question: str, query: str, task: str = "evidence_answer") -> PreparedAnalysis:
+        task_profile(task)
         question = question.strip()
         if not question or len(question) > 4000:
             raise ValueError("question must contain 1-4000 characters")
@@ -39,10 +41,10 @@ class AgentAnalysisService:
                     or source.revision.content_hash != hit.content_hash):
                 raise ValueError("retrieved evidence does not match its immutable project revision")
             contexts.append(source_context(source))
-        return prepare_request(project.id, question, query, self.provider.model, contexts)
+        return prepare_request(project.id, question, query, self.provider.model, contexts, task)
 
-    def analyze(self, project_key: str, question: str, query: str) -> AgentRun:
-        prepared = self.prepare(project_key, question, query)
+    def analyze(self, project_key: str, question: str, query: str, task: str = "evidence_answer") -> AgentRun:
+        prepared = self.prepare(project_key, question, query, task)
         run = self.new_run(prepared)
         self.runs.create(run)
         return self.execute_reserved(prepared, run)
@@ -51,21 +53,21 @@ class AgentAnalysisService:
     def new_run(prepared: PreparedAnalysis) -> AgentRun:
         return AgentRun(uuid4(), prepared.project_id, "running", prepared.question, prepared.query,
                         prepared.model, prepared.prompt_version, context_references(prepared), None, None, None,
-                        datetime.now(timezone.utc), None)
+                        datetime.now(timezone.utc), None, task=prepared.task)
 
     def execute_reserved(self, prepared: PreparedAnalysis, run: AgentRun) -> AgentRun:
         # Called only by standalone analyze or the successful pipeline reservation
         # owner. Never expose this method directly as a CLI/MCP operation.
         if (run.status != "running" or self.runs.get(prepared.project_id, run.id) != run
                 or run.contexts != context_references(prepared)
-                or (run.question, run.query, run.model, run.prompt_version) !=
-                   (prepared.question, prepared.query, prepared.model, prepared.prompt_version)):
+                or (run.question, run.query, run.model, run.prompt_version, run.task) !=
+                   (prepared.question, prepared.query, prepared.model, prepared.prompt_version, prepared.task)):
             raise ValueError("reserved agent run no longer matches its checkpoint")
         reply = None
         try:
             reply = self.provider.generate(prepared.messages)
-            answer = AnswerDraft.model_validate_json(reply.content)
-            validate_citations(answer, prepared.contexts)
+            answer = task_profile(prepared.task).output_model.model_validate_json(reply.content)
+            validate_task_citations(prepared.task, answer, prepared.contexts)
         except Exception as exc:
             code = (exc.code if isinstance(exc, ProviderError) else
                     "invalid_citation" if isinstance(exc, CitationValidationError) else

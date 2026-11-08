@@ -15,6 +15,8 @@ psa-main pipeline resume demo PIPELINE_UUID --expected-version 2
 
 Берите фактическую version из последнего ответа/show. При обычном проходе start возвращает prepared/version 0; первый resume получает черновик и возвращает draft_ready/version 2; второй собирает review packet и возвращает completed/version 3. Version 1 относится к резервированию running attempt перед HTTP. Каждый resume продолжает один шаг. Completed означает готовность пакета, а не одобрение человеком.
 
+Start принимает `--task evidence_answer` (default) или `--task evidence_extraction`. [Extraction](evidence-extraction.md) формирует типизированные черновики фактов, гипотез с validation question и gaps. Task закреплён в pipeline/run; resume использует соответствующие prompt/schema/citation checks. Старые checkpoints мигрируются как evidence_answer без изменения исходного answer prompt.
+
 MCP над тем же сервисом: `psa_main_start_pipeline`, `psa_main_get_pipeline`, `psa_main_resume_pipeline`. Для resume передайте project_key, pipeline_id и expected_version. Start пишет состояние без обращения к LLM; resume из prepared отправляет текст провайдеру и может расходовать токены. Show и финальный review не вызывают модель.
 
 ## Состояния и восстановление
