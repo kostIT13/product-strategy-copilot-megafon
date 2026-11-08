@@ -174,3 +174,5 @@ MCP integration is optional. Install with `python -m pip install -e ".[mcp]"`, l
 Явное сохранение проверенных AI-вариантов и человеческого решения, без автоматических claims/approvals: [docs/strategy-selection.md](docs/strategy-selection.md).
 
 Продуктовая стратегия, внутренние коммуникационные гипотезы и эксперименты по сохранённому решению: [docs/strategy-plan.md](docs/strategy-plan.md).
+
+Методики и чек-листы для ручной проверки сценария: [knowledge/README.md](knowledge/README.md). Источники, версии и ограничения указаны в каталоге; загрузка этих материалов работающим агентом ещё не подключена.

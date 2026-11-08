@@ -51,3 +51,5 @@ Critic сохраняет связь с strategy run/input hash/decision/selecte
 Smoke использует PostgreSQL, фиксированные ответы MockTransport и реальный stdio MCP: canonical selection fixture, одинаковый preview CLI/MCP, одна генерация при конкурентном resume, recovery без повторного запроса, schema/citation/decision отказы, stale-source flags, critic coverage и отсутствие canonical side effects. Его стартовый fixture повторно использует standalone selection smoke; живой модели нет. Режим replay записанных реальных модельных ответов не добавлялся.
 
 Диаграмма: [strategy-plan.mmd](../diagrams/main/strategy-plan.mmd).
+
+Для ручного review доступны [методики и чек-листы knowledge/](../knowledge/README.md). Они пока не подгружаются в strategy prompt автоматически.

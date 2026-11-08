@@ -14,7 +14,7 @@ from scripts.ci.repository import forbidden_path, git
 
 ROOT_FILES = {"README.md", "pyproject.toml", "uv.lock", ".env.example", ".gitignore", ".dockerignore",
               "Dockerfile", "docker-compose.yml", "alembic.ini", "MANIFEST.in", "AGENTS.md", "QWEN.md"}
-TREES = {"src", "alembic", "scripts", "tests", "docs", "diagrams", "specs", "reports", "evals", ".github"}
+TREES = {"src", "alembic", "scripts", "tests", "docs", "diagrams", "specs", "reports", "evals", ".github", "knowledge"}
 
 
 def allowed(name):
@@ -68,7 +68,7 @@ def package(root, output, tag=None, require_clean=False):
             files[f"distributions/{path.name}"] = path.read_bytes()
             (output / path.name).write_bytes(files[f"distributions/{path.name}"])
     required = {"README.md", "uv.lock", ".env.example", "alembic/env.py", "scripts/ci/demo.py",
-                "projects/demo/state.json", "projects/table-demo/state.json"}
+                "projects/demo/state.json", "projects/table-demo/state.json", "knowledge/README.md", "knowledge/catalog.json"}
     if not required <= files.keys():
         raise ValueError("release is missing required tracked files")
     manifest = {"version": version, "commit": git(root, "rev-parse", "HEAD")[0].strip(), "dirty": dirty,
