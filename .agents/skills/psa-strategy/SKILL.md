@@ -1,0 +1,16 @@
+---
+name: psa-strategy
+description: Draft aligned product and communication strategies plus a measurable validation plan after an explicit human product choice; includes critique and evidence checks.
+---
+
+# Стратегии и проверка
+
+Прочитай AGENTS.md, agent/workflow.md и agent/quality.md. Сверь сохранённое человеческое решение и его условия. Если выбора нет — представь альтернативы человеку, не создавай решение от его имени. Запись decision add выполняй только по явной инструкции, сохраняя rationale, rejected alternatives и revisit trigger.
+
+Используй M-EXPERIMENT-01, C-STRATEGY-01 и C-CRITIC-01 из context как вопросы review, а не как доказательства кейса. UUID/API-specific пункты старого checklist сопоставь файловым ID; отсутствие API run не является пробелом исследовательского основания.
+
+В author drafts раскрой audience/job/alternatives/value/non-goals и экономические допущения; для коммуникации — audience/context/barrier/message/proof/role of channels. Обещание сопоставь с фактической доступностью и ограничениями capability, включая смысл текста. Гипотезы и синтетика не подтверждают доступность.
+
+Validation plan: ожидаемое изменение, определение метрик/единиц/сегмента, baseline или способ её получения, критерий/сравнение, окно, guardrails, ответственный и остановка/пересмотр. Не выдавай qualitative success signal за измеренную конверсию; неизвестные значения обозначь и задай план измерения.
+
+Создай недостающие drafts через render, редактируй только author drafts; повтори render/validate/verify/coverage. Для независимого review подготовь critic-pack, не заявляй независимость самооценки. Выход: читаемые стратегии и план проверки, сильное возражение, ограничения, usage report и вопросы человеку. Публикацию или gate не разрешает положительный checklist.

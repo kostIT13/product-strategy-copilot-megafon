@@ -21,6 +21,7 @@ from product_strategy_agent.validation import validate_project, verify_project
 from product_strategy_agent.usage import add_usage, usage_report
 from product_strategy_agent.workflow import MODE_PROFILES, NEXT_ACTIONS, WORK_STAGES, approve_stage, set_project_mode
 from product_strategy_agent.revisit import build_revisit_report, resolve_source_revision
+from product_strategy_agent.application.services.instruction_context_service import instruction_context
 
 STAGES = (
     "intake",
@@ -112,6 +113,11 @@ def build_parser() -> argparse.ArgumentParser:
     init = commands.add_parser("init", help="create a new project workspace")
     init.add_argument("project_id")
     init.add_argument("--projects-dir", type=Path, default=Path("projects"))
+
+    context = commands.add_parser("context", help="read stage-scoped instructions, skills and knowledge with hashes")
+    context.add_argument("project_id")
+    context.add_argument("--projects-dir", type=Path, default=Path("projects"))
+    context.add_argument("--instructions-root", type=Path, default=Path("."))
 
     for command, help_text in (
         ("status", "show the current project stage"),
@@ -279,6 +285,10 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> None:
     args = build_parser().parse_args()
     try:
+        if args.command == "context":
+            print(json.dumps(instruction_context(project_path(args.project_id, args.projects_dir), args.instructions_root),
+                             ensure_ascii=True, indent=2))
+            return
         if args.command == "doctor":
             report = doctor_report()
             print(json.dumps(report, ensure_ascii=False, indent=2) if args.json else format_doctor_report(report))

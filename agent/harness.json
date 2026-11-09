@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "bundle_version": "1.0.0",
+  "stages": {
+    "intake": {
+      "skills": [
+        "psa-research"
+      ],
+      "knowledge": [
+        "M-SEGMENT-01",
+        "C-EVIDENCE-01"
+      ]
+    },
+    "research_plan": {
+      "skills": [
+        "psa-research"
+      ],
+      "knowledge": [
+        "M-SEGMENT-01",
+        "C-EVIDENCE-01"
+      ]
+    },
+    "source_collection": {
+      "skills": [
+        "psa-research"
+      ],
+      "knowledge": [
+        "C-EVIDENCE-01"
+      ]
+    },
+    "evidence_review": {
+      "skills": [
+        "psa-options"
+      ],
+      "knowledge": [
+        "C-EVIDENCE-01",
+        "M-OPTIONS-01"
+      ]
+    },
+    "options": {
+      "skills": [
+        "psa-options"
+      ],
+      "knowledge": [
+        "M-OPTIONS-01",
+        "C-EVIDENCE-01"
+      ]
+    },
+    "strategy": {
+      "skills": [
+        "psa-strategy"
+      ],
+      "knowledge": [
+        "M-EXPERIMENT-01",
+        "C-STRATEGY-01",
+        "C-CRITIC-01"
+      ]
+    },
+    "validation": {
+      "skills": [
+        "psa-strategy"
+      ],
+      "knowledge": [
+        "M-EXPERIMENT-01",
+        "C-STRATEGY-01",
+        "C-CRITIC-01"
+      ]
+    },
+    "completed": {
+      "skills": [
+        "psa-resume"
+      ],
+      "knowledge": [
+        "C-EVIDENCE-01"
+      ]
+    }
+  }
+}

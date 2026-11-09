@@ -3,7 +3,7 @@
   "bundle_version": "1.0.0",
   "path_base": "repository_root",
   "checked_on": "2026-11-08",
-  "runtime_integration": "not_connected",
+  "runtime_integration": "stage_scoped_instruction_context_available",
   "project_adaptation_evaluation": "not_performed",
   "sources": [
     {
@@ -222,5 +222,11 @@
         "Does not replace independent review"
       ]
     }
-  ]
+  ],
+  "instruction_harness": {
+    "version": "1.0.0",
+    "delivery": "psa context",
+    "host_acceptance": "not_verified",
+    "semantic_evaluation": "not_performed"
+  }
 }

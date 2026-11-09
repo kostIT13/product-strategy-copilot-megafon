@@ -6,6 +6,8 @@ GitHub CI проверяет frozen-установку по `uv.lock`, unittest/
 
 Сборка проверяемого ZIP, wheel/sdist и Docker smoke описана в [docs/distribution.md](docs/distribution.md). Теговый release workflow готовит draft после CI и проверки установки.
 
+Работа IDE-агента: [инструкции и запуск R1](docs/ide-instructions.md), канон — [AGENTS.md](AGENTS.md). После создания/открытия кейса команда `psa context ID` выдаёт подходящие skills и knowledge с версиями/хэшами; загрузка в конкретной IDE проверяется отдельно.
+
 ## CLI
 
 Требуется Python 3.11 или новее. Из корня репозитория установите пакет в editable-режиме и используйте команду `psa`:
