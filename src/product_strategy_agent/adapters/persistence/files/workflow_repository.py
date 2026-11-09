@@ -15,6 +15,7 @@ from product_strategy_agent.adapters.persistence.files.workflow_bundle import lo
 from product_strategy_agent.adapters.persistence.files.workflow_guard import require_workflow_ready
 from product_strategy_agent.adapters.persistence.files.workspace_repository import durable_write, sync_directory
 from product_strategy_agent.domain.projects.workspace import validate_workspace_id
+from product_strategy_agent.adapters.persistence.files.revision_review_reader import review_inputs
 
 
 class FileWorkflowStore:
@@ -30,6 +31,12 @@ class FileWorkflowStore:
         return {"state": read_small(case, "state.json"), "events": read_small(case, "events.jsonl"),
                 "inputs": self.input_snapshot(case), "sources": read_small(case, "sources.jsonl"),
                 "gaps": read_small(case, "gaps.jsonl")}
+
+    @locked_store_method()
+    def capture_review(self, project_id, revision_event_id):
+        snapshot = self.capture(project_id)
+        snapshot["review"] = review_inputs(self._case(project_id), snapshot, revision_event_id)
+        return snapshot
 
     def _case(self, project_id):
         case = confined(self.root, validate_workspace_id(project_id))

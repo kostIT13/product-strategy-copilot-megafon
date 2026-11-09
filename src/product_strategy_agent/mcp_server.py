@@ -102,10 +102,12 @@ def create_server() -> Any:
     def psa_revisit_resolve(project_id: str, revision_event_id: str, reviewed_by: str, reason: str,
                             reviewed_claim_ids: list[str] | None = None,
                             reviewed_decision_ids: list[str] | None = None,
-                            projects_dir: str = "projects") -> dict[str, Any]:
+                            projects_dir: str = "projects", operation_id: str | None = None,
+                            expected_workflow_version: int | None = None) -> dict[str, Any]:
         """Record human review of all claims and decisions affected by a source revision."""
         return resolve_source_revision(workspace(project_id, projects_dir), revision_event_id,
-                                       reviewed_by, reason, reviewed_claim_ids, reviewed_decision_ids)
+                                       reviewed_by, reason, reviewed_claim_ids, reviewed_decision_ids,
+                                       operation_id=operation_id, expected_workflow_version=expected_workflow_version)
 
     @server.tool()
     def psa_add_source(project_id: str, file_path: str, title: str = "", projects_dir: str = "projects") -> dict[str, Any]:

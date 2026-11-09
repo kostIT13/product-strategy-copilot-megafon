@@ -228,7 +228,7 @@ def build_parser() -> argparse.ArgumentParser:
     approve.add_argument("--artifact-operation", type=UUID, help="reviewed structured research plan operation UUID")
     approve.add_argument("--artifact-version", type=int, help="reviewed artifact journal version")
     approve.add_argument("--operation", type=UUID, help="caller-chosen UUID for exact gate replay")
-    approve.add_argument("--expected-workflow-version", type=int, help="expected shared gate/mode journal version")
+    approve.add_argument("--expected-workflow-version", type=int, help="expected shared workflow journal version")
     approve.add_argument("--projects-dir", type=Path, default=Path("projects"))
 
     mode = commands.add_parser("mode", help="set or show research depth for a project")
@@ -242,7 +242,7 @@ def build_parser() -> argparse.ArgumentParser:
     mode_set.add_argument("--by", required=True)
     mode_set.add_argument("--reason", default="")
     mode_set.add_argument("--operation", type=UUID, help="caller-chosen UUID for exact mode-change replay")
-    mode_set.add_argument("--expected-workflow-version", type=int, help="expected shared gate/mode journal version")
+    mode_set.add_argument("--expected-workflow-version", type=int, help="expected shared workflow journal version")
     mode_set.add_argument("--projects-dir", type=Path, default=Path("projects"))
 
     revisit = commands.add_parser("revisit", help="review downstream work after a source revision")
@@ -255,6 +255,8 @@ def build_parser() -> argparse.ArgumentParser:
     revisit_resolve.add_argument("revision_event_id")
     revisit_resolve.add_argument("--by", required=True)
     revisit_resolve.add_argument("--reason", required=True)
+    revisit_resolve.add_argument("--operation", type=UUID, help="caller-chosen UUID for exact review replay")
+    revisit_resolve.add_argument("--expected-workflow-version", type=int, help="expected shared workflow journal version")
     revisit_resolve.add_argument("--reviewed-claim", action="append", default=[])
     revisit_resolve.add_argument("--reviewed-decision", action="append", default=[])
     revisit_resolve.add_argument("--projects-dir", type=Path, default=Path("projects"))
@@ -464,7 +466,8 @@ def main() -> None:
                 print(json.dumps(build_revisit_report(project_dir), ensure_ascii=False, indent=2))
             else:
                 event = resolve_source_revision(project_dir, args.revision_event_id, args.by, args.reason,
-                                                args.reviewed_claim, args.reviewed_decision)
+                                                args.reviewed_claim, args.reviewed_decision,
+                                                operation_id=args.operation, expected_workflow_version=args.expected_workflow_version)
                 print(f"Reviewed source revision {event['revision_event_id']} by {event['reviewed_by']}")
             return
 

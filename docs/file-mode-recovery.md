@@ -18,7 +18,7 @@ ModeChangeService зависит от ModeWorkflowStore port. Domain command/п�
 
 Новый request имеет `kind=mode_change`. Он сохраняется в том же [workflow bundle](workflow-recovery.md): before/after state/events, event/request, hashes остальных входов, manifest, ACTIVE и COMMITTED. Файловая логика публикации/recovery не дублируется. Kind-specific validator требует изменения только mode/mode_history/updated_at/workflow_version; status/stages/approvals и остальные поля должны оставаться прежними. Новый event ровно один раз добавляется в events и mode_history.
 
-`workflow_version` теперь считает journaled gate **и mode** операции: gate v1 → mode v2 → gate v3. Исторические gate bundles без kind остаются читаемыми и повторяемыми; их request/manifest не переписываются. Старые незажурналированные mode changes задним числом не получают версию, а отсутствие workflow_version по-прежнему означает 0. Старый runtime, не знающий mode_change, применять к новым mode bundles нельзя: использовать обновлённую версию приложения.
+`workflow_version` теперь считает journaled gate, mode и [revision review](revision-review-recovery.md) операции: gate v1 → mode v2 → gate v3. Исторические gate bundles без kind остаются читаемыми и повторяемыми; их request/manifest не переписываются. Старые незажурналированные mode changes задним числом не получают версию, а отсутствие workflow_version по-прежнему означает 0. Старый runtime, не знающий mode_change, применять к новым mode bundles нельзя: использовать обновлённую версию приложения.
 
 Режим уже завершённого проекта и повтор текущего режима новым UUID отклоняются. Exact replay исходной завершённой операции работает раньше этих проверок. Указанное имя/роль — заявление вызывающего, не подтверждённая технической аутентификацией личность.
 
@@ -33,4 +33,4 @@ psa workflow recover CASE --operation UUID
 
 Те же `psa_pending_workflow`/`psa_recover_workflow` поддерживают gate и mode. До завершения ACTIVE обычные команды блокируются. Recovery проверяет before/after, kind semantics и inputs; посторонние изменения не перезаписываются. Copy case вместе с journal позволяет продолжить по исходному UUID в другом projects-dir. Восстановление mode не продвигает этап и не добавляет approval.
 
-Пределы общего journal сохранены: 512000 байт на payload file, 2000 входных файлов. Capture source/gap JSONL также ограничен 512000 байтами на файл. Это не глобальная версия/транзакция всех реестров: source/revisit/render и остальные legacy writes ещё требуют переноса. БД, Docker и модель для смены режима не нужны.
+Пределы общего journal сохранены: 512000 байт на payload file, 2000 входных файлов. Capture source/gap JSONL также ограничен 512000 байтами на файл. Это не глобальная версия/транзакция всех реестров: source import/revision creation/render и остальные legacy writes ещё требуют переноса. БД, Docker и модель для смены режима не нужны.

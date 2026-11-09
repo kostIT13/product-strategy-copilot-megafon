@@ -25,5 +25,5 @@ def register_file_workflow_tools(server):
 
     @server.tool(annotations={"readOnlyHint": False, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False})
     def psa_recover_workflow(project_id: str, operation_id: UUID, projects_dir: str = "projects") -> dict:
-        """Finish the exact already-authorized gate/mode operation; reject changed files/inputs."""
+        """Finish the exact already-authorized workflow operation; reject changed files/inputs."""
         return invoke("recover", project_id, projects_dir, operation_id)

@@ -48,6 +48,11 @@ def durable(path,data):
 module.durable_write=durable
 if action=="mode":
     set_project_mode(Path(root)/"case","quick_scan","Fixture owner",operation_id=UUID(operation),expected_workflow_version=0)
+elif action=="review":
+    from product_strategy_agent.revisit import build_revisit_report,resolve_source_revision
+    revision=build_revisit_report(Path(root)/"case")["revisions"][-1]
+    resolve_source_revision(Path(root)/"case",revision["event_id"],"Fixture owner","Reviewed fixture",
+        revision["affected_claim_ids"],revision["affected_decision_ids"],operation_id=UUID(operation),expected_workflow_version=0)
 else:
     approve_stage(Path(root)/"case","intake","Fixture owner",operation_id=UUID(operation),expected_workflow_version=0)
 '''

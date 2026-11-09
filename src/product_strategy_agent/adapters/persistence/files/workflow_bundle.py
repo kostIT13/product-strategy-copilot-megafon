@@ -1,4 +1,4 @@
-"""Bounded, immutable before/after bundle for a gate or research-mode operation."""
+"""Bounded, immutable before/after bundle for a supported workflow operation."""
 import json
 from uuid import UUID
 from product_strategy_agent.adapters.persistence.files.artifact_bundle import digest, encode, read_small
@@ -46,7 +46,7 @@ def load(folder, project_id, operation_id, manifest_hash=None):
                 or type(version) is not int or version < 0 or after["workflow_version"] != version + 1
                 or event["operation_id"] != str(operation_id) or event["workflow_version"] != version + 1):
             raise ValueError("workflow before/after semantics mismatch")
-        validate_transition(command, before, after, event)
+        validate_transition(command, before, after, event, files["events.before.jsonl"])
         if command.expected_workflow_version is not None and version != command.expected_workflow_version:
             raise ValueError("workflow version mismatch")
         expected_events = files["events.before.jsonl"]
