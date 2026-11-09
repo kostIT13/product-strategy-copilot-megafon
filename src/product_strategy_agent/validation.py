@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from product_strategy_agent.adapters.persistence.files.workflow_guard import require_workflow_ready
 from product_strategy_agent.adapters.persistence.files.case_access import locked_case
+from product_strategy_agent.domain.projects.file_documents import document_excerpt
 
 import hashlib
 import json
@@ -253,6 +254,7 @@ def verify_project(project_dir: Path) -> tuple[list[str], list[str]]:
         return errors, warnings
     registry_errors: list[str] = []
     sources = _read_jsonl(project_dir / "sources.jsonl", registry_errors)
+    source_metadata = {source["source_id"]: source for source in sources}
     source_texts: dict[str, str] = {}
     for source in sources:
         source_id = source["source_id"]
@@ -285,9 +287,16 @@ def verify_project(project_dir: Path) -> tuple[list[str], list[str]]:
                 warnings.append(f"{claim_id}: citation {source_id} has no usable locator or quote")
                 continue
             text = source_texts[source_id]
+            try:
+                native_excerpt = document_excerpt(source_metadata[source_id], text, locator)
+            except ValueError as error:
+                errors.append(f"{claim_id}: locator {locator!r} is invalid for {source_id}: {error}")
+                continue
             range_match = re.fullmatch(r"lines:(\d+)-(\d+)", locator.strip(), re.IGNORECASE)
             match = re.fullmatch(r"(?:paragraph|p|line):(\d+)", locator.strip(), re.IGNORECASE)
-            if range_match:
+            if native_excerpt is not None:
+                excerpt = native_excerpt
+            elif range_match:
                 start, end = (int(value) for value in range_match.groups())
                 lines = text.splitlines()
                 if start < 1 or end < start or end > len(lines):

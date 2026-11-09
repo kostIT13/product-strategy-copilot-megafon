@@ -6,6 +6,7 @@ from product_strategy_agent.adapters.persistence.files.case_access import locked
 
 from uuid import uuid4
 from product_strategy_agent.domain.projects.source_import import SourceImport
+from product_strategy_agent.domain.projects.file_documents import DOCUMENT_SUFFIXES
 from product_strategy_agent.application.services.source_import_service import SourceImportService
 from product_strategy_agent.adapters.persistence.files.source_reader import FileWebSourceReader
 from product_strategy_agent.adapters.persistence.files.workflow_repository import FileWorkflowStore
@@ -108,7 +109,8 @@ def add_local_source(project_dir: Path, source_path: Path, title: str | None = N
         locator = source_path.relative_to(project_dir.resolve()).as_posix()
     except ValueError:
         locator = str(source_path)
-    command = SourceImport(operation_id=uuid4() if operation_id is None else operation_id, input_kind="local_text", locator=locator,
+    input_kind = "local_document" if source_path.suffix.lower() in DOCUMENT_SUFFIXES else "local_text"
+    command = SourceImport(operation_id=uuid4() if operation_id is None else operation_id, input_kind=input_kind, locator=locator,
                            title=title or None, expected_workflow_version=expected_workflow_version)
     return _source_service(project_dir).run(project_dir.name, command)
 

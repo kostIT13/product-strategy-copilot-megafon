@@ -4,6 +4,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urldefrag, urlparse
 from urllib.request import Request
 from product_strategy_agent.domain.projects.source_import import MAX_TEXT_BYTES
+from product_strategy_agent.domain.projects.file_documents import DOCUMENT_SUFFIXES
 
 
 class FileWebSourceReader:
@@ -14,13 +15,21 @@ class FileWebSourceReader:
         # Reuse the established extractor/HTTP injection boundary; no persistence here.
         from product_strategy_agent.sources import extract_text, urlopen, TEXT_SUFFIXES
         suffix = ""
-        if command.input_kind == "local_text":
+        if command.input_kind in {"local_text", "local_document"}:
             path = Path(command.locator)
             if not path.is_absolute():
                 path = self.case / path
             if not path.is_file():
                 raise FileNotFoundError(f"Source file not found: {path}")
             suffix = path.suffix.lower()
+            if command.input_kind == "local_document":
+                from product_strategy_agent.adapters.documents.local import LocalDocumentExtractor
+                if suffix not in DOCUMENT_SUFFIXES:
+                    raise ValueError("local_document requires PDF, DOCX or XLSX")
+                document = LocalDocumentExtractor(max_bytes=MAX_TEXT_BYTES).extract(path)
+                locator = document.locator or "paragraphs:1-" + str(max(1, sum(bool(line.strip()) for line in document.text.splitlines())))
+                return {"uri": command.locator, "publisher": None, "extracted_title": document.title,
+                        "document": {"format": suffix[1:], "locator": locator, "limitations": list(document.limitations)}}, (document.text.strip() + "\n").encode("utf-8")
             if suffix not in TEXT_SUFFIXES:
                 raise ValueError(f"Unsupported file type '{suffix}'")
             with path.open("rb") as stream:

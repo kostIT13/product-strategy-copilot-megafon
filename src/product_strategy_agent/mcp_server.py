@@ -112,7 +112,7 @@ def create_server() -> Any:
     @server.tool()
     def psa_add_source(project_id: str, file_path: str, title: str = "", projects_dir: str = "projects",
                        operation_id: str | None = None, expected_workflow_version: int | None = None) -> dict[str, Any]:
-        """Import a local text/HTML file; its original material stays local to the workspace."""
+        """Import Text/HTML/PDF/DOCX/XLSX with captured extraction limits; optional document parsers are local."""
         return add_local_source(workspace(project_id, projects_dir), Path(file_path), title or None,
                                 operation_id=operation_id, expected_workflow_version=expected_workflow_version)
 

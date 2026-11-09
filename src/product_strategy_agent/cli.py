@@ -103,7 +103,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     source = commands.add_parser("source", help="manage project sources")
     source_commands = source.add_subparsers(dest="source_command", required=True)
-    for action, help_text in (("add", "import a local text or HTML file"), ("fetch", "fetch a web page and extract its text")):
+    for action, help_text in (("add", "import local text/HTML or optional PDF/DOCX/XLSX"), ("fetch", "fetch a web page and extract its text")):
         sub = source_commands.add_parser(action, help=help_text)
         sub.add_argument("project_id")
         sub.add_argument("value", help="local file path" if action == "add" else "http(s) URL")
@@ -310,6 +310,10 @@ def main() -> None:
                                           operation_id=args.operation, expected_workflow_version=args.expected_workflow_version)
                 print(f"Imported {record['source_id']}: {record['title']}")
                 print(f"Extracted text: {project_dir / record['extracted_text_path']}")
+                if record.get("document_format"):
+                    print(f"Document format: {record['document_format']}; locator: {record['locator']}")
+                    for limitation in record["limitations"]:
+                        print(f"Extraction limit: {limitation}")
                 if record.get("source_revision_event"):
                     print(f"Source changed; review dependent work with: psa revisit list {args.project_id}")
             elif args.source_command == "fetch":
