@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from product_strategy_agent.adapters.persistence.files.workflow_guard import require_workflow_ready
+from product_strategy_agent.adapters.persistence.files.case_access import locked_case
 
 import json
 from pathlib import Path
@@ -30,6 +31,7 @@ def _section(project_dir: Path, heading: str, filename: str) -> list[str]:
     return [f"## {heading}", "", content, ""]
 
 
+@locked_case
 def build_critic_pack(project_dir: Path) -> str:
     require_workflow_ready(project_dir)
     sources = {item.get("source_id"): item for item in _read_records(project_dir, "sources.jsonl")}
@@ -122,6 +124,7 @@ def build_critic_pack(project_dir: Path) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
+@locked_case
 def write_critic_pack(project_dir: Path, output_path: Path | None = None) -> Path:
     require_workflow_ready(project_dir)
     target = output_path or (project_dir / "reviews" / "critic-pack.md")

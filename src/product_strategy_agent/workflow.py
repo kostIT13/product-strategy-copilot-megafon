@@ -10,7 +10,7 @@ from uuid import uuid4
 from product_strategy_agent.sources import utc_now
 from product_strategy_agent.coverage import coverage_report
 from product_strategy_agent.artifacts import render_integrity_report
-from product_strategy_agent.adapters.persistence.files.project_lock import project_lock
+from product_strategy_agent.adapters.persistence.files.case_access import case_access, locked_case
 from product_strategy_agent.adapters.persistence.files.research_artifact_repository import FileResearchArtifactStore
 from product_strategy_agent.application.services.research_artifact_service import ResearchArtifactService
 from product_strategy_agent.adapters.persistence.files.workflow_repository import FileWorkflowStore
@@ -125,7 +125,7 @@ def approve_stage(project_dir: Path, stage: str, approved_by: str, reason: str =
     if stage != "research_plan" and (artifact_operation is not None or artifact_version is not None):
         raise ValueError("artifact selection is only supported for the research_plan gate")
     project_dir = Path(project_dir).absolute()
-    with project_lock(project_dir.parent, project_dir.name):
+    with case_access(project_dir.parent, project_dir.name):
         store = FileWorkflowStore(project_dir.parent)
         replay = store.replay(project_dir.name, command)
         if replay is not None:
@@ -191,6 +191,7 @@ def _approve_stage(project_dir, stage, approved_by, reason, research_plan_refere
     return store.commit(project_dir.name, command, before_state, state, before_events, event, inputs)
 
 
+@locked_case
 def set_project_mode(project_dir: Path, mode: str, changed_by: str, reason: str = "") -> dict[str, Any]:
     require_workflow_ready(project_dir)
     if not isinstance(mode, str) or mode not in MODE_PROFILES:

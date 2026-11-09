@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from contextlib import ExitStack
 import json
 import re
 from datetime import datetime, timezone
@@ -28,7 +29,7 @@ from product_strategy_agent.adapters.persistence.files.workspace_repository impo
 from product_strategy_agent.interfaces.cli.workspace_commands import add_workspace_commands, handle_workspace_command
 from product_strategy_agent.interfaces.cli.research_artifact_commands import add_research_artifact_commands, handle_research_artifact_command
 from product_strategy_agent.interfaces.cli.file_workflow_commands import add_workflow_commands, handle_workflow_command
-from product_strategy_agent.adapters.persistence.files.workflow_guard import require_workflow_ready
+from product_strategy_agent.adapters.persistence.files.case_access import case_access
 
 STAGES = (
     "intake",
@@ -57,14 +58,14 @@ def state_file(project_id: str, projects_dir: Path) -> Path:
 
 
 def load_state(project_id: str, projects_dir: Path) -> dict[str, Any]:
-    require_workflow_ready(project_path(project_id, projects_dir))
-    path = state_file(project_id, projects_dir)
-    if not path.is_file():
-        raise FileNotFoundError(f"Project '{project_id}' was not found at {path}")
-    state = json.loads(path.read_text(encoding="utf-8"))
-    if state.get("schema_version") != 1 or state.get("project_id") != project_id:
-        raise ValueError(f"Unsupported or invalid project state: {path}")
-    return state
+    with case_access(projects_dir, project_id):
+        path = state_file(project_id, projects_dir)
+        if not path.is_file():
+            raise FileNotFoundError(f"Project '{project_id}' was not found at {path}")
+        state = json.loads(path.read_text(encoding="utf-8"))
+        if state.get("schema_version") != 1 or state.get("project_id") != project_id:
+            raise ValueError(f"Unsupported or invalid project state: {path}")
+        return state
 
 
 def init_project(project_id: str, projects_dir: Path) -> Path:
@@ -260,12 +261,13 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main() -> None:
     args = build_parser().parse_args()
+    access = ExitStack()
     try:
         if args.command == "workflow":
             handle_workflow_command(args)
             return
         if getattr(args, "project_id", None) and args.command not in {"init", "workspace"}:
-            require_workflow_ready(project_path(args.project_id, args.projects_dir))
+            access.enter_context(case_access(args.projects_dir, args.project_id))
         if args.command == "artifact":
             handle_research_artifact_command(args)
             return
@@ -493,6 +495,8 @@ def main() -> None:
                 print(f"Last approved: {latest['stage']} by {latest['approved_by']} at {latest['approved_at']}")
     except (FileExistsError, FileNotFoundError, ValueError, OSError, json.JSONDecodeError) as error:
         raise SystemExit(f"psa: error: {error}") from error
+    finally:
+        access.close()
 
 
 if __name__ == "__main__":

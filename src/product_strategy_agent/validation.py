@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from product_strategy_agent.adapters.persistence.files.workflow_guard import require_workflow_ready
+from product_strategy_agent.adapters.persistence.files.case_access import locked_case
 
 import hashlib
 import json
@@ -56,6 +57,7 @@ def _safe_extracted_path(project_dir: Path, raw_path: str) -> Path | None:
     return candidate
 
 
+@locked_case
 def validate_project(project_dir: Path) -> list[str]:
     require_workflow_ready(project_dir)
     errors: list[str] = []
@@ -242,6 +244,7 @@ def _normalize_quote(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
+@locked_case
 def verify_project(project_dir: Path) -> tuple[list[str], list[str]]:
     require_workflow_ready(project_dir)
     errors = validate_project(project_dir)

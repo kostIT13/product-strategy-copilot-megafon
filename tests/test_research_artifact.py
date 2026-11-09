@@ -165,8 +165,9 @@ class ResearchArtifactTests(unittest.TestCase):
             root = Path(folder) / "projects"
             service, command = fixture(root)
             def invisible():
-                self.assertEqual(service.status("case")["version"], 0)
-                with self.assertRaises(ValueError):
+                with self.assertRaisesRegex(ValueError, "busy"):
+                    service.status("case")
+                with self.assertRaisesRegex(ValueError, "busy"):
                     service.show("case")
                 with self.assertRaisesRegex(ValueError, "busy"):
                     service.recover("case", command.operation_id)

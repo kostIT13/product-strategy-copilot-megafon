@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from product_strategy_agent.adapters.persistence.files.workflow_guard import require_workflow_ready
+from product_strategy_agent.adapters.persistence.files.case_access import locked_case
 
 import json
 from pathlib import Path
@@ -31,6 +32,7 @@ def _dependencies(project_dir: Path, source_id: str) -> tuple[list[str], list[st
     return claim_ids, decision_ids
 
 
+@locked_case
 def build_revisit_report(project_dir: Path) -> dict[str, Any]:
     require_workflow_ready(project_dir)
     events = _records(project_dir / "events.jsonl")
@@ -53,6 +55,7 @@ def build_revisit_report(project_dir: Path) -> dict[str, Any]:
     return {"pending_count": sum(item["status"] == "pending_review" for item in items), "revisions": items}
 
 
+@locked_case
 def resolve_source_revision(
     project_dir: Path,
     revision_event_id: str,

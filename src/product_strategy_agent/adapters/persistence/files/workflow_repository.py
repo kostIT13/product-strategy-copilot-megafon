@@ -10,7 +10,7 @@ from pathlib import Path
 from uuid import UUID, uuid4
 from product_strategy_agent.adapters.persistence.files.artifact_bundle import digest, encode, read_small
 from product_strategy_agent.adapters.persistence.files.paths import confined
-from product_strategy_agent.adapters.persistence.files.project_lock import project_lock
+from product_strategy_agent.adapters.persistence.files.case_access import case_access, locked_store_method
 from product_strategy_agent.adapters.persistence.files.workflow_bundle import load, payload
 from product_strategy_agent.adapters.persistence.files.workflow_guard import require_workflow_ready
 from product_strategy_agent.adapters.persistence.files.workspace_repository import durable_write, sync_directory
@@ -76,6 +76,7 @@ class FileWorkflowStore:
             raise ValueError("workflow completion receipt mismatch")
         return True
 
+    @locked_store_method()
     def replay(self, project_id, command):
         """Caller owns the project lock; exact completed replay never resets root files."""
         case = self._case(project_id)
@@ -90,6 +91,7 @@ class FileWorkflowStore:
             raise ValueError("workflow preparation exists; inspect pending and explicitly recover its UUID")
         return item["event"]
 
+    @locked_store_method()
     def commit(self, project_id, command, before_state, after_state, before_events, event, inputs):
         """Prepare after validation; caller holds the same project lock through publication."""
         case = self._case(project_id)
@@ -150,6 +152,7 @@ class FileWorkflowStore:
             marker_path.unlink()
             sync_directory(marker_path.parent)
 
+    @locked_store_method(allow_pending=True)
     def pending(self, project_id):
         case = self._case(project_id)
         active = self._active(case)
@@ -175,9 +178,10 @@ class FileWorkflowStore:
                 rows.append(row)
         return {"project_id": project_id, "active": active, "preparations": rows, "read_only": True}
 
+    @locked_store_method(allow_pending=True)
     def recover(self, project_id, operation_id):
         case = self._case(project_id)
-        with project_lock(self.root, project_id):
+        with case_access(self.root, project_id, allow_pending=True):
             item = load(self._folder(case, operation_id), project_id, operation_id)
             self._apply(case, operation_id, item)
             return item["event"]

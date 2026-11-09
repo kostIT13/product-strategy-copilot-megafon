@@ -8,7 +8,7 @@ from uuid import UUID, uuid4
 from product_strategy_agent.adapters.persistence.files.artifact_bundle import (
     BASE_FILES, EMPTY_HEAD, MAX_HISTORY, bundle_payload, digest, encode, load_bundle, read_small, validate_head)
 from product_strategy_agent.adapters.persistence.files.paths import confined
-from product_strategy_agent.adapters.persistence.files.project_lock import project_lock
+from product_strategy_agent.adapters.persistence.files.case_access import case_access, locked_store_method
 from product_strategy_agent.adapters.persistence.files.workspace_repository import durable_write, sync_directory
 from product_strategy_agent.domain.projects.research_artifact import RecordResearchArtifact
 from product_strategy_agent.domain.projects.workspace import validate_workspace_id
@@ -106,6 +106,7 @@ class FileResearchArtifactStore:
         self._write_head(case, head)
         return item["receipt"]
 
+    @locked_store_method()
     def status(self, project_id):
         case = self._case(project_id)
         head, _ = self._chain(case)
@@ -114,10 +115,11 @@ class FileResearchArtifactStore:
             "case_hash": digest(encode(snapshot)), "case_snapshot": snapshot,
             "version_scope": "artifact_journal", "legacy_writers_transactional": False, "read_only": True}
 
+    @locked_store_method()
     def record(self, project_id, command):
         command = RecordResearchArtifact.model_validate(command)
         case = self._case(project_id)
-        with project_lock(self.root, project_id):
+        with case_access(self.root, project_id):
             head, chain = self._chain(case)
             request_hash = digest(encode(command.model_dump(mode="json")))
             for item in chain:
@@ -149,6 +151,7 @@ class FileResearchArtifactStore:
             sync_directory(folder.parent)
             return self._commit(case, load_bundle(folder, project_id, command.operation_id))
 
+    @locked_store_method()
     def show(self, project_id, operation_id=None):
         case = self._case(project_id)
         head, chain = self._chain(case)
@@ -161,6 +164,7 @@ class FileResearchArtifactStore:
             "markdown": item["markdown"], "base_snapshot": item["base_snapshot"],
             "base_inputs_changed": bool(changed), "changed_input_files": changed, "read_only": True}
 
+    @locked_store_method()
     def pending(self, project_id):
         case = self._case(project_id)
         _, chain = self._chain(case)
@@ -185,9 +189,10 @@ class FileResearchArtifactStore:
             result.append(row)
         return result
 
+    @locked_store_method()
     def recover(self, project_id, operation_id):
         case = self._case(project_id)
-        with project_lock(self.root, project_id):
+        with case_access(self.root, project_id):
             _, chain = self._chain(case)
             for item in chain:
                 if item["command"].operation_id == operation_id:

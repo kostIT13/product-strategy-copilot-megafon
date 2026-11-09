@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from product_strategy_agent.adapters.persistence.files.workflow_guard import require_workflow_ready
+from product_strategy_agent.adapters.persistence.files.case_access import locked_case
 
 import hashlib
 import json
@@ -47,6 +48,7 @@ def _read_manifest(project_dir: Path) -> tuple[dict[str, Any] | None, list[str]]
     return manifest, []
 
 
+@locked_case
 def render_integrity_report(project_dir: Path) -> dict[str, Any]:
     """Report generated artifacts changed or missing since the last render."""
     require_workflow_ready(project_dir)
@@ -82,6 +84,7 @@ def render_integrity_report(project_dir: Path) -> dict[str, Any]:
     }
 
 
+@locked_case
 def write_render_manifest(project_dir: Path, *, adopted_existing: bool = False) -> Path:
     """Record current generated artifact hashes atomically."""
     require_workflow_ready(project_dir)
@@ -98,6 +101,7 @@ def write_render_manifest(project_dir: Path, *, adopted_existing: bool = False) 
     return target
 
 
+@locked_case
 def adopt_existing_render(project_dir: Path) -> dict[str, Any]:
     """Start tracking existing generated files without overwriting them."""
     require_workflow_ready(project_dir)

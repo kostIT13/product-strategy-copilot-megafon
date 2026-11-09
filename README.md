@@ -30,6 +30,8 @@ psa resume demo-retention
 
 Gate сохраняет state/events через write-ahead bundle. При прерывании: `psa workflow pending ID`, затем `psa workflow recover ID --operation UUID`; до восстановления обычные команды блокируются. Для exact retry approval передавайте собственный `--operation UUID` и при необходимости `--expected-workflow-version N`. [Протокол, CLI/MCP и границы recovery](docs/workflow-recovery.md).
 
+Файловые читатели и writers используют [общий lock кейса](docs/case-access.md). При занятой операции CLI/MCP возвращают `busy`; автоматического повтора нет. Вложенные core-вызовы используют один scope. Это защищает от участвующих конкурентных операций; crash recovery остальных legacy writes ещё переносится.
+
 ### Импорт источников
 
 ```powershell

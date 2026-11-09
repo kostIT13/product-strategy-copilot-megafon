@@ -67,7 +67,7 @@ Case hash связывает state.json, восемь текущих JSONL-ре�
 
 Перед записью/recovery хэш входов проверяется повторно; изменённый вход требует нового осознанного запроса. Show возвращает исходный base_snapshot, base_inputs_changed и changed_input_files. При этом исторический exact replay не переиздаёт approval и не обновляет старый snapshot.
 
-Старые source/claim/gate/render команды пока не переведены на общий journal/lock. Case fingerprint замечает их изменения, но не является гарантией транзакционного snapshot при одновременной ручной или legacy-записи. Он проверяется до commit; старый writer может изменить входы после проверки, тогда show пометит сохранённый черновик как основанный на изменённых входах. Нельзя объявлять этот протокол глобальной транзакцией всех реестров, пока их writers/readers не перенесены.
+Source/claim/gate/render и остальные публичные файловые операции теперь используют [общий access lock](case-access.md). В пределах participating core/store scope case snapshot не пересекается с другим writer; при живом writer status/show/pending получают busy. После освобождения lock входы могут измениться, и show пометит исторический draft как основанный на изменённых входах. Ручные/сторонние правки не участвуют в lock, а большинство legacy writers ещё без journal/recovery: глобальная crash-atomic транзакция всех реестров не заявляется.
 
 Запись draft не переписывает 02_research-plan.md или state.json и не переводит этап. Если committed structured план существует, research_plan gate использует его как единственный план для этого утверждения; содержимое legacy Markdown не может заменить его или обойти проверку. Для кейсов без committed structured плана сохраняется прежняя проверка 02_research-plan.md. Автоматической двусторонней синхронизации нет.
 
@@ -86,7 +86,7 @@ Gate требует оба селектора, текущую committed HEAD-в�
 
 В approval state/history и events записывается `research_plan_artifact`: kind, operation_id, version, manifest_hash и base_case_hash. Markdown не проецируется обратно в авторский файл. Утверждение меняет state/events, поэтому исторический draft затем показывает изменённые base inputs; это сравнение с исходным снимком, а не автоматический отзыв уже записанного approval. Более поздняя draft-версия сама не заменяет ссылку в историческом approval.
 
-Gate держит общий OS project lock от проверки версии до конца записи; новые artifact writers не могут вклиниться в этот интервал. State/events теперь публикуются через [write-ahead bundle и явный recovery](workflow-recovery.md), с before/after hashes, ACTIVE guard и completion receipt. Для exact replay gate можно передать собственный operation UUID; это другой ID, чем выбранный artifact UUID. Остальные legacy writers/ручные правки ещё могут обходить lock. Не считать эту интеграцию глобальной транзакцией всех реестров.
+Gate держит общий OS project lock от проверки версии до конца записи; participating artifact/legacy writers не могут вклиниться в этот интервал. State/events публикуются через [write-ahead bundle и явный recovery](workflow-recovery.md), с before/after hashes, ACTIVE guard и completion receipt. Для exact replay gate можно передать собственный operation UUID; это другой ID, чем выбранный artifact UUID. Ручные/сторонние правки обходят lock. Не считать эту интеграцию глобальной crash-atomic транзакцией всех реестров.
 
 ## Сбой и recovery
 

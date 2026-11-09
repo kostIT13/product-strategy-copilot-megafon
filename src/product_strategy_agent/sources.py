@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from product_strategy_agent.adapters.persistence.files.workflow_guard import require_workflow_ready
+from product_strategy_agent.adapters.persistence.files.case_access import locked_case
 
 import hashlib
 import json
@@ -222,6 +223,7 @@ def _store(project_dir: Path, uri: str, kind: str, data: bytes, content_type: st
     return record
 
 
+@locked_case
 def add_local_source(project_dir: Path, source_path: Path, title: str | None = None) -> dict[str, Any]:
     require_workflow_ready(project_dir)
     source_path = source_path.expanduser().resolve()
@@ -240,6 +242,7 @@ def add_local_source(project_dir: Path, source_path: Path, title: str | None = N
     return _store(project_dir, uri, "local_text", data, "text/html" if source_path.suffix.lower() in {".html", ".htm"} else "text/plain", source_path.suffix, title, publisher)
 
 
+@locked_case
 def fetch_web_source(project_dir: Path, url: str, title: str | None = None) -> dict[str, Any]:
     require_workflow_ready(project_dir)
     parsed = urlparse(url)

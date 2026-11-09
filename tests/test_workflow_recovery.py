@@ -106,7 +106,7 @@ class WorkflowRecoveryTests(unittest.TestCase):
                         lambda: add_gap(root / "case", "Missing?", "Unknown"),
                         lambda: set_project_mode(root / "case", "quick_scan", "Owner"),
                         lambda: FileResearchArtifactStore(root).status("case")):
-                    with self.assertRaisesRegex(ValueError, "pending"):
+                    with self.assertRaisesRegex(ValueError, "pending|busy"):
                         action()
             operation = kill_at(root, "state", inspect)
             cli = subprocess.run([sys.executable, "-m", "product_strategy_agent.cli", "status", "case", "--projects-dir", str(root)], capture_output=True)

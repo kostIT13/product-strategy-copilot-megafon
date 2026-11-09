@@ -19,6 +19,7 @@ from product_strategy_agent.workflow import MODE_PROFILES, approve_stage, set_pr
 from product_strategy_agent.usage import add_usage, usage_report
 from product_strategy_agent.revisit import build_revisit_report, resolve_source_revision
 from product_strategy_agent.adapters.persistence.files.workflow_guard import require_workflow_ready
+from product_strategy_agent.adapters.persistence.files.case_access import case_access
 
 
 def create_server() -> Any:
@@ -116,8 +117,9 @@ def create_server() -> Any:
     @server.tool()
     def psa_list_sources(project_id: str, projects_dir: str = "projects") -> list[dict[str, Any]]:
         """List source metadata registered in the project."""
-        path = workspace(project_id, projects_dir) / "sources.jsonl"
-        return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+        with case_access(projects_dir, project_id):
+            path = workspace(project_id, projects_dir) / "sources.jsonl"
+            return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
 
     @server.tool()
     def psa_add_claim(

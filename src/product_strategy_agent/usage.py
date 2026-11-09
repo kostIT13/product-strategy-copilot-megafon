@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from product_strategy_agent.adapters.persistence.files.workflow_guard import require_workflow_ready
+from product_strategy_agent.adapters.persistence.files.case_access import locked_case
 
 import json
 import re
@@ -36,6 +37,7 @@ def _records(project_dir: Path) -> list[dict[str, Any]]:
     return records
 
 
+@locked_case
 def add_usage(
     project_dir: Path,
     provider: str,
@@ -114,6 +116,7 @@ def add_usage(
     return record
 
 
+@locked_case
 def usage_report(project_dir: Path) -> dict[str, Any]:
     require_workflow_ready(project_dir)
     records = _records(project_dir)

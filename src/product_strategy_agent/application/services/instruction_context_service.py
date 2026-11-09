@@ -1,6 +1,7 @@
 """Read stage-scoped repository instructions/knowledge; never execute a model or mutate a case."""
 
 from product_strategy_agent.adapters.persistence.files.workflow_guard import require_workflow_ready
+from product_strategy_agent.adapters.persistence.files.case_access import locked_case
 import hashlib
 import json
 import re
@@ -19,6 +20,7 @@ def read_material(root: Path, relative: str):
     return {"path": relative, "sha256": hashlib.sha256(data).hexdigest(), "text": data.decode("utf-8")}
 
 
+@locked_case
 def instruction_context(project_dir: Path, root: Path):
     require_workflow_ready(project_dir)
     root = root.resolve()

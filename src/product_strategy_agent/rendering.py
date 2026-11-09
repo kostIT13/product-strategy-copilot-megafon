@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from product_strategy_agent.adapters.persistence.files.workflow_guard import require_workflow_ready
+from product_strategy_agent.adapters.persistence.files.case_access import locked_case
 
 import json
 import hashlib
@@ -39,6 +40,7 @@ def _bullets(values: list[str]) -> str:
     return "\n".join(f"- {value}" for value in values) if values else "- Нет данных"
 
 
+@locked_case
 def render_project(
     project_dir: Path,
     *,
