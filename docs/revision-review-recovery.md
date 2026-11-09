@@ -1,6 +1,6 @@
 # Review ревизии источника через workflow journal
 
-R2: `psa revisit resolve` сохраняет явный review конкретной ревизии и перечисленных зависимых claims/решений через общий write-ahead state/events протокол. Сам импорт/создание новой source revision пока остаётся legacy writer.
+R2: `psa revisit resolve` сохраняет явный review конкретной ревизии и перечисленных зависимых claims/решений через общий write-ahead state/events протокол. Сам [импорт/создание новой source revision](source-import-recovery.md) также перенесён на общий workflow v2 journal.
 
 ```bash
 psa revisit list CASE
@@ -22,7 +22,7 @@ ID claims/решений нужно перечислить ровно по те�
 - Текущий extracted text и предыдущий архивный текст должны находиться внутри sources/ без symlink/junction/escape и совпадать с revision hashes. Хэши читаются потоково; отсутствующие/изменённые версии не восстанавливаются предположениями.
 - Claims зависят от source ID. Decisions включаются через свои claim_ids, выбранный option и отвергнутые options, если options зависят от этих claims. Все ожидаемые IDs должны быть явно рассмотрены.
 
-Все чтения, проверки и commit выполняются под общим case access lock. Новые значения `workflow_version` считаются совместно для gate, mode_change и revision_review. Review увеличивает только version/updated_at в state и добавляет один event в events.jsonl. Этап, режим, stages, approvals, claims/decisions не переписываются.
+Все чтения, проверки и commit выполняются под общим case access lock. Новые значения `workflow_version` считаются совместно для gate, mode_change, revision_review и source_import. Review увеличивает только version/updated_at в state и добавляет один event в events.jsonl. Этап, режим, stages, approvals, claims/decisions не переписываются.
 
 ## Replay и recovery
 
@@ -36,4 +36,4 @@ Request имеет `kind=revision_review`. Caller UUID используется 
 
 Review означает запись человеческого рассмотрения точной ревизии/набора зависимостей. Он не исправляет claims автоматически, не доказывает истинность источника и не утверждает стратегию/публикацию. Обновление derived stale/re-review статусов при последующих изменениях — отдельная задача полноты R3.
 
-Общие journal/input limits сохранены; JSONL capture ограничен 512000 байтами на файл. Raw/manual доступ обходит lock. Source import/revision creation, render и другие legacy writers ещё требуют переноса на recovery, затем import/retire старой SQL/container цепочки. БД/модель/Docker для этого review не нужны.
+Общие journal/input limits сохранены; JSONL capture ограничен 512000 байтами на файл. Raw/manual доступ обходит lock. Render и другие legacy writers ещё требуют переноса на recovery, затем import/retire старой SQL/container цепочки. БД/модель/Docker для этого review не нужны.

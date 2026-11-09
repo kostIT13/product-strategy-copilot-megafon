@@ -3,18 +3,22 @@ import json
 from uuid import UUID
 from product_strategy_agent.adapters.persistence.files.artifact_bundle import digest, encode, read_small
 from product_strategy_agent.adapters.persistence.files.workflow_semantics import parse_command, validate_transition
+from product_strategy_agent.adapters.persistence.files.source_bundle import EXTRA_FILES, read_payload, validate_extra
+from product_strategy_agent.domain.projects.source_import import SourceImport
 
 FILES = {"request.json", "event.json", "state.before.json", "state.after.json", "events.before.jsonl", "events.after.jsonl", "inputs.json"}
 
 
-def payload(project_id, command, before_state, after_state, before_events, event, inputs):
+def payload(project_id, command, before_state, after_state, before_events, event, inputs, extra_files=None):
     after_events = before_events + (b"\n" if before_events and not before_events.endswith(b"\n") else b"") + encode_event(event)
     files = {"request.json": encode(command.model_dump(mode="json")), "event.json": encode(event),
         "state.before.json": before_state, "state.after.json": encode(after_state),
         "events.before.jsonl": before_events, "events.after.jsonl": after_events, "inputs.json": encode(inputs)}
     if any(len(value) > 512000 for value in files.values()):
         raise ValueError("workflow bundle exceeds its 512000 byte per-file limit")
-    manifest = {"format_version": 1, "project_id": project_id, "operation_id": str(command.operation_id),
+    if extra_files is not None:
+        files.update(extra_files)
+    manifest = {"format_version": 2 if extra_files is not None else 1, "project_id": project_id, "operation_id": str(command.operation_id),
                 "files": {key: digest(value) for key, value in files.items()}}
     return files, manifest
 
@@ -30,14 +34,16 @@ def load(folder, project_id, operation_id, manifest_hash=None):
         if manifest_hash is not None and digest(raw) != manifest_hash:
             raise ValueError("workflow manifest hash mismatch")
         if (set(manifest) != {"format_version", "project_id", "operation_id", "files"}
-                or type(manifest["format_version"]) is not int or manifest["format_version"] != 1
+                or type(manifest["format_version"]) is not int or manifest["format_version"] not in {1, 2}
                 or manifest["project_id"] != project_id or manifest["operation_id"] != str(operation_id)
-                or set(manifest["files"]) != FILES):
+                or set(manifest["files"]) != (FILES | EXTRA_FILES if manifest["format_version"] == 2 else FILES)):
             raise ValueError("invalid workflow manifest scope/layout")
-        files = {name: read_small(folder, name) for name in FILES}
+        files = {name: read_payload(folder, name) for name in manifest["files"]}
         if any(digest(value) != manifest["files"][name] for name, value in files.items()):
             raise ValueError("workflow bundle hash mismatch")
         command = parse_command(json.loads(files["request.json"]))
+        if isinstance(command, SourceImport) != (manifest["format_version"] == 2):
+            raise ValueError("source request requires workflow format v2")
         event = json.loads(files["event.json"])
         before, after = (json.loads(files[f"state.{name}.json"]) for name in ("before", "after"))
         version = before.get("workflow_version", 0)
@@ -59,6 +65,13 @@ def load(folder, project_id, operation_id, manifest_hash=None):
         inputs = json.loads(files["inputs.json"])
         if not isinstance(inputs, dict):
             raise ValueError("invalid workflow inputs")
-        return {"files": files, "manifest_hash": digest(raw), "command": command, "event": event, "inputs": inputs}
+        targets = {"state.json": (files["state.before.json"], files["state.after.json"]),
+                   "events.jsonl": (files["events.before.jsonl"], files["events.after.jsonl"])}
+        result = event
+        if isinstance(command, SourceImport):
+            extra_targets, result = validate_extra(command, files, before, after, event)
+            targets = {**extra_targets, **targets}
+        return {"files": files, "manifest_hash": digest(raw), "command": command, "event": event, "inputs": inputs,
+                "targets": targets, "result": result}
     except (KeyError, TypeError, AttributeError):
         raise ValueError("invalid workflow bundle") from None

@@ -110,14 +110,18 @@ def create_server() -> Any:
                                        operation_id=operation_id, expected_workflow_version=expected_workflow_version)
 
     @server.tool()
-    def psa_add_source(project_id: str, file_path: str, title: str = "", projects_dir: str = "projects") -> dict[str, Any]:
+    def psa_add_source(project_id: str, file_path: str, title: str = "", projects_dir: str = "projects",
+                       operation_id: str | None = None, expected_workflow_version: int | None = None) -> dict[str, Any]:
         """Import a local text/HTML file; its original material stays local to the workspace."""
-        return add_local_source(workspace(project_id, projects_dir), Path(file_path), title or None)
+        return add_local_source(workspace(project_id, projects_dir), Path(file_path), title or None,
+                                operation_id=operation_id, expected_workflow_version=expected_workflow_version)
 
     @server.tool()
-    def psa_fetch_source(project_id: str, url: str, title: str = "", projects_dir: str = "projects") -> dict[str, Any]:
+    def psa_fetch_source(project_id: str, url: str, title: str = "", projects_dir: str = "projects",
+                         operation_id: str | None = None, expected_workflow_version: int | None = None) -> dict[str, Any]:
         """Fetch an HTTP(S) text/HTML page and preserve extracted text with a content hash."""
-        return fetch_web_source(workspace(project_id, projects_dir), url, title or None)
+        return fetch_web_source(workspace(project_id, projects_dir), url, title or None,
+                                operation_id=operation_id, expected_workflow_version=expected_workflow_version)
 
     @server.tool()
     def psa_list_sources(project_id: str, projects_dir: str = "projects") -> list[dict[str, Any]]:

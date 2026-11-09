@@ -3,6 +3,7 @@ import json
 from product_strategy_agent.domain.projects.gate_approval import GateApproval
 from product_strategy_agent.domain.projects.mode_change import ModeChange
 from product_strategy_agent.domain.projects.revision_review import RevisionReview
+from product_strategy_agent.domain.projects.source_import import SourceImport
 
 
 def parse_command(data):
@@ -12,6 +13,8 @@ def parse_command(data):
         return ModeChange.model_validate(data)
     if data["kind"] == "revision_review":
         return RevisionReview.model_validate(data)
+    if data["kind"] == "source_import":
+        return SourceImport.model_validate(data)
     raise ValueError("unsupported workflow request kind")
 
 
@@ -27,7 +30,7 @@ def validate_transition(command, before, after, event, before_events):
                  and before["status"] != "completed" and event["from"] != event["to"]
                  and after["mode"] == command.mode and after["mode_history"] == before.get("mode_history", []) + [event]
                  and {k: v for k, v in before.items() if k not in allowed} == {k: v for k, v in after.items() if k not in allowed})
-    else:
+    elif isinstance(command, RevisionReview):
         allowed = {"updated_at", "workflow_version"}
         events = [json.loads(line) for line in before_events.splitlines() if line.strip()]
         revisions = [row for row in events if row.get("event_type") == "source_revised" and row.get("event_id") == command.revision_event_id]
@@ -37,5 +40,8 @@ def validate_transition(command, before, after, event, before_events):
                  and event["reviewed_by"] == command.reviewed_by and event["reviewed_claim_ids"] == command.reviewed_claim_ids
                  and event["reviewed_decision_ids"] == command.reviewed_decision_ids
                  and {k: v for k, v in before.items() if k not in allowed} == {k: v for k, v in after.items() if k not in allowed})
-    if not valid or event["reason"] != command.reason:
+    else:
+        allowed = {"updated_at", "workflow_version"}
+        valid = {k: v for k, v in before.items() if k not in allowed} == {k: v for k, v in after.items() if k not in allowed}
+    if not valid or (not isinstance(command, SourceImport) and event["reason"] != command.reason):
         raise ValueError("workflow before/after semantics mismatch")

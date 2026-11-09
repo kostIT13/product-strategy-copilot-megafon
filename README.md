@@ -36,6 +36,8 @@ Gate сохраняет state/events через write-ahead bundle. При пр�
 
 `psa revisit resolve` сохраняет review ревизии источника с теми же `--operation`/`--expected-workflow-version` и workflow recovery. Проверяются current/archive hashes и все затронутые claims/решения; review не меняет этап или approvals. [Контракт](docs/revision-review-recovery.md).
 
+`psa source add/fetch` также используют workflow recovery для registry/current text/archive/revision. Передавайте `--operation UUID` для exact replay без нового чтения файла/HTTP и `--expected-workflow-version N` для проверки версии. [Source import/recovery](docs/source-import-recovery.md).
+
 ### Импорт источников
 
 ```powershell

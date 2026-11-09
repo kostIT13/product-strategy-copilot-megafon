@@ -16,6 +16,8 @@ from product_strategy_agent.adapters.persistence.files.workflow_guard import req
 from product_strategy_agent.adapters.persistence.files.workspace_repository import durable_write, sync_directory
 from product_strategy_agent.domain.projects.workspace import validate_workspace_id
 from product_strategy_agent.adapters.persistence.files.revision_review_reader import review_inputs
+from product_strategy_agent.adapters.persistence.files.source_bundle import extra_payload
+from product_strategy_agent.domain.projects.source_import import MAX_TEXT_BYTES, source_id
 
 
 class FileWorkflowStore:
@@ -37,6 +39,33 @@ class FileWorkflowStore:
         snapshot = self.capture(project_id)
         snapshot["review"] = review_inputs(self._case(project_id), snapshot, revision_event_id)
         return snapshot
+
+    @locked_store_method()
+    def capture_source(self, project_id, snapshot, material, text):
+        case = self._case(project_id)
+        identifier = source_id(material["uri"])
+        snapshot["current"] = self._target(case, f"sources/{identifier}.txt")
+        rows = [json.loads(line) for line in snapshot["sources"].splitlines() if line.strip()]
+        previous = next((row for row in rows if row.get("source_id") == identifier), None)
+        snapshot["archive"] = None
+        if previous and previous.get("content_hash") != hashlib.sha256(text).hexdigest():
+            old_hash = previous.get("content_hash", "")
+            import re
+            if not isinstance(old_hash, str) or not re.fullmatch(r"[0-9a-f]{64}", old_hash):
+                raise ValueError("invalid previous source hash")
+            snapshot["archive"] = self._target(case, f"sources/history/{identifier}/{old_hash}.txt")
+        return snapshot
+
+    def _target(self, case, name):
+        path = confined(case, name)
+        if not path.exists():
+            return None
+        limit = MAX_TEXT_BYTES if name.startswith("sources/") else 512000
+        with path.open("rb") as stream:
+            data = stream.read(limit + 1)
+        if len(data) > limit:
+            raise ValueError("workflow target exceeds its size limit")
+        return data
 
     def _case(self, project_id):
         case = confined(self.root, validate_workspace_id(project_id))
@@ -106,7 +135,7 @@ class FileWorkflowStore:
             raise ValueError("workflow operation ID belongs to a different request")
         if not self._completion(case, command.operation_id, item):
             raise ValueError("workflow preparation exists; inspect pending and explicitly recover its UUID")
-        return item["event"]
+        return item["result"]
 
     @locked_store_method()
     def commit(self, project_id, command, before_state, after_state, before_events, event, inputs):
@@ -115,15 +144,31 @@ class FileWorkflowStore:
         require_workflow_ready(case)
         folder = self._folder(case, command.operation_id)
         files, manifest = payload(project_id, command, before_state, after_state, before_events, event, inputs)
+        return self._publish(case, command, files, manifest)
+
+    @locked_store_method()
+    def commit_source(self, project_id, command, snapshot, material, text, timestamp):
+        case = self._case(project_id)
+        state = json.loads(snapshot["state"])
+        version = state.get("workflow_version", 0)
+        extras, targets, event, _ = extra_payload(command, snapshot, material, text, timestamp, version)
+        # Same-content imports need no archive target, even if an older archive exists.
+        state.update(updated_at=timestamp, workflow_version=version + 1)
+        inputs = {name: value for name, value in snapshot["inputs"].items() if name not in targets}
+        files, manifest = payload(project_id, command, snapshot["state"], state, snapshot["events"], event, inputs, extras)
+        return self._publish(case, command, files, manifest)
+
+    def _publish(self, case, command, files, manifest):
+        folder = self._folder(case, command.operation_id)
         folder.mkdir(parents=True)
         for name, data in files.items():
             durable_write(folder / name, data)
         durable_write(folder / "manifest.json", encode(manifest))
         sync_directory(folder)
         sync_directory(folder.parent)
-        item = load(folder, project_id, command.operation_id)
+        item = load(folder, case.name, command.operation_id)
         self._apply(case, command.operation_id, item)
-        return event
+        return item["result"]
 
     def _replace(self, case, name, data):
         temp_dir = confined(case, ".psa/workflow/tmp")
@@ -131,6 +176,13 @@ class FileWorkflowStore:
         temp = confined(temp_dir, f"{uuid4().hex}.tmp")
         durable_write(temp, data)
         target = confined(case, name)
+        missing, parent = [], target.parent
+        while not parent.exists():
+            missing.append(parent)
+            parent = parent.parent
+        for parent in reversed(missing):
+            parent.mkdir()
+            sync_directory(parent.parent)
         os.replace(temp, target)
         sync_directory(target.parent)
 
@@ -139,27 +191,24 @@ class FileWorkflowStore:
         marker = {"operation_id": str(operation_id), "manifest_hash": item["manifest_hash"]}
         if active is not None and active != marker:
             raise ValueError("another workflow operation is pending")
-        files = item["files"]
-        targets = (("state.json", "state"), ("events.jsonl", "events"))
-        current = {name: read_small(case, name) for name, _ in targets}
+        targets = item["targets"]
+        current = {name: self._target(case, name) for name in targets}
         completed = self._completion(case, operation_id, item)
         if not completed:
-            if self.input_snapshot(case) != item["inputs"]:
+            inputs = {name: value for name, value in self.input_snapshot(case).items() if name not in targets}
+            if inputs != item["inputs"]:
                 raise ValueError("workflow inputs changed; recovery will not overwrite this case")
-            for name, prefix in targets:
-                suffix = "json" if prefix == "state" else "jsonl"
-                before, after = (files[f"{prefix}.{phase}.{suffix}"] for phase in ("before", "after"))
+            for name, (before, after) in targets.items():
                 # Without an ACTIVE intent, only the original pair can start publication.
                 if current[name] not in ((before, after) if active else (before,)):
                     raise ValueError("workflow target conflict; preserve changed files and inspect recovery")
         elif active:
-            if any(current[name] != files[f"{prefix}.after.{'json' if prefix == 'state' else 'jsonl'}"] for name, prefix in targets):
+            if any(current[name] != after for name, (_, after) in targets.items()):
                 raise ValueError("completed workflow targets changed while ACTIVE; do not discard the marker")
         if active is None and not completed:
             self._replace(case, ".psa/workflow/ACTIVE.json", encode(marker))
         if not completed:
-            for name, prefix in targets:
-                data = files[f"{prefix}.after.{'json' if prefix == 'state' else 'jsonl'}"]
+            for name, (_, data) in targets.items():
                 if current[name] != data:
                     self._replace(case, name, data)
             self._replace(case, f".psa/workflow/operations/{operation_id.hex}/COMMITTED.json",
@@ -201,4 +250,4 @@ class FileWorkflowStore:
         with case_access(self.root, project_id, allow_pending=True):
             item = load(self._folder(case, operation_id), project_id, operation_id)
             self._apply(case, operation_id, item)
-            return item["event"]
+            return item["result"]

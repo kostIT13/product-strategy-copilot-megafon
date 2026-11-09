@@ -108,6 +108,8 @@ def build_parser() -> argparse.ArgumentParser:
         sub.add_argument("project_id")
         sub.add_argument("value", help="local file path" if action == "add" else "http(s) URL")
         sub.add_argument("--title")
+        sub.add_argument("--operation", type=UUID, help="caller-chosen UUID; completed replay does not re-read/re-fetch")
+        sub.add_argument("--expected-workflow-version", type=int, help="expected shared workflow journal version")
         sub.add_argument("--projects-dir", type=Path, default=Path("projects"))
     source_list = source_commands.add_parser("list", help="list registered sources")
     source_list.add_argument("project_id")
@@ -298,13 +300,15 @@ def main() -> None:
         if args.command == "source":
             project_dir = project_path(args.project_id, args.projects_dir)
             if args.source_command == "add":
-                record = add_local_source(project_dir, Path(args.value), args.title)
+                record = add_local_source(project_dir, Path(args.value), args.title,
+                                          operation_id=args.operation, expected_workflow_version=args.expected_workflow_version)
                 print(f"Imported {record['source_id']}: {record['title']}")
                 print(f"Extracted text: {project_dir / record['extracted_text_path']}")
                 if record.get("source_revision_event"):
                     print(f"Source changed; review dependent work with: psa revisit list {args.project_id}")
             elif args.source_command == "fetch":
-                record = fetch_web_source(project_dir, args.value, args.title)
+                record = fetch_web_source(project_dir, args.value, args.title,
+                                          operation_id=args.operation, expected_workflow_version=args.expected_workflow_version)
                 print(f"Fetched {record['source_id']}: {record['title']}")
                 print(f"Extracted text: {project_dir / record['extracted_text_path']}")
                 if record.get("source_revision_event"):

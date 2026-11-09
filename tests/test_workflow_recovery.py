@@ -26,6 +26,8 @@ from uuid import UUID
 import product_strategy_agent.adapters.persistence.files.workflow_repository as module
 from product_strategy_agent.workflow import approve_stage,set_project_mode
 root,signal,point,operation,action=sys.argv[1:]
+from product_strategy_agent.cli import load_state
+version=load_state("case",Path(root)).get("workflow_version",0)
 def pause():
     Path(signal).write_text("ready",encoding="utf-8")
     while True: time.sleep(.02)
@@ -47,14 +49,14 @@ def durable(path,data):
     if point=="partial" and path.name=="event.json": pause()
 module.durable_write=durable
 if action=="mode":
-    set_project_mode(Path(root)/"case","quick_scan","Fixture owner",operation_id=UUID(operation),expected_workflow_version=0)
+    set_project_mode(Path(root)/"case","quick_scan","Fixture owner",operation_id=UUID(operation),expected_workflow_version=version)
 elif action=="review":
     from product_strategy_agent.revisit import build_revisit_report,resolve_source_revision
     revision=build_revisit_report(Path(root)/"case")["revisions"][-1]
     resolve_source_revision(Path(root)/"case",revision["event_id"],"Fixture owner","Reviewed fixture",
-        revision["affected_claim_ids"],revision["affected_decision_ids"],operation_id=UUID(operation),expected_workflow_version=0)
+        revision["affected_claim_ids"],revision["affected_decision_ids"],operation_id=UUID(operation),expected_workflow_version=version)
 else:
-    approve_stage(Path(root)/"case","intake","Fixture owner",operation_id=UUID(operation),expected_workflow_version=0)
+    approve_stage(Path(root)/"case","intake","Fixture owner",operation_id=UUID(operation),expected_workflow_version=version)
 '''
 
 

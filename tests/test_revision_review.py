@@ -55,7 +55,7 @@ class RevisionReviewTests(unittest.TestCase):
                 event = service.recover("case", operation)
                 self.assertEqual(service.recover("case", operation), event)
                 state = load_state("case", root)
-                self.assertEqual(state["workflow_version"], 1)
+                self.assertEqual(state["workflow_version"], 3)
                 self.assertEqual({k: v for k, v in state.items() if k not in {"workflow_version", "updated_at"}},
                                  {k: v for k, v in before.items() if k not in {"workflow_version", "updated_at"}})
                 report = build_revisit_report(root / "case")
@@ -69,16 +69,16 @@ class RevisionReviewTests(unittest.TestCase):
             root = Path(folder) / "projects"
             revision = fixture(root)
             operation = uuid4()
-            event = review(root, revision, operation_id=operation, expected_workflow_version=0)
-            set_project_mode(root / "case", "quick_scan", "Owner", expected_workflow_version=1)
+            event = review(root, revision, operation_id=operation, expected_workflow_version=2)
+            set_project_mode(root / "case", "quick_scan", "Owner", expected_workflow_version=3)
             before = (root / "case/state.json").read_bytes()
             replay = resolve_source_revision(root / "case", revision["event_id"], "Fixture owner", "Reviewed fixture", ["C1", "C2"],
-                ["D1", "D2", "D3"], operation_id=operation, expected_workflow_version=0)
+                ["D1", "D2", "D3"], operation_id=operation, expected_workflow_version=2)
             self.assertEqual(replay, event)
             for action in (lambda: review(root, revision),
                     lambda: approve_stage(root / "case", "intake", "Owner", operation_id=operation),
                     lambda: resolve_source_revision(root / "case", revision["event_id"], "Different", "Reviewed fixture", ["C1", "C2"],
-                        ["D1", "D2", "D3"], operation_id=operation, expected_workflow_version=0)):
+                        ["D1", "D2", "D3"], operation_id=operation, expected_workflow_version=2)):
                 with self.assertRaises(ValueError):
                     action()
             self.assertEqual((root / "case/state.json").read_bytes(), before)
@@ -95,7 +95,7 @@ class RevisionReviewTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 resolve_source_revision(root / "case", revision["event_id"], "Owner", " ", ["C1", "C2"], ["D1", "D2", "D3"])
             with self.assertRaisesRegex(ValueError, "expected_workflow_version"):
-                review(root, revision, expected_workflow_version=2)
+                review(root, revision, expected_workflow_version=999)
             self.assertEqual((root / "case/events.jsonl").read_bytes(), before)
 
     def test_current_archive_hash_or_escaped_path_cannot_be_reviewed(self):
@@ -157,9 +157,9 @@ class RevisionReviewTests(unittest.TestCase):
             cli = [sys.executable, "-m", "product_strategy_agent.cli", "revisit", "resolve", "case", revision["event_id"],
                 "--by", "Owner", "--reason", "Reviewed", "--reviewed-claim", "C1", "--reviewed-claim", "C2",
                 "--reviewed-decision", "D1", "--reviewed-decision", "D2", "--reviewed-decision", "D3",
-                "--operation", str(operation), "--expected-workflow-version", "0", "--projects-dir", str(root)]
+                "--operation", str(operation), "--expected-workflow-version", "2", "--projects-dir", str(root)]
             self.assertEqual(subprocess.check_output(cli), subprocess.check_output(cli))
-            self.assertEqual(load_state("case", root)["workflow_version"], 1)
+            self.assertEqual(load_state("case", root)["workflow_version"], 3)
             self.assertEqual(build_revisit_report(root / "case")["pending_count"], 0)
 
 
@@ -178,7 +178,7 @@ class RevisionReviewStdioTests(unittest.IsolatedAsyncioTestCase):
                 event = (await client.call_tool("psa_recover_workflow", {**args, "operation_id": str(operation)})).data
                 replay = (await client.call_tool("psa_revisit_resolve", {**args, "revision_event_id": revision["event_id"],
                     "reviewed_by": "Fixture owner", "reason": "Reviewed fixture", "reviewed_claim_ids": ["C1", "C2"],
-                    "reviewed_decision_ids": ["D1", "D2", "D3"], "operation_id": str(operation), "expected_workflow_version": 0})).data
+                    "reviewed_decision_ids": ["D1", "D2", "D3"], "operation_id": str(operation), "expected_workflow_version": 2})).data
                 self.assertEqual(event, replay)
-                gate = (await client.call_tool("psa_approve_stage", {**args, "stage": "intake", "approved_by": "Owner", "expected_workflow_version": 1})).data
-                self.assertEqual(gate["workflow_version"], 2)
+                gate = (await client.call_tool("psa_approve_stage", {**args, "stage": "intake", "approved_by": "Owner", "expected_workflow_version": 3})).data
+                self.assertEqual(gate["workflow_version"], 4)
