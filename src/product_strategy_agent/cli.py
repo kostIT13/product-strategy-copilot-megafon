@@ -31,6 +31,7 @@ from product_strategy_agent.interfaces.cli.research_artifact_commands import add
 from product_strategy_agent.interfaces.cli.file_workflow_commands import add_workflow_commands, handle_workflow_command
 from product_strategy_agent.adapters.persistence.files.case_access import case_access
 from product_strategy_agent.interfaces.cli.file_search_commands import add_file_search_command, handle_file_search_command
+from product_strategy_agent.interfaces.cli.file_promise_commands import add_file_promise_commands, handle_file_promise_command
 
 STAGES = (
     "intake",
@@ -77,6 +78,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="psa", description="Evidence-based product strategy workflow")
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     commands = parser.add_subparsers(dest="command", required=True)
+    add_file_promise_commands(commands)
     add_workspace_commands(commands)
     add_research_artifact_commands(commands)
     add_workflow_commands(commands)
@@ -284,6 +286,9 @@ def main() -> None:
             access.enter_context(case_access(args.projects_dir, args.project_id))
         if args.command == "artifact":
             handle_research_artifact_command(args)
+            return
+        if args.command == "promise":
+            handle_file_promise_command(args)
             return
         if args.command == "source" and args.source_command == "search":
             handle_file_search_command(args)

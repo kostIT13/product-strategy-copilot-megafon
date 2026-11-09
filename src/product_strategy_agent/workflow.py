@@ -49,7 +49,7 @@ def _substantive_text(path: Path) -> bool:
     return len(body) >= 40
 
 
-def _check_stage(project_dir: Path, stage: str, mode: str) -> None:
+def _check_stage(project_dir: Path, stage: str, mode: str) -> dict | None:
     if stage == "intake":
         required = project_dir / "01_brief.md"
         if not _substantive_text(required):
@@ -81,6 +81,7 @@ def _check_stage(project_dir: Path, stage: str, mode: str) -> None:
         coverage = coverage_report(project_dir)
         if not coverage["ok"]:
             raise ValueError("Resolve strategy coverage issues before approving strategy: " + "; ".join(coverage["errors"]))
+        return coverage.get("promise_preflight")
     elif stage == "validation":
         if not _substantive_text(project_dir / "drafts" / "validation-plan.md"):
             raise ValueError("Complete drafts/validation-plan.md before approving validation")
@@ -93,6 +94,7 @@ def _check_stage(project_dir: Path, stage: str, mode: str) -> None:
         integrity = render_integrity_report(project_dir)
         if not integrity["ok"]:
             raise ValueError("Resolve generated artifact integrity issues before approving validation: " + "; ".join(integrity["errors"]))
+        return coverage.get("promise_preflight")
 
 
 def approve_stage(project_dir: Path, stage: str, approved_by: str, reason: str = "", *,
@@ -144,8 +146,9 @@ def _approve_stage(project_dir, stage, approved_by, reason, research_plan_refere
     mode = state.get("mode", "decision_grade")
     if not isinstance(mode, str) or mode not in MODE_PROFILES:
         raise ValueError(f"Unknown project mode: {mode}")
+    promise_reference = None
     if stage != "research_plan" or research_plan_reference is None:
-        _check_stage(project_dir, stage, mode)
+        promise_reference = _check_stage(project_dir, stage, mode)
 
     sequence = WORK_STAGES.index(stage)
     next_stage = WORK_STAGES[sequence + 1] if sequence + 1 < len(WORK_STAGES) else "completed"
@@ -169,6 +172,8 @@ def _approve_stage(project_dir, stage, approved_by, reason, research_plan_refere
     }
     if research_plan_reference is not None:
         event["research_plan_artifact"] = research_plan_reference
+    if promise_reference and promise_reference["structural_status"] == "eligible_for_human_review":
+        event["promise_preflight"] = promise_reference
     approvals.append(event)
     return store.commit(project_dir.name, command, before_state, state, before_events, event, inputs)
 

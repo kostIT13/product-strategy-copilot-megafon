@@ -6,13 +6,15 @@ from product_strategy_agent.adapters.persistence.files.workflow_guard import req
 from product_strategy_agent.adapters.persistence.files.case_access import locked_case
 
 import json
-import re
 from pathlib import Path
 from typing import Any
 
-CLAIM_MARKER = re.compile(r"\[(C-\d+)\]")
-CLASSIFICATION_MARKER = re.compile(r"\[(HYPOTHESIS|OPEN QUESTION)\]", re.IGNORECASE)
-COMMITMENT_MARKER = re.compile(r"\[COMMITMENT:\s*(CAP-\d+)\]", re.IGNORECASE)
+from product_strategy_agent.domain.projects.strategy_paragraphs import (
+    CLAIM_MARKER, CLASSIFICATION_MARKER, COMMITMENT_MARKER, paragraphs,
+)
+from product_strategy_agent.application.services.file_promise_service import FilePromiseService
+from product_strategy_agent.adapters.persistence.files.promise_reader import FilePromiseReader
+
 
 
 def _read_records(path: Path) -> list[dict[str, Any]]:
@@ -35,24 +37,7 @@ def _read_records(path: Path) -> list[dict[str, Any]]:
 def _paragraphs(path: Path) -> list[tuple[int, str, str]]:
     if not path.is_file():
         return []
-    text = re.sub(
-        r"(?s)<!--.*?-->",
-        lambda match: "\n" * match.group(0).count("\n"),
-        path.read_text(encoding="utf-8"),
-    )
-    result: list[tuple[int, str, str]] = []
-    section = ""
-    for match in re.finditer(r"(?m)(?:^\s*\n)*(\S[\s\S]*?)(?=\n\s*\n|\Z)", text):
-        paragraph = " ".join(line.strip() for line in match.group(1).splitlines())
-        folded = paragraph.casefold()
-        if folded.startswith(("заполните ", "укажите ", "опишите ", "добавьте сюда", "todo", "tbd")):
-            continue
-        lines = [line.strip() for line in match.group(1).splitlines() if line.strip()]
-        if lines and all(line.startswith("#") for line in lines):
-            section = lines[-1].lstrip("# ").strip()
-        elif paragraph:
-            result.append((text.count("\n", 0, match.start(1)) + 1, paragraph, section))
-    return result
+    return paragraphs(path.read_text(encoding="utf-8"))
 
 
 @locked_case
@@ -96,4 +81,15 @@ def coverage_report(project_dir: Path) -> dict[str, Any]:
                 elif capability.get("status") != "available":
                     errors.append(f"drafts/{name}:{line_number}: commitment [{capability_id}] is not marked available")
 
-    return {"ok": not errors, "checked_paragraphs": checked, "errors": errors}
+    preflight = None
+    try:
+        preflight = FilePromiseService(FilePromiseReader(project_dir.parent)).check(project_dir.name)
+        for candidate in preflight["candidates"]:
+            if candidate["blockers"]:
+                errors.append(f"{candidate['path']}:{candidate['line']}: promise preflight: " + ", ".join(candidate["blockers"]))
+    except (ValueError, OSError) as error:
+        errors.append(f"promise preflight unavailable: {error}")
+    result = {"ok": not errors, "checked_paragraphs": checked, "errors": errors}
+    if preflight is not None:
+        result["promise_preflight"] = {"review_hash": preflight["review_hash"], "structural_status": preflight["structural_status"], "format_version": 1}
+    return result

@@ -11,11 +11,11 @@
 | agent / pipeline | Цикл ведёт IDE | Собственный API-оркестратор не переносится как prerequisite; старые runs, расходы и неизвестные исходы сохраняются как история |
 | critic | Файловый critic-pack | Пакет контекста не равен выполненной независимой критике; semantic checks и результаты — R3/R5 |
 | selection / strategy | Options, decision log, drafts, render и human gates | Полные typed sections, binding выбранной альтернативы, approval/export и обязательные альтернативы — R3 |
-| promise | Coverage и capability checks | Старый hash-bound preflight строже: active evidence, актуальные revisions и точные цитаты нужно перенести в файловый quality gate |
+| promise | Read-only draft preflight с active facts, capability links, v4 source bindings, current hashes/revision events и exact locator quotes; coverage/gates сохраняют blockers/review hash | [Контракт](file-promise-check.md); legacy unbound claims не становятся актуальными автоматически, full semantic/correction lifecycle остаётся R3 |
 
 ## Следующий ограниченный срез
 
-Public-HTTP policy/provenance и ограниченный файловый поиск с hash/locator references подключены к общему файловому core. Следующий срез — нужный promise preflight на актуальных evidence/revisions/quotes и привязка к quality gate, затем mapping/import/parity и удаление старых runtime dependencies/CI. Не вводить новую БД или собственный agent loop ради parity.
+Public-HTTP policy/provenance, ограниченный файловый поиск и структурный promise preflight подключены к общему файловому core/quality gates. Следующий срез — определить нужные legacy данные и mapping/import/parity, затем удалить старые runtime dependencies/CI и проверить чистую установку без БД/Docker. Не переносить собственный API agent loop или SQL FTS как prerequisite. Legacy claims/approvals импортируются как история без нового разрешения и без выдуманного current evidence binding.
 
 ## Данные и условия удаления старого контура
 
