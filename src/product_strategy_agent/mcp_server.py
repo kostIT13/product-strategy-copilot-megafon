@@ -208,16 +208,20 @@ def create_server() -> Any:
 
     @server.tool()
     def psa_render(project_id: str, discard_generated_edits_by: str = "", reason: str = "",
-                   projects_dir: str = "projects") -> dict[str, Any]:
+                   projects_dir: str = "projects", operation_id: str | None = None,
+                   expected_workflow_version: int | None = None) -> dict[str, Any]:
         """Regenerate derived Markdown; direct edits require an explicit actor and reason and are audited."""
         paths = render_project(workspace(project_id, projects_dir),
-                               discard_generated_edits_by=discard_generated_edits_by, discard_reason=reason)
+                               discard_generated_edits_by=discard_generated_edits_by, discard_reason=reason,
+                               operation_id=operation_id, expected_workflow_version=expected_workflow_version)
         return {"rendered": [str(path) for path in paths]}
 
     @server.tool()
-    def psa_render_adopt_existing(project_id: str, projects_dir: str = "projects") -> dict[str, Any]:
+    def psa_render_adopt_existing(project_id: str, projects_dir: str = "projects", operation_id: str | None = None,
+                                  expected_workflow_version: int | None = None) -> dict[str, Any]:
         """Track current generated Markdown hashes without overwriting the files."""
-        return adopt_existing_render(workspace(project_id, projects_dir))
+        return adopt_existing_render(workspace(project_id, projects_dir), operation_id=operation_id,
+                                      expected_workflow_version=expected_workflow_version)
 
     @server.tool()
     def psa_critic_pack(project_id: str, output_path: str = "", projects_dir: str = "projects") -> dict[str, str]:

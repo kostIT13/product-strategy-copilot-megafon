@@ -36,4 +36,6 @@ Request имеет `kind=revision_review`. Caller UUID используется 
 
 Review означает запись человеческого рассмотрения точной ревизии/набора зависимостей. Он не исправляет claims автоматически, не доказывает истинность источника и не утверждает стратегию/публикацию. Обновление derived stale/re-review статусов при последующих изменениях — отдельная задача полноты R3.
 
-Общие journal/input limits сохранены; JSONL capture ограничен 512000 байтами на файл. Raw/manual доступ обходит lock. Render и другие legacy writers ещё требуют переноса на recovery, затем import/retire старой SQL/container цепочки. БД/модель/Docker для этого review не нужны.
+Общие journal/input limits сохранены; JSONL capture ограничен 512000 байтами на файл. Raw/manual доступ обходит lock. Остальные ledger/usage writers ещё требуют переноса на recovery, затем import/retire старой SQL/container цепочки. БД/модель/Docker для этого review не нужны.
+
+Render и adoption integrity manifest теперь используют [workflow v3 recovery](render-recovery.md); Markdown builder отделён от публикации, existing drafts сохраняются.

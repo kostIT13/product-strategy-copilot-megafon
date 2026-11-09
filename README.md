@@ -38,6 +38,8 @@ Gate сохраняет state/events через write-ahead bundle. При пр�
 
 `psa source add/fetch` также используют workflow recovery для registry/current text/archive/revision. Передавайте `--operation UUID` для exact replay без нового чтения файла/HTTP и `--expected-workflow-version N` для проверки версии. [Source import/recovery](docs/source-import-recovery.md).
 
+`psa render` и `--adopt-existing` публикуют Markdown/manifest через workflow recovery. Существующие drafts сохраняются, changed generated files требуют явного разрешения на discard. Поддерживаются те же UUID/expected version; [контракт render/adoption](docs/render-recovery.md).
+
 ### Импорт источников
 
 ```powershell

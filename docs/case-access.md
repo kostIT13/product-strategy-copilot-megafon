@@ -34,6 +34,8 @@ Read-only команды не меняют бизнес-файлы кейса, �
 
 ## Что ещё открыто
 
-Стабильное чтение защищено от участвующих writers в пределах одного scope. Gate, [mode changes](file-mode-recovery.md) и [revision review](revision-review-recovery.md) используют общий ACTIVE/bundle recovery. Общая crash-atomic транзакция всех реестров не реализована: render и прочие legacy writes ещё могут оставить частичные результаты после process kill. Прямые авторские/сторонние правки также требуют отдельной дисциплины. Следующий срез R2 — перенос необходимых операций на write-ahead commit/recovery, затем import/retire старого backend и зависимостей.
+Стабильное чтение защищено от участвующих writers в пределах одного scope. Gate, [mode changes](file-mode-recovery.md) и [revision review](revision-review-recovery.md) используют общий ACTIVE/bundle recovery. Общая crash-atomic транзакция всех реестров не реализована: оставшиеся ledger/usage writes ещё могут оставить частичные результаты после process kill. Прямые авторские/сторонние правки также требуют отдельной дисциплины. Следующий срез R2 — перенос необходимых операций на write-ahead commit/recovery, затем import/retire старого backend и зависимостей.
 
 Source import/revision creation теперь используют [workflow v2 bundle/recovery](source-import-recovery.md) с captured text/archive targets; общая версия учитывает и эти операции.
+
+Render и adoption integrity manifest теперь используют [workflow v3 recovery](render-recovery.md); Markdown builder отделён от публикации, existing drafts сохраняются.

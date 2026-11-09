@@ -4,6 +4,7 @@ from product_strategy_agent.domain.projects.gate_approval import GateApproval
 from product_strategy_agent.domain.projects.mode_change import ModeChange
 from product_strategy_agent.domain.projects.revision_review import RevisionReview
 from product_strategy_agent.domain.projects.source_import import SourceImport
+from product_strategy_agent.domain.projects.render_plan import RenderRequest
 
 
 def parse_command(data):
@@ -15,6 +16,8 @@ def parse_command(data):
         return RevisionReview.model_validate(data)
     if data["kind"] == "source_import":
         return SourceImport.model_validate(data)
+    if data["kind"] == "render":
+        return RenderRequest.model_validate(data)
     raise ValueError("unsupported workflow request kind")
 
 

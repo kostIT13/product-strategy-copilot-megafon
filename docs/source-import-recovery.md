@@ -52,4 +52,6 @@ psa workflow recover CASE --operation UUID
 
 Raw input и saved UTF-8 extracted text ограничены 10 МиБ каждый; newline входит в saved-text limit. Source blobs имеют отдельный 10-МиБ лимит, поэтому текст больше metadata limit 512000 байт поддерживается. Registry/common metadata ограничены 512000 байтами на файл, input snapshot — 2000 файлами. Journal хранит копии source data: применять ту же дисциплину доступа/секретов, что и к case.
 
-Это recoverable publication участвующих файлов, не защита от raw/manual доступа и не сертификация power loss/NAS. Render и остальные legacy writers ещё требуют переноса; затем mapping/import/retire прежней цепочки. Source review/corrections и semantic quality не заменяются успешным импортом или точным совпадением хэша.
+Это recoverable publication участвующих файлов, не защита от raw/manual доступа и не сертификация power loss/NAS. Остальные ledger/usage writers ещё требуют переноса; затем mapping/import/retire прежней цепочки. Source review/corrections и semantic quality не заменяются успешным импортом или точным совпадением хэша.
+
+Render и adoption integrity manifest теперь используют [workflow v3 recovery](render-recovery.md); Markdown builder отделён от публикации, existing drafts сохраняются.

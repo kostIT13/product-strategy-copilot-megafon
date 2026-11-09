@@ -18,6 +18,8 @@ from product_strategy_agent.domain.projects.workspace import validate_workspace_
 from product_strategy_agent.adapters.persistence.files.revision_review_reader import review_inputs
 from product_strategy_agent.adapters.persistence.files.source_bundle import extra_payload
 from product_strategy_agent.domain.projects.source_import import MAX_TEXT_BYTES, source_id
+from product_strategy_agent.domain.projects.render_plan import INPUTS as RENDER_INPUTS, TARGETS as RENDER_TARGETS
+from product_strategy_agent.adapters.persistence.files.render_bundle import extra_payload as render_payload
 
 
 class FileWorkflowStore:
@@ -38,6 +40,15 @@ class FileWorkflowStore:
     def capture_review(self, project_id, revision_event_id):
         snapshot = self.capture(project_id)
         snapshot["review"] = review_inputs(self._case(project_id), snapshot, revision_event_id)
+        return snapshot
+
+    @locked_store_method()
+    def capture_render(self, project_id):
+        snapshot = self.capture(project_id)
+        case = self._case(project_id)
+        snapshot["render_before"] = {name: (value.decode("utf-8") if (value := self._target(case, name)) is not None else None) for name in RENDER_TARGETS}
+        snapshot["render_inputs"] = {name: snapshot["render_before"][name] if name.startswith("drafts/") else
+            ((value.decode("utf-8") if (value := self._target(case, name)) is not None else "")) for name in RENDER_INPUTS}
         return snapshot
 
     @locked_store_method()
@@ -154,6 +165,16 @@ class FileWorkflowStore:
         extras, targets, event, _ = extra_payload(command, snapshot, material, text, timestamp, version)
         # Same-content imports need no archive target, even if an older archive exists.
         state.update(updated_at=timestamp, workflow_version=version + 1)
+        inputs = {name: value for name, value in snapshot["inputs"].items() if name not in targets}
+        files, manifest = payload(project_id, command, snapshot["state"], state, snapshot["events"], event, inputs, extras)
+        return self._publish(case, command, files, manifest)
+
+    @locked_store_method()
+    def commit_render(self, project_id, command, snapshot, timestamp):
+        case = self._case(project_id)
+        extras, targets, event, _ = render_payload(command, snapshot, timestamp)
+        state = json.loads(snapshot["state"])
+        state.update(updated_at=timestamp, workflow_version=state.get("workflow_version", 0) + 1)
         inputs = {name: value for name, value in snapshot["inputs"].items() if name not in targets}
         files, manifest = payload(project_id, command, snapshot["state"], state, snapshot["events"], event, inputs, extras)
         return self._publish(case, command, files, manifest)

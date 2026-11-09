@@ -192,6 +192,8 @@ def build_parser() -> argparse.ArgumentParser:
     render.add_argument("--discard-generated-edits", action="store_true", help="restore edited generated files and audit the explicit authorization")
     render.add_argument("--by", default="", help="person authorizing replacement of edited generated files")
     render.add_argument("--reason", default="", help="reason for replacing edited generated files")
+    render.add_argument("--operation", type=UUID, help="caller-chosen UUID for exact render/adopt replay")
+    render.add_argument("--expected-workflow-version", type=int, help="expected shared workflow journal version")
     critic = commands.add_parser("critic-pack", help="build a review bundle for an independent critic")
     critic.add_argument("project_id")
     critic.add_argument("--out", type=Path, help="output Markdown path (default: <project>/reviews/critic-pack.md)")
@@ -404,7 +406,7 @@ def main() -> None:
             if args.adopt_existing and args.discard_generated_edits:
                 raise ValueError("Choose either --adopt-existing or --discard-generated-edits")
             if args.adopt_existing:
-                report = adopt_existing_render(project_dir)
+                report = adopt_existing_render(project_dir, operation_id=args.operation, expected_workflow_version=args.expected_workflow_version)
                 print(f"Adopted existing artifacts without overwriting: {len(report['adopted_files'])} file(s)")
                 if report["replaced_invalid_manifest"]:
                     print("Replaced an invalid render manifest; existing Markdown was preserved")
@@ -414,6 +416,7 @@ def main() -> None:
                 project_dir,
                 discard_generated_edits_by=args.by if args.discard_generated_edits else "",
                 discard_reason=args.reason if args.discard_generated_edits else "",
+                operation_id=args.operation, expected_workflow_version=args.expected_workflow_version,
             ):
                 print(f"Rendered {output}")
             return
