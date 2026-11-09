@@ -8,6 +8,7 @@ import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from uuid import UUID
 
 from product_strategy_agent import __version__
 from product_strategy_agent.critic import write_critic_pack
@@ -219,6 +220,8 @@ def build_parser() -> argparse.ArgumentParser:
     approve.add_argument("--stage", choices=(*WORK_STAGES,), required=True)
     approve.add_argument("--by", required=True, help="person or role making the approval")
     approve.add_argument("--reason", default="")
+    approve.add_argument("--artifact-operation", type=UUID, help="reviewed structured research plan operation UUID")
+    approve.add_argument("--artifact-version", type=int, help="reviewed artifact journal version")
     approve.add_argument("--projects-dir", type=Path, default=Path("projects"))
 
     mode = commands.add_parser("mode", help="set or show research depth for a project")
@@ -416,7 +419,8 @@ def main() -> None:
 
         if args.command == "gate":
             project_dir = project_path(args.project_id, args.projects_dir)
-            event = approve_stage(project_dir, args.stage, args.by, args.reason)
+            event = approve_stage(project_dir, args.stage, args.by, args.reason,
+                                  artifact_operation=args.artifact_operation, artifact_version=args.artifact_version)
             print(f"Approved {event['stage']} by {event['approved_by']}; next stage: {event['next_stage']}")
             print(f"Next action: {NEXT_ACTIONS[event['next_stage']]}")
             return

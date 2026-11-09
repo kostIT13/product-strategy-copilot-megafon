@@ -171,9 +171,11 @@ def create_server() -> Any:
 
     @server.tool()
     def psa_approve_stage(project_id: str, stage: str, approved_by: str, reason: str = "",
-                          projects_dir: str = "projects") -> dict[str, Any]:
-        """Approve the current stage after checking its required artifacts and advance state."""
-        return approve_stage(workspace(project_id, projects_dir), stage, approved_by, reason)
+                          projects_dir: str = "projects", artifact_operation: str | None = None,
+                          artifact_version: int | None = None) -> dict[str, Any]:
+        """Human-authorized gate. Structured plans require the reviewed current operation/version."""
+        return approve_stage(workspace(project_id, projects_dir), stage, approved_by, reason,
+                             artifact_operation=artifact_operation, artifact_version=artifact_version)
 
     @server.tool()
     def psa_validate(project_id: str, projects_dir: str = "projects") -> dict[str, Any]:

@@ -9,6 +9,9 @@ from typing import Any
 from product_strategy_agent.sources import utc_now
 from product_strategy_agent.coverage import coverage_report
 from product_strategy_agent.artifacts import render_integrity_report
+from product_strategy_agent.adapters.persistence.files.project_lock import project_lock
+from product_strategy_agent.adapters.persistence.files.research_artifact_repository import FileResearchArtifactStore
+from product_strategy_agent.application.services.research_artifact_service import ResearchArtifactService
 
 WORK_STAGES = ("intake", "research_plan", "source_collection", "evidence_review", "options", "strategy", "validation")
 MODE_PROFILES = {
@@ -33,7 +36,7 @@ MODE_PROFILES = {
 }
 NEXT_ACTIONS = {
     "intake": "Заполнить 01_brief.md и утвердить бриф",
-    "research_plan": "Подготовить 02_research-plan.md и утвердить план исследования",
+    "research_plan": "Подготовить и явно утвердить план исследования; для structured draft указать operation/version, иначе использовать 02_research-plan.md",
     "source_collection": "Добавить разрешённые источники и утвердить их сбор",
     "evidence_review": "Записать утверждения и пробелы, затем утвердить обзор доказательств",
     "options": "Записать статус-кво, закрытие и вариант изменения; затем утвердить сравнение",
@@ -106,7 +109,24 @@ def _check_stage(project_dir: Path, stage: str, mode: str) -> None:
             raise ValueError("Resolve generated artifact integrity issues before approving validation: " + "; ".join(integrity["errors"]))
 
 
-def approve_stage(project_dir: Path, stage: str, approved_by: str, reason: str = "") -> dict[str, Any]:
+def approve_stage(project_dir: Path, stage: str, approved_by: str, reason: str = "", *,
+                  artifact_operation=None, artifact_version=None) -> dict[str, Any]:
+    """Explicit human gate; cooperating artifact writers share this lock.
+
+    State/events still use legacy writes, so this is not a multi-file transaction.
+    """
+    if stage != "research_plan" and (artifact_operation is not None or artifact_version is not None):
+        raise ValueError("artifact selection is only supported for the research_plan gate")
+    project_dir = Path(project_dir).absolute()
+    with project_lock(project_dir.parent, project_dir.name):
+        reference = None
+        if stage == "research_plan":
+            service = ResearchArtifactService(FileResearchArtifactStore(project_dir.parent))
+            reference = service.review_for_approval(project_dir.name, artifact_operation, artifact_version)
+        return _approve_stage(project_dir, stage, approved_by, reason, reference)
+
+
+def _approve_stage(project_dir, stage, approved_by, reason, research_plan_reference):
     state_path = project_dir / "state.json"
     if not state_path.is_file():
         raise FileNotFoundError(f"Not a project workspace: {project_dir}")
@@ -123,7 +143,8 @@ def approve_stage(project_dir: Path, stage: str, approved_by: str, reason: str =
     mode = state.get("mode", "decision_grade")
     if not isinstance(mode, str) or mode not in MODE_PROFILES:
         raise ValueError(f"Unknown project mode: {mode}")
-    _check_stage(project_dir, stage, mode)
+    if stage != "research_plan" or research_plan_reference is None:
+        _check_stage(project_dir, stage, mode)
 
     sequence = WORK_STAGES.index(stage)
     next_stage = WORK_STAGES[sequence + 1] if sequence + 1 < len(WORK_STAGES) else "completed"
@@ -142,6 +163,8 @@ def approve_stage(project_dir: Path, stage: str, approved_by: str, reason: str =
         "reason": reason.strip(),
         "next_stage": next_stage,
     }
+    if research_plan_reference is not None:
+        event["research_plan_artifact"] = research_plan_reference
     approvals.append(event)
     state_path.write_text(json.dumps(state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     with (project_dir / "events.jsonl").open("a", encoding="utf-8", newline="\n") as stream:

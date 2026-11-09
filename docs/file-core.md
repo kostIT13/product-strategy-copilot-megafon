@@ -44,7 +44,7 @@ Recovery требует точный operation UUID и повторно пров
 
 Для **изменения существующих** источников/claims/решений нужен единый operation journal, expected_version, согласованный commit нескольких реестров и reader/recovery протокол. Atomic directory creation этого не заменяет. Текущие gate/claim/source writers не получили новую транзакционность автоматически; новый receipt не меняет их согласия/права.
 
-Typed IDE-authored research_plan draft с файловым HEAD commit/recovery реализован следующим срезом: [research-artifacts.md](research-artifacts.md). Он атомарен в своём журнале; legacy writers и gates ещё не используют его. Далее — перевести потребление плана/новые writers на этот проверенный протокол, не создавать независимые каноны. После mapping/import и проверки parity выводить SQL/контейнерные dependencies и CI; они пока не удалены. Recovery CLI пока не добавлен отдельными MCP tools: для аварийного восстановления есть CLI fallback; существующий MCP init уже использует общее ядро.
+Typed IDE-authored research_plan draft с файловым HEAD commit/recovery реализован: [research-artifacts.md](research-artifacts.md). Research_plan gate CLI/MCP теперь явно выбирает текущую structured operation/version, проверяет свежесть и сохраняет hash-bound ссылку в approval под общим lock. Без structured плана работает legacy Markdown path. Journal атомарен в своём контуре, но gate state/events и другие legacy writers пока не имеют multi-file commit/recovery. Далее — перенос workflow state/events и нужных writers/readers на общий протокол. После mapping/import и проверки parity выводить SQL/контейнерные dependencies и CI; они пока не удалены. Artifact recovery доступен через CLI/MCP; workspace recovery пока имеет CLI fallback.
 
 ## Проверка
 

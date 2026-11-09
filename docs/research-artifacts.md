@@ -69,7 +69,24 @@ Case hash связывает state.json, восемь текущих JSONL-ре�
 
 Старые source/claim/gate/render команды пока не переведены на общий journal/lock. Case fingerprint замечает их изменения, но не является гарантией транзакционного snapshot при одновременной ручной или legacy-записи. Он проверяется до commit; старый writer может изменить входы после проверки, тогда show пометит сохранённый черновик как основанный на изменённых входах. Нельзя объявлять этот протокол глобальной транзакцией всех реестров, пока их writers/readers не перенесены.
 
-Журнал не переписывает 02_research-plan.md или state.json и не переводит этап. В старом workflow 02_research-plan.md остаётся author input для gate, а новая structured запись — отдельный reviewable draft. Автоматической двусторонней синхронизации нет. Следующий перенос должен научить workflow читать утверждённую структурированную версию/проверяемое представление, а не поддерживать два независимых главных плана.
+Запись draft не переписывает 02_research-plan.md или state.json и не переводит этап. Если committed structured план существует, research_plan gate использует его как единственный план для этого утверждения; содержимое legacy Markdown не может заменить его или обойти проверку. Для кейсов без committed structured плана сохраняется прежняя проверка 02_research-plan.md. Автоматической двусторонней синхронизации нет.
+
+## Явное утверждение structured плана
+
+После просмотра `psa artifact show ID` человек явно разрешает переход по конкретному draft. Передайте UUID и version из receipt:
+
+```bash
+psa gate approve ID --stage research_plan --by "Владелец решения" \
+  --artifact-operation UUID --artifact-version 1 --reason "План рассмотрен"
+```
+
+Файловый MCP `psa_approve_stage` принимает те же `artifact_operation` и `artifact_version`. Сам draft, его author, critic и наличие содержательного legacy Markdown не считаются согласием человека. `approved_by` — указанное вызывающим имя/роль, а не подтверждённая технической аутентификацией личность.
+
+Gate требует оба селектора, текущую committed HEAD-версию и неизменённые base inputs. Старый UUID, новая версия под другим UUID, повреждённый journal, изменённый brief/state/реестр/draft блокируют переход. Требуется записать и рассмотреть свежий draft; автоматической подстановки последней версии нет. Селекторы для других этапов отклоняются. Кейсы с существующим, но повреждённым journal не переключаются на Markdown fallback.
+
+В approval state/history и events записывается `research_plan_artifact`: kind, operation_id, version, manifest_hash и base_case_hash. Markdown не проецируется обратно в авторский файл. Утверждение меняет state/events, поэтому исторический draft затем показывает изменённые base inputs; это сравнение с исходным снимком, а не автоматический отзыв уже записанного approval. Более поздняя draft-версия сама не заменяет ссылку в историческом approval.
+
+Gate держит общий OS project lock от проверки версии до конца записи; новые artifact writers не могут вклиниться в этот интервал. **Запись state.json и events.jsonl пока остаётся legacy многофайловой записью без atomic commit/recovery.** Сбой между ними может оставить несогласованность; автоматический replay approval не реализован. Остальные legacy writers/ручные правки ещё могут обходить lock. Следующий R2-срез — перенос workflow state/events на общий commit-протокол; не считать текущую интеграцию транзакцией всего кейса.
 
 ## Сбой и recovery
 
