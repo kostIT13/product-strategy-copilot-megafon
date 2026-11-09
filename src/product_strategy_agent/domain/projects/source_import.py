@@ -8,6 +8,7 @@ from urllib.parse import urlparse
 from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 from product_strategy_agent.domain.projects.file_documents import DocumentInfo
+from product_strategy_agent.domain.projects.web_capture import WebCapture
 
 MAX_TEXT_BYTES = 10 * 1024 * 1024
 
@@ -64,6 +65,13 @@ def plan_source(command, material, text, timestamp, registry, events, current, a
         document = DocumentInfo.model_validate(material["document"])
         record.update(kind="dataset" if document.format == "xlsx" else "uploaded_document",
                       document_format=document.format, locator=document.locator, limitations=document.limitations)
+    if command.input_kind == "web_page" and "web" in material:
+        capture = WebCapture.model_validate(material["web"])
+        if capture.final_url != uri:
+            raise ValueError("captured final URL does not match source identity")
+        provenance = capture.model_dump()
+        record.update(provenance={key: value for key, value in provenance.items() if key != "limitations"},
+                      limitations=capture.limitations)
     registry_after = "".join(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n" for row in
                              [row for row in rows if row["source_id"] != identifier] + [record]).encode("utf-8")
     targets = {"sources.jsonl": (registry, registry_after), current_path: (current, text)}

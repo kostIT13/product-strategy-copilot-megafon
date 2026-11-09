@@ -1,8 +1,5 @@
 """Explicit bounded local/HTTP acquisition; never invoked on journal replay/recovery."""
 from pathlib import Path
-from urllib.error import HTTPError, URLError
-from urllib.parse import urldefrag, urlparse
-from urllib.request import Request
 from product_strategy_agent.domain.projects.source_import import MAX_TEXT_BYTES
 from product_strategy_agent.domain.projects.file_documents import DOCUMENT_SUFFIXES
 
@@ -13,7 +10,7 @@ class FileWebSourceReader:
 
     def read(self, command):
         # Reuse the established extractor/HTTP injection boundary; no persistence here.
-        from product_strategy_agent.sources import extract_text, urlopen, TEXT_SUFFIXES
+        from product_strategy_agent.sources import extract_text, TEXT_SUFFIXES
         suffix = ""
         if command.input_kind in {"local_text", "local_document"}:
             path = Path(command.locator)
@@ -37,20 +34,8 @@ class FileWebSourceReader:
             uri, publisher = command.locator, path.parent.name or None
             content_type = "text/html" if suffix in {".html", ".htm"} else "text/plain"
         else:
-            parsed = urlparse(command.locator)
-            if parsed.scheme not in {"http", "https"} or not parsed.netloc:
-                raise ValueError("URL must use http or https")
-            request = Request(command.locator, headers={"User-Agent": "ProductStrategyAgent/0.1 (+source extraction)"})
-            try:
-                with urlopen(request, timeout=15) as response:
-                    content_type = response.headers.get("Content-Type", "")
-                    data = response.read(MAX_TEXT_BYTES + 1)
-                    uri = urldefrag(response.geturl())[0]
-            except (HTTPError, URLError, TimeoutError) as error:
-                raise ValueError(f"Could not fetch {command.locator}: {error}") from error
-            if "html" not in content_type.lower() and "text/" not in content_type.lower():
-                raise ValueError(f"Unsupported web content type: {content_type or 'unknown'}")
-            publisher = urlparse(uri).hostname
+            from product_strategy_agent.adapters.persistence.files.web_reader import read_web_source
+            return read_web_source(command.locator)
         if len(data) > MAX_TEXT_BYTES:
             raise ValueError("Source file/page exceeds the 10 MiB limit")
         text, extracted_title = extract_text(data, content_type, suffix)

@@ -18,9 +18,7 @@ from datetime import datetime, timezone
 from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any
-from urllib.error import HTTPError, URLError
 from urllib.parse import urldefrag, urlparse
-from urllib.request import Request, urlopen
 
 MAX_SOURCE_BYTES = 10 * 1024 * 1024
 TEXT_SUFFIXES = {".txt", ".md", ".csv", ".json", ".html", ".htm"}
@@ -119,6 +117,8 @@ def add_local_source(project_dir: Path, source_path: Path, title: str | None = N
 def fetch_web_source(project_dir: Path, url: str, title: str | None = None, *,
                      operation_id=None, expected_workflow_version=None) -> dict[str, Any]:
     project_dir = Path(project_dir).absolute()
+    if not isinstance(url, str) or any(ord(ch) < 33 or ord(ch) == 127 for ch in url):
+        raise ValueError("URL must not contain whitespace or control characters")
     command = SourceImport(operation_id=uuid4() if operation_id is None else operation_id, input_kind="web_page", locator=urldefrag(url.strip())[0],
                            title=title or None, expected_workflow_version=expected_workflow_version)
     return _source_service(project_dir).run(project_dir.name, command)

@@ -140,7 +140,7 @@ psa critic-pack demo
 
 Поиск по актуальным ревизиям источников: `psa-main search demo "retention" --json`. [Описание и ограничения поиска](docs/source-search.md).
 
-Основной файловый путь: `psa source add ID PATH` поддерживает PDF/DOCX/XLSX с optional documents parsers, сохранением ограничений и проверкой цитат по странице/ячейке. [Инструкция](docs/file-document-import.md). [План вывода legacy](docs/legacy-retirement.md).
+Основной файловый путь: `psa source add ID PATH` поддерживает PDF/DOCX/XLSX с optional documents parsers, сохранением ограничений и проверкой цитат по странице/ячейке. [Инструкция](docs/file-document-import.md). [План вывода legacy](docs/legacy-retirement.md). Веб-загрузка `psa source fetch ID URL` использует public-HTTP policy, pinned transport и сохраняет provenance: [правила и ограничения](docs/file-web-import.md).
 
 Legacy: импорт TXT/Markdown/CSV/JSON, статического HTML, DOCX, PDF и XLSX через `psa-main document import`: [инструкция](docs/document-import.md). Для локального DOCX/PDF/XLSX установите `python -m pip install -e ".[documents]"`; Docker-образ уже включает парсер.
 

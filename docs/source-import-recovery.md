@@ -2,6 +2,8 @@
 
 R2: `psa source add/fetch` сохраняют registry, extracted text, при необходимости архив прежнего текста, revision event и state через общий workflow journal. Модель, PostgreSQL и Docker не нужны.
 
+Новые веб-загрузки используют [public HTTP policy и provenance](file-web-import.md); PDF/DOCX/XLSX — [document import](file-document-import.md). Recovery/replay не запускают acquisition заново; исторические v2 bundles читаются в прежней семантике.
+
 ```bash
 psa status CASE
 psa source add CASE ./notes.md --operation f8f301b6-ae82-46a2-a4a5-934eb664b765 \

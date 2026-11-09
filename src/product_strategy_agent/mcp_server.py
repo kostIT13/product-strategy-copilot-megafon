@@ -119,7 +119,7 @@ def create_server() -> Any:
     @server.tool()
     def psa_fetch_source(project_id: str, url: str, title: str = "", projects_dir: str = "projects",
                          operation_id: str | None = None, expected_workflow_version: int | None = None) -> dict[str, Any]:
-        """Fetch an HTTP(S) text/HTML page and preserve extracted text with a content hash."""
+        """Fetch public HTTP(S) text/HTML with pinned destinations, bounded redirects and captured provenance."""
         return fetch_web_source(workspace(project_id, projects_dir), url, title or None,
                                 operation_id=operation_id, expected_workflow_version=expected_workflow_version)
 
