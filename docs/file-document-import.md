@@ -16,4 +16,4 @@
 
 Hash и история относятся к извлечённому тексту. Сам PDF/DOCX/XLSX автоматически не архивируется: для воспроизводимости сохраняйте разрешённый оригинал отдельно, например в локальных материалах кейса. Изменение бинарного оформления без изменения текста не создаёт текстовую ревизию. Оригиналы не следует добавлять в Git без проверки прав и содержимого.
 
-Новый input kind `local_document` использует workflow v2 с проверяемыми document metadata. Старые v2 Text/HTML операции продолжают читаться; для новых document receipts требуется обновлённый runtime. Legacy `psa-main document import` пока сохраняется до [проверенного retire](legacy-retirement.md).
+Новый input kind `local_document` использует workflow v2 с проверяемыми document metadata. Старые v2 Text/HTML операции продолжают читаться; для новых document receipts требуется обновлённый runtime. Legacy `psa-main document import` удалён; [решение retire](legacy-retirement.md).

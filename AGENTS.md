@@ -4,7 +4,7 @@
 
 ## Продуктовый кейс
 
-Работай как исследователь руководителя продукта: от вопроса к основаниям, альтернативам, человеческому выбору и проверке эффекта. Основной цикл ведёт IDE; используй файловый `psa`, без PostgreSQL/Docker и собственного LLM API. Старый `psa-main` пока существует, но не является основным путём.
+Работай как исследователь руководителя продукта: от вопроса к основаниям, альтернативам, человеческому выбору и проверке эффекта. Основной цикл ведёт IDE; используй файловый `psa`, без PostgreSQL/Docker и собственного LLM API. Старый runtime `psa-main` удалён в R2; его история сохранена в Git.
 
 1. Прочитай [workflow](agent/workflow.md), [quality bar](agent/quality.md) и [safety](agent/safety.md).
 2. Уточни project ID и расположение кейса, если они неизвестны. Для существующего кейса выполни `psa status ID`, `psa resume ID`, затем `psa context ID`. Из другого каталога укажи `--projects-dir PATH` и `--instructions-root REPO` для context. Новый кейс создавай `psa init ID` только в рамках запроса пользователя.
@@ -17,6 +17,6 @@
 
 ## Разработка
 
-Следуй [основному плану](docs/solution_plans/plan-main.md) и [roadmap](docs/solution_plans/roadmap-full-solution.md). Сервисы и adapters разделяй по ответственности; CLI/MCP — тонкие интерфейсы. Не добавляй БД/контейнерный runtime. Старые зависимости выводятся отдельным этапом R2 с проверкой данных, не массовым удалением.
+Следуй [основному плану](docs/solution_plans/plan-main.md) и [roadmap](docs/solution_plans/roadmap-full-solution.md). Сервисы и adapters разделяй по ответственности; CLI/MCP — тонкие интерфейсы. Не добавляй БД/контейнерный runtime. Старый runtime выведен в R2 после подтверждения пользователя, что нужных данных в PostgreSQL нет; пользовательские БД/volumes не удаляй.
 
 Проверки по изменению: `python scripts/sync_harness.py --check`, `python -m scripts.ci.docs`, Ruff и meaningful unit/smoke. После изменения канона пересобери adapters через `python scripts/sync_harness.py --write`. Для законченной итерации обнови timestamp в reports/, создай commit и push в feature/-ветку. Секреты и рабочие данные не коммить. Отложенные M6/M8 не объявляй пройденными.

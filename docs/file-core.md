@@ -1,6 +1,6 @@
 # R2: файловый контракт и безопасное создание кейса
 
-Первый срез R2 (контракт ниже): существующий `psa init` использует отдельный WorkspaceService, порт WorkspaceStore и filesystem adapter. Файловый FastMCP `psa_init` вызывает тот же путь. Схема кейса остаётся v1. На 10.11.2026 основные canonical writers используют workflow journal v1–v4 с recovery; импорт из PostgreSQL и полная замена legacy функций ещё не реализованы. Проверки R1 в реальных IDE отложены пользователем 09.11.2026, не пройдены.
+Первый срез R2 (контракт ниже): существующий `psa init` использует отдельный WorkspaceService, порт WorkspaceStore и filesystem adapter. Файловый FastMCP `psa_init` вызывает тот же путь. Схема кейса остаётся v1. На 10.11.2026 основные canonical writers используют workflow journal v1–v4 с recovery; PG/Alembic/Docker runtime выведен после подтверждения пользователя об отсутствии нужных данных; generalized PG importer не требовался и не реализовывался. [Решение](legacy-retirement.md). Проверки R1 в реальных IDE отложены пользователем 09.11.2026, не пройдены.
 
 ## Инвентаризация и контракт переноса
 
@@ -12,7 +12,7 @@
 | Авторские стратегии | drafts и generated Markdown, native IDE может создавать текст | API strategy_plan → critic → internal receipt/export | Сделать typed IDE-authored вход без обязательного API run; версии/quality gate и trace нужны до записи |
 | Promise check | [File preflight](file-promise-check.md): v4 bindings, active facts, current hashes/revisions, exact locator quotes и coverage/gates | Read-only UUID/DB snapshot preflight | Нужные структурные правила перенесены; legacy import не создаёт текущие evidence bindings/новые approvals. Semantic review/corrections — R3 |
 | Resume/история | State/events, usage, источники и revisit | Pipeline/input snapshots, unknown paid outcome guards | Старые runs импортируются как история с original hashes/status; импорт не повторяет платный вызов |
-| Поиск/транспорт | [Bounded literal search](file-source-search.md) по текущим текстам с hashes/locators и файловый FastMCP | FTS и отдельный psa-main-mcp | Основной namespace psa/file core; reader/index только производный. Retire legacy после проверенной замены |
+| Поиск/транспорт | [Bounded literal search](file-source-search.md) по текущим текстам с hashes/locators и файловый FastMCP | FTS и отдельный psa-main-mcp | Основной namespace psa/file core; reader/index только производный. Legacy runtime выведен, правила R3 развиваются на файловом core |
 
 Канон — files/records текущей схемы, не строки Markdown и не PostgreSQL export. В этом срезе schema v1 не объявлена общей новой схемой всех PG entities. Новые mapping/versioning и многофайловое обновление существующих реестров требуют следующего ограниченного среза, а не массовой конвертации файлов на месте.
 

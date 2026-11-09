@@ -1,5 +1,7 @@
 # Импорт веб-источников основной системы
 
+> Историческая документация старого контура. PostgreSQL/Alembic/Docker и psa-main удалены 10.11.2026; эти команды больше не являются инструкцией запуска. Текущий путь — [README](../README.md), состояние переноса — [R2](legacy-retirement.md).
+
 ```powershell
 psa-main web import demo https://example.com/
 docker compose --profile app run --build --rm app psa-main web import demo https://example.com/

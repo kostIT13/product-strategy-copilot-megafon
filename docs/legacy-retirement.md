@@ -1,6 +1,6 @@
 # R2: инвентаризация переноса и retire
 
-Срез 10.11.2026 основан на коде старого `psa-main` и файлового `psa`, не на проверке содержимого пользовательской БД. Экспорт/миграция реальных данных не выполнялись. Наличие похожей команды не означает полную семантическую parity.
+Срез 10.11.2026 основан на коде старого `psa-main` и файлового `psa`, не на проверке содержимого пользовательской БД. Пользователь 10.11.2026 подтвердил: в PostgreSQL только тестовые данные, сохранять их не требуется. Экспорт/миграция реальных данных не выполнялись; шаг переноса для текущего проекта не нужен. Наличие похожей команды не означает полную семантическую parity.
 
 | Семейство старых функций | Файловый путь | Что остаётся проверить/перенести |
 | --- | --- | --- |
@@ -13,9 +13,13 @@
 | selection / strategy | Options, decision log, drafts, render и human gates | Полные typed sections, binding выбранной альтернативы, approval/export и обязательные альтернативы — R3 |
 | promise | Read-only draft preflight с active facts, capability links, v4 source bindings, current hashes/revision events и exact locator quotes; coverage/gates сохраняют blockers/review hash | [Контракт](file-promise-check.md); legacy unbound claims не становятся актуальными автоматически, full semantic/correction lifecycle остаётся R3 |
 
-## Следующий ограниченный срез
+## Вывод runtime выполнен
 
-Public-HTTP policy/provenance, ограниченный файловый поиск и структурный promise preflight подключены к общему файловому core/quality gates. Следующий срез — определить нужные legacy данные и mapping/import/parity, затем удалить старые runtime dependencies/CI и проверить чистую установку без БД/Docker. Не переносить собственный API agent loop или SQL FTS как prerequisite. Legacy claims/approvals импортируются как история без нового разрешения и без выдуманного current evidence binding.
+Удалены tracked PG repositories/models/bootstrap, Alembic/migrations, Dockerfile/Compose, прежние psa-main/psa-main-mcp entrypoints и связанные transport/smoke scripts. SQLAlchemy/Alembic/psycopg исключены из pyproject/uv.lock, DATABASE_URL/POSTGRES_* — из примера конфигурации. Остаются один файловый CLI psa и optional psa-mcp. Предметные domain/application unit-тесты сохранены для дальнейшей консолидации R3; сняты только tests старых dispatch/composition интерфейсов.
+
+CI использует unit/docs/sync/clean-base/demo/release и checksum-pinned native Gitleaks; PG services и Docker daemon не нужны. Clean-base smoke достигает completed и продолжает скопированный кейс без SQL/model/parser/MCP extras. Генерализованный PG importer не реализовывался и не объявляется проверенным: нужных данных нет по явному ответу пользователя. Исторические инструкции помечены; прежний код доступен в Git на eaa65c2.
+
+Следующий этап разработки — R3: полнота product/communication strategies, обязательных альтернатив, metrics/baselines/guardrails и correction lifecycle. Live R1/M8 и независимая оценка M6 остаются отложенными.
 
 ## Данные и условия удаления старого контура
 
@@ -26,4 +30,4 @@ Public-HTTP policy/provenance, ограниченный файловый пои�
 5. После проверки переноса изменить зависимости, entrypoints, CI/release и инструкции; подтвердить clean install и CLI/MCP путь без SQL/Docker/DATABASE_URL/нашего LLM API-ключа.
 6. Только после проверенного экспорта и сохранения backup выводить legacy entrypoints и runtime dependencies. Удаление пользовательских БД/volumes не является автоматическим шагом разработки.
 
-Сейчас старые SQLAlchemy/Alembic/psycopg dependencies, `psa-main`/`psa-main-mcp` и PG/Docker checks остаются. R2 открыт. Live R1/M8 и независимая оценка M6 отложены; эта инвентаризация их не заменяет.
+Пользовательские БД, volumes, backups и локальный .env не читались/не удалялись. Для будущего переноса неожиданно понадобившегося старого кейса восстановите прежний код из Git в отдельном окружении и выполните осознанный export/import по правилам выше; удаление runtime не превращает старые approvals в новые разрешения.
