@@ -7,6 +7,8 @@ from product_strategy_agent.adapters.persistence.files.source_bundle import EXTR
 from product_strategy_agent.domain.projects.source_import import SourceImport
 from product_strategy_agent.domain.projects.render_plan import RenderRequest
 from product_strategy_agent.adapters.persistence.files import render_bundle
+from product_strategy_agent.domain.projects.ledger_append import LedgerAppend
+from product_strategy_agent.adapters.persistence.files import ledger_bundle
 
 FILES = {"request.json", "event.json", "state.before.json", "state.after.json", "events.before.jsonl", "events.after.jsonl", "inputs.json"}
 
@@ -20,7 +22,7 @@ def payload(project_id, command, before_state, after_state, before_events, event
         raise ValueError("workflow bundle exceeds its 512000 byte per-file limit")
     if extra_files is not None:
         files.update(extra_files)
-    version = 3 if isinstance(command, RenderRequest) else 2 if extra_files is not None else 1
+    version = 4 if isinstance(command, LedgerAppend) else 3 if isinstance(command, RenderRequest) else 2 if extra_files is not None else 1
     manifest = {"format_version": version, "project_id": project_id, "operation_id": str(command.operation_id),
                 "files": {key: digest(value) for key, value in files.items()}}
     return files, manifest
@@ -37,11 +39,12 @@ def load(folder, project_id, operation_id, manifest_hash=None):
         if manifest_hash is not None and digest(raw) != manifest_hash:
             raise ValueError("workflow manifest hash mismatch")
         if (set(manifest) != {"format_version", "project_id", "operation_id", "files"}
-                or type(manifest["format_version"]) is not int or manifest["format_version"] not in {1, 2, 3}
+                or type(manifest["format_version"]) is not int or manifest["format_version"] not in {1, 2, 3, 4}
                 or manifest["project_id"] != project_id or manifest["operation_id"] != str(operation_id)
-                or set(manifest["files"]) != (FILES | {1: set(), 2: EXTRA_FILES, 3: render_bundle.EXTRA_FILES}[manifest["format_version"]])):
+                or set(manifest["files"]) != (FILES | {1: set(), 2: EXTRA_FILES, 3: render_bundle.EXTRA_FILES, 4: ledger_bundle.EXTRA_FILES}[manifest["format_version"]])):
             raise ValueError("invalid workflow manifest scope/layout")
-        files = {name: (render_bundle.read_payload(folder, name) if name in render_bundle.EXTRA_FILES else read_payload(folder, name)) for name in manifest["files"]}
+        files = {name: (ledger_bundle.read_payload(folder, name) if name in ledger_bundle.EXTRA_FILES else
+                        render_bundle.read_payload(folder, name) if name in render_bundle.EXTRA_FILES else read_payload(folder, name)) for name in manifest["files"]}
         if any(digest(value) != manifest["files"][name] for name, value in files.items()):
             raise ValueError("workflow bundle hash mismatch")
         command = parse_command(json.loads(files["request.json"]))
@@ -49,6 +52,8 @@ def load(folder, project_id, operation_id, manifest_hash=None):
             raise ValueError("source request requires workflow format v2")
         if isinstance(command, RenderRequest) != (manifest["format_version"] == 3):
             raise ValueError("render request requires workflow format v3")
+        if isinstance(command, LedgerAppend) != (manifest["format_version"] == 4):
+            raise ValueError("ledger request requires workflow format v4")
         event = json.loads(files["event.json"])
         before, after = (json.loads(files[f"state.{name}.json"]) for name in ("before", "after"))
         version = before.get("workflow_version", 0)
@@ -78,6 +83,9 @@ def load(folder, project_id, operation_id, manifest_hash=None):
             targets = {**extra_targets, **targets}
         elif isinstance(command, RenderRequest):
             extra_targets, result = render_bundle.validate_extra(command, files, before, after, event)
+            targets = {**extra_targets, **targets}
+        elif isinstance(command, LedgerAppend):
+            extra_targets, result = ledger_bundle.validate_extra(command, files, before, after, event)
             targets = {**extra_targets, **targets}
         return {"files": files, "manifest_hash": digest(raw), "command": command, "event": event, "inputs": inputs,
                 "targets": targets, "result": result}

@@ -264,6 +264,10 @@ def build_parser() -> argparse.ArgumentParser:
     revisit_resolve.add_argument("--reviewed-claim", action="append", default=[])
     revisit_resolve.add_argument("--reviewed-decision", action="append", default=[])
     revisit_resolve.add_argument("--projects-dir", type=Path, default=Path("projects"))
+    for entry in (claim_add, gap_add, decision_add, option_add, capability_add, usage_add):
+        entry.add_argument("--journal-operation" if entry is usage_add else "--operation", dest="journal_operation", type=UUID,
+                           help="caller-chosen journal UUID for exact append replay")
+        entry.add_argument("--expected-workflow-version", type=int, help="expected shared workflow journal version")
     return parser
 
 
@@ -342,16 +346,17 @@ def main() -> None:
                     contradicts=args.contradicts,
                     decision_impact=args.decision_impact,
                     supersedes=args.supersedes,
+                    operation_id=args.journal_operation, expected_workflow_version=args.expected_workflow_version,
                 )
                 print(f"Recorded {record['claim_id']} [{record['type']}]: {record['text']}")
             elif args.command == "gap":
-                record = add_gap(project_dir, args.question, args.why_it_matters, args.method, args.priority)
+                record = add_gap(project_dir, args.question, args.why_it_matters, args.method, args.priority,
+                                 operation_id=args.journal_operation, expected_workflow_version=args.expected_workflow_version)
                 print(f"Recorded {record['gap_id']} [{record['priority']}]: {record['question']}")
             else:
-                if (project_dir / "options.jsonl").is_file() and (project_dir / "options.jsonl").stat().st_size and not args.option_id:
-                    raise ValueError("When options exist, select the chosen one with --option-id")
                 record = add_decision(project_dir, args.option, args.owner, args.rationale, args.claim,
-                                      args.reject, args.assumption, args.risk, args.revisit_when, args.option_id)
+                                      args.reject, args.assumption, args.risk, args.revisit_when, args.option_id,
+                                      operation_id=args.journal_operation, expected_workflow_version=args.expected_workflow_version)
                 print(f"Recorded {record['decision_id']}: {record['chosen_option']} (owner: {record['owner']})")
             return
 
@@ -360,7 +365,8 @@ def main() -> None:
             if not (project_dir / "state.json").is_file():
                 raise FileNotFoundError(f"Project '{args.project_id}' was not found at {project_dir}")
             record = add_option(project_dir, args.name, args.role, args.description, args.benefits,
-                                args.costs, args.risks, args.objection, args.assumption, args.claim)
+                                args.costs, args.risks, args.objection, args.assumption, args.claim,
+                                operation_id=args.journal_operation, expected_workflow_version=args.expected_workflow_version)
             print(f"Recorded {record['option_id']} [{record['role']}]: {record['name']}")
             return
 
@@ -368,7 +374,8 @@ def main() -> None:
             project_dir = project_path(args.project_id, args.projects_dir)
             if not (project_dir / "state.json").is_file():
                 raise FileNotFoundError(f"Project '{args.project_id}' was not found at {project_dir}")
-            record = add_capability(project_dir, args.name, args.status, args.claim)
+            record = add_capability(project_dir, args.name, args.status, args.claim,
+                                    operation_id=args.journal_operation, expected_workflow_version=args.expected_workflow_version)
             print(f"Recorded {record['capability_id']} [{record['status']}]: {record['name']}")
             return
 
@@ -435,7 +442,8 @@ def main() -> None:
                 record = add_usage(project_dir, args.provider, args.model, args.operation, args.stage,
                                    args.input_tokens, args.output_tokens, args.duration_ms, args.retry_count,
                                    args.cost_amount, args.currency, args.cost_certainty, args.pricing_as_of,
-                                   args.cost_note, args.operation_id)
+                                   args.cost_note, args.operation_id, journal_operation_id=args.journal_operation,
+                                   expected_workflow_version=args.expected_workflow_version)
                 print(f"Recorded {record['event_id']} ({record['operation_id']})")
             else:
                 print(json.dumps(usage_report(project_dir), ensure_ascii=False, indent=2))

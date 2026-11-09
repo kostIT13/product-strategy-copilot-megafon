@@ -144,16 +144,21 @@ def create_server() -> Any:
         decision_impact: str = "",
         supersedes: str = "",
         projects_dir: str = "projects",
+        operation_id: str | None = None,
+        expected_workflow_version: int | None = None,
     ) -> dict[str, Any]:
         """Append a typed claim; factual claims require a source, locator, and exact quote."""
         return add_claim(workspace(project_id, projects_dir), text, claim_type, source_ids, source_locators, quotes,
-                         confidence, reasoning_note, contradicts, decision_impact, supersedes or None)
+                         confidence, reasoning_note, contradicts, decision_impact, supersedes or None,
+                         operation_id=operation_id, expected_workflow_version=expected_workflow_version)
 
     @server.tool()
     def psa_add_capability(project_id: str, name: str, status: str, claim_ids: list[str] | None = None,
-                           projects_dir: str = "projects") -> dict[str, Any]:
+                           projects_dir: str = "projects", operation_id: str | None = None,
+                           expected_workflow_version: int | None = None) -> dict[str, Any]:
         """Record a product capability; customer-facing commitments may only use available capabilities."""
-        return add_capability(workspace(project_id, projects_dir), name, status, claim_ids)
+        return add_capability(workspace(project_id, projects_dir), name, status, claim_ids,
+                              operation_id=operation_id, expected_workflow_version=expected_workflow_version)
 
     @server.tool()
     def psa_coverage(project_id: str, projects_dir: str = "projects") -> dict[str, Any]:
@@ -162,27 +167,33 @@ def create_server() -> Any:
 
     @server.tool()
     def psa_add_gap(project_id: str, question: str, why_it_matters: str = "", resolution_method: str = "",
-                    priority: str = "medium", projects_dir: str = "projects") -> dict[str, Any]:
+                    priority: str = "medium", projects_dir: str = "projects", operation_id: str | None = None,
+                    expected_workflow_version: int | None = None) -> dict[str, Any]:
         """Append an open research gap."""
-        return add_gap(workspace(project_id, projects_dir), question, why_it_matters, resolution_method, priority)
+        return add_gap(workspace(project_id, projects_dir), question, why_it_matters, resolution_method, priority,
+                       operation_id=operation_id, expected_workflow_version=expected_workflow_version)
 
     @server.tool()
     def psa_add_option(project_id: str, name: str, role: str, description: str, benefits: str = "", costs: str = "",
                        risks: str = "", strongest_objection: str = "", assumptions: list[str] | None = None,
-                       claim_ids: list[str] | None = None, projects_dir: str = "projects") -> dict[str, Any]:
+                       claim_ids: list[str] | None = None, projects_dir: str = "projects", operation_id: str | None = None,
+                       expected_workflow_version: int | None = None) -> dict[str, Any]:
         """Append a decision option with its mechanism, benefits, costs, risks, and evidence links."""
         return add_option(workspace(project_id, projects_dir), name, role, description, benefits, costs, risks,
-                          strongest_objection, assumptions, claim_ids)
+                          strongest_objection, assumptions, claim_ids, operation_id=operation_id,
+                          expected_workflow_version=expected_workflow_version)
 
     @server.tool()
     def psa_add_decision(project_id: str, chosen_option: str, owner: str, rationale: str = "",
                          claim_ids: list[str] | None = None, option_id: str = "", revisit_when: str = "",
                          rejected_alternatives: list[str] | None = None, assumptions: list[str] | None = None,
                          risks: list[str] | None = None,
-                         projects_dir: str = "projects") -> dict[str, Any]:
+                         projects_dir: str = "projects", operation_id: str | None = None,
+                         expected_workflow_version: int | None = None) -> dict[str, Any]:
         """Record a human-owned decision linked to its chosen option and supporting claims."""
         return add_decision(workspace(project_id, projects_dir), chosen_option, owner, rationale, claim_ids,
-                            rejected_alternatives, assumptions, risks, revisit_when, option_id or None)
+                            rejected_alternatives, assumptions, risks, revisit_when, option_id or None,
+                            operation_id=operation_id, expected_workflow_version=expected_workflow_version)
 
     @server.tool()
     def psa_approve_stage(project_id: str, stage: str, approved_by: str, reason: str = "",
@@ -234,12 +245,14 @@ def create_server() -> Any:
                       input_tokens: int | None = None, output_tokens: int | None = None,
                       duration_ms: int | None = None, cost_amount: str = "", currency: str = "RUB",
                       retry_count: int = 0, cost_certainty: str = "unknown", pricing_as_of: str = "", cost_note: str = "",
-                      projects_dir: str = "projects") -> dict[str, Any]:
+                      projects_dir: str = "projects", operation_id: str | None = None,
+                      journal_operation_id: str | None = None, expected_workflow_version: int | None = None) -> dict[str, Any]:
         """Append usage without logging request text; unknown values stay unknown."""
         return add_usage(workspace(project_id, projects_dir), provider, model, operation, stage,
                          input_tokens, output_tokens, duration_ms, retry_count, cost_amount=cost_amount or None,
                          currency=currency, cost_certainty=cost_certainty,
-                         pricing_as_of=pricing_as_of or None, cost_note=cost_note)
+                         pricing_as_of=pricing_as_of or None, cost_note=cost_note, operation_id=operation_id,
+                         journal_operation_id=journal_operation_id, expected_workflow_version=expected_workflow_version)
 
     @server.tool()
     def psa_usage_report(project_id: str, projects_dir: str = "projects") -> dict[str, Any]:

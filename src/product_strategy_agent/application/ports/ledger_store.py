@@ -1,0 +1,14 @@
+"""Unit-of-work boundary for canonical append commands."""
+
+from contextlib import AbstractContextManager
+from typing import Protocol
+from product_strategy_agent.domain.projects.ledger_append import LedgerAppend
+
+
+class LedgerStore(Protocol):
+    def access(self, project_id: str) -> AbstractContextManager: ...
+    def replay(self, project_id: str, command: LedgerAppend) -> dict | None: ...
+    def capture_ledger(self, project_id: str, ledger: str) -> dict: ...
+    def commit_ledger(
+        self, project_id: str, command: LedgerAppend, snapshot: dict, timestamp: str
+    ) -> dict: ...

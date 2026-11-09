@@ -40,6 +40,8 @@ Gate сохраняет state/events через write-ahead bundle. При пр�
 
 `psa render` и `--adopt-existing` публикуют Markdown/manifest через workflow recovery. Существующие drafts сохраняются, changed generated files требуют явного разрешения на discard. Поддерживаются те же UUID/expected version; [контракт render/adoption](docs/render-recovery.md).
 
+Canonical add-команды claims/gaps/options/decisions/capabilities и usage также используют workflow recovery. Для обычных записей задавайте `--operation UUID`, для usage — `--journal-operation UUID`; usage `--operation-id` остаётся ID учтённого вызова и защищает от двойного учёта. [Ledger/usage contract](docs/ledger-recovery.md).
+
 ### Импорт источников
 
 ```powershell
