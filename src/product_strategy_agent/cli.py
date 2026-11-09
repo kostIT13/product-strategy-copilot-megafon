@@ -30,6 +30,7 @@ from product_strategy_agent.interfaces.cli.workspace_commands import add_workspa
 from product_strategy_agent.interfaces.cli.research_artifact_commands import add_research_artifact_commands, handle_research_artifact_command
 from product_strategy_agent.interfaces.cli.file_workflow_commands import add_workflow_commands, handle_workflow_command
 from product_strategy_agent.adapters.persistence.files.case_access import case_access
+from product_strategy_agent.interfaces.cli.file_search_commands import add_file_search_command, handle_file_search_command
 
 STAGES = (
     "intake",
@@ -103,6 +104,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     source = commands.add_parser("source", help="manage project sources")
     source_commands = source.add_subparsers(dest="source_command", required=True)
+    add_file_search_command(source_commands)
     for action, help_text in (("add", "import local text/HTML or optional PDF/DOCX/XLSX"), ("fetch", "fetch a web page and extract its text")):
         sub = source_commands.add_parser(action, help=help_text)
         sub.add_argument("project_id")
@@ -282,6 +284,9 @@ def main() -> None:
             access.enter_context(case_access(args.projects_dir, args.project_id))
         if args.command == "artifact":
             handle_research_artifact_command(args)
+            return
+        if args.command == "source" and args.source_command == "search":
+            handle_file_search_command(args)
             return
         if args.command == "workspace":
             handle_workspace_command(args)

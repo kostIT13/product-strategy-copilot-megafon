@@ -7,7 +7,7 @@
 | project / source / claim / option / decision / capability / workflow | Init, реестры, source revisions, gates, usage, render и recovery | Mapping старых ID, provenance, история и ограничения; correction/lifecycle в R3 |
 | document | PDF/DOCX/XLSX подключены к source journal, native page/cell verify | Проверка нужных реальных разрешённых материалов; [границы парсеров](file-document-import.md) |
 | web | Локальный HTML, shared public-HTTP policy/pinned transport, strict decoding и provenance подключены к файловому journal | [Контракт](file-web-import.md); legacy v2 replay сохранён. Это не проверка реальных пользовательских источников или ID mapping |
-| search | Чтение файлов и метаданных | Ограниченный поиск по файловому snapshot по необходимости; SQL FTS не становится обязательным runtime |
+| search | Literal поиск по hash-checked текущим текстам через CLI/MCP, native quote locators, bounded coherent snapshot | [Контракт](file-source-search.md); SQL FTS/ranking/stemming не переносится как prerequisite |
 | agent / pipeline | Цикл ведёт IDE | Собственный API-оркестратор не переносится как prerequisite; старые runs, расходы и неизвестные исходы сохраняются как история |
 | critic | Файловый critic-pack | Пакет контекста не равен выполненной независимой критике; semantic checks и результаты — R3/R5 |
 | selection / strategy | Options, decision log, drafts, render и human gates | Полные typed sections, binding выбранной альтернативы, approval/export и обязательные альтернативы — R3 |
@@ -15,7 +15,7 @@
 
 ## Следующий ограниченный срез
 
-Public-HTTP policy/provenance подключены к файловому импорту через существующие adapters; прежний urllib reader выведен из fetch пути. Следующий срез — ограниченный поиск по файловым источникам с hash/locator проверками без SQL FTS и без перехода по ссылкам. Затем закрыть нужный promise preflight и контракты импорта. Не вводить новую БД или собственный agent loop ради parity.
+Public-HTTP policy/provenance и ограниченный файловый поиск с hash/locator references подключены к общему файловому core. Следующий срез — нужный promise preflight на актуальных evidence/revisions/quotes и привязка к quality gate, затем mapping/import/parity и удаление старых runtime dependencies/CI. Не вводить новую БД или собственный agent loop ради parity.
 
 ## Данные и условия удаления старого контура
 

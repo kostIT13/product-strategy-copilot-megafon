@@ -41,6 +41,8 @@ def create_server() -> Any:
     register_file_artifact_tools(server)
     from product_strategy_agent.interfaces.mcp.file_workflow_tools import register_file_workflow_tools
     register_file_workflow_tools(server)
+    from product_strategy_agent.interfaces.mcp.file_search_tools import register_file_search_tools
+    register_file_search_tools(server)
 
     def workspace(project_id: str, projects_dir: str = "projects") -> Path:
         path = project_path(project_id, Path(projects_dir))
