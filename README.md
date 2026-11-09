@@ -22,7 +22,7 @@ psa next demo-retention
 psa resume demo-retention
 ```
 
-`init` создаёт папку `projects/<project-id>` с версионируемым `state.json`, шаблоном брифа и пустыми журналами. Исходные материалы в `projects/*/sources/` исключены из Git по умолчанию.
+`init` создаёт папку `projects/<project-id>` с версионируемым `state.json`, шаблоном брифа и пустыми журналами. Исходные материалы в `projects/*/sources/` исключены из Git по умолчанию. Теперь начальный набор готовится отдельно, проверяется по hash receipt и публикуется целиком; занятая папка не дополняется. После сбоя: `psa workspace pending ID`, затем явный `psa workspace recover ID --operation UUID`. [Файловый контракт и границы восстановления](docs/file-core.md).
 
 `psa doctor` проверяет версию Python, встроенные шаблоны, наличие `uv` и optional FastMCP. Конфигурацию он проверяет только по наличию файла и имён известных переменных: значения из `.env` и окружения не читаются и не выводятся. Состояние проекта меняют явные операции `gate`, `mode` и append-only команды записи; `status`, `next` и `resume` его читают.
 

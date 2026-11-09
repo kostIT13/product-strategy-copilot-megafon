@@ -13,7 +13,7 @@ def forbidden_path(name):
     path = PurePosixPath(name.strip().casefold())
     return ((path.name == ".env" or path.name.startswith(".env.")) and path.name != ".env.example"
             or path.suffix == ".sqlite3"
-            or any(part in {".venv", ".venv-ci", "backups", "postgres-data"} for part in path.parts))
+            or any(part in {".venv", ".venv-ci", "backups", "postgres-data", ".psa-locks", ".psa-staging"} for part in path.parts))
 
 
 def check_repository(root, history=False):

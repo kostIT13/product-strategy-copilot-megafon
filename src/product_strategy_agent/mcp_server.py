@@ -23,6 +23,7 @@ from product_strategy_agent.revisit import build_revisit_report, resolve_source_
 def create_server() -> Any:
     try:
         from fastmcp import FastMCP
+        from fastmcp.exceptions import ToolError
     except ImportError as error:
         raise RuntimeError('MCP support is optional. Install it with: python -m pip install -e ".[mcp]"') from error
 
@@ -41,11 +42,19 @@ def create_server() -> Any:
             raise FileNotFoundError(f"Project '{project_id}' was not found at {path}")
         return path
 
-    @server.tool()
+    @server.tool(annotations={"readOnlyHint": False, "destructiveHint": False, "idempotentHint": False, "openWorldHint": False})
     def psa_init(project_id: str, projects_dir: str = "projects") -> dict[str, str]:
-        """Create a new project folder with the initial brief and versioned state."""
-        path = init_project(project_id, Path(projects_dir))
-        return {"project_id": project_id, "path": str(path)}
+        """Prepare and publish one complete new filesystem workspace; never overwrite an existing case.
+
+        No database/model call. On interruption inspect/recover initialization using the workspace CLI.
+        """
+        try:
+            path = init_project(project_id, Path(projects_dir))
+            return {"project_id": project_id, "path": str(path)}
+        except (FileExistsError, ValueError) as error:
+            raise ToolError(str(error)) from None
+        except OSError:
+            raise ToolError("workspace preparation failed; inspect psa workspace pending before retrying") from None
 
     @server.tool()
     def psa_status(project_id: str, projects_dir: str = "projects") -> dict[str, Any]:

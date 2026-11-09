@@ -22,6 +22,9 @@ from product_strategy_agent.usage import add_usage, usage_report
 from product_strategy_agent.workflow import MODE_PROFILES, NEXT_ACTIONS, WORK_STAGES, approve_stage, set_project_mode
 from product_strategy_agent.revisit import build_revisit_report, resolve_source_revision
 from product_strategy_agent.application.services.instruction_context_service import instruction_context
+from product_strategy_agent.application.services.workspace_service import WorkspaceService
+from product_strategy_agent.adapters.persistence.files.workspace_repository import FileWorkspaceStore
+from product_strategy_agent.interfaces.cli.workspace_commands import add_workspace_commands, handle_workspace_command
 
 STAGES = (
     "intake",
@@ -60,52 +63,14 @@ def load_state(project_id: str, projects_dir: Path) -> dict[str, Any]:
 
 
 def init_project(project_id: str, projects_dir: Path) -> Path:
-    path = project_path(project_id, projects_dir)
-    path.mkdir(parents=True, exist_ok=True)
-    state_path = path / "state.json"
-    if state_path.exists():
-        raise FileExistsError(f"Project '{project_id}' already exists at {path}")
-
-    now = utc_now()
-    state = {
-        "schema_version": 1,
-        "project_id": project_id,
-        "created_at": now,
-        "updated_at": now,
-        "status": "intake",
-        "mode": "decision_grade",
-        "mode_history": [],
-        "stages": {stage: ("in_progress" if stage == "intake" else "not_started") for stage in STAGES},
-        "next_action": NEXT_ACTIONS["intake"],
-        "open_questions": [],
-    }
-    (path / "state.json").write_text(json.dumps(state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    (path / "01_brief.md").write_text(
-        f"# Бриф: {project_id}\n\n"
-        "## Вопрос решения\n\n"
-        "## Желаемый результат и критерии успеха\n\n"
-        "## Кто принимает решение и к какому сроку\n\n"
-        "## Ограничения и разрешённые данные\n\n"
-        "## Доступные материалы\n",
-        encoding="utf-8",
-    )
-    (path / "02_research-plan.md").write_text(
-        "# План исследования\n\n"
-        "## Вопросы исследования\n\n"
-        "## Методы и источники\n\n"
-        "## Критерии достаточности\n",
-        encoding="utf-8",
-    )
-    for name in ("sources.jsonl", "claims.jsonl", "gaps.jsonl", "options.jsonl", "decision-log.jsonl", "usage.jsonl", "events.jsonl", "capabilities.jsonl"):
-        (path / name).write_text("", encoding="utf-8")
-    (path / "sources").mkdir(exist_ok=True)
-    return path
+    return WorkspaceService(FileWorkspaceStore(projects_dir)).initialize(project_id)
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="psa", description="Evidence-based product strategy workflow")
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     commands = parser.add_subparsers(dest="command", required=True)
+    add_workspace_commands(commands)
 
     doctor = commands.add_parser("doctor", help="check Python, templates, and optional local configuration")
     doctor.add_argument("--json", action="store_true", help="print a JSON diagnostic report")
@@ -285,6 +250,9 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> None:
     args = build_parser().parse_args()
     try:
+        if args.command == "workspace":
+            handle_workspace_command(args)
+            return
         if args.command == "context":
             print(json.dumps(instruction_context(project_path(args.project_id, args.projects_dir), args.instructions_root),
                              ensure_ascii=True, indent=2))
