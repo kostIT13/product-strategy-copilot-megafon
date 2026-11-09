@@ -18,11 +18,14 @@ from product_strategy_agent.validation import validate_project, verify_project
 from product_strategy_agent.workflow import MODE_PROFILES, approve_stage, set_project_mode
 from product_strategy_agent.usage import add_usage, usage_report
 from product_strategy_agent.revisit import build_revisit_report, resolve_source_revision
+from product_strategy_agent.adapters.persistence.files.workflow_guard import require_workflow_ready
+from product_strategy_agent.adapters.persistence.files.case_access import case_access
 
 
 def create_server() -> Any:
     try:
         from fastmcp import FastMCP
+        from fastmcp.exceptions import ToolError
     except ImportError as error:
         raise RuntimeError('MCP support is optional. Install it with: python -m pip install -e ".[mcp]"') from error
 
@@ -34,18 +37,31 @@ def create_server() -> Any:
             "Source fetch performs an explicit network request. Synthetic records must never be treated as market evidence."
         ),
     )
+    from product_strategy_agent.interfaces.mcp.file_artifact_tools import register_file_artifact_tools
+    register_file_artifact_tools(server)
+    from product_strategy_agent.interfaces.mcp.file_workflow_tools import register_file_workflow_tools
+    register_file_workflow_tools(server)
 
     def workspace(project_id: str, projects_dir: str = "projects") -> Path:
         path = project_path(project_id, Path(projects_dir))
+        require_workflow_ready(path)
         if not (path / "state.json").is_file():
             raise FileNotFoundError(f"Project '{project_id}' was not found at {path}")
         return path
 
-    @server.tool()
+    @server.tool(annotations={"readOnlyHint": False, "destructiveHint": False, "idempotentHint": False, "openWorldHint": False})
     def psa_init(project_id: str, projects_dir: str = "projects") -> dict[str, str]:
-        """Create a new project folder with the initial brief and versioned state."""
-        path = init_project(project_id, Path(projects_dir))
-        return {"project_id": project_id, "path": str(path)}
+        """Prepare and publish one complete new filesystem workspace; never overwrite an existing case.
+
+        No database/model call. On interruption inspect/recover initialization using the workspace CLI.
+        """
+        try:
+            path = init_project(project_id, Path(projects_dir))
+            return {"project_id": project_id, "path": str(path)}
+        except (FileExistsError, ValueError) as error:
+            raise ToolError(str(error)) from None
+        except OSError:
+            raise ToolError("workspace preparation failed; inspect psa workspace pending before retrying") from None
 
     @server.tool()
     def psa_status(project_id: str, projects_dir: str = "projects") -> dict[str, Any]:
@@ -55,6 +71,7 @@ def create_server() -> Any:
         if not isinstance(mode, str) or mode not in MODE_PROFILES:
             raise ValueError(f"Unknown project mode: {mode}")
         return {"project_id": project_id, "status": state["status"], "mode": mode,
+                "workflow_version": state.get("workflow_version", 0),
                 "mode_guidance": MODE_PROFILES[mode]["guidance"], "next_action": state["next_action"],
                 "open_questions": state.get("open_questions", []), "approvals": state.get("approvals", [])}
 
@@ -70,9 +87,11 @@ def create_server() -> Any:
 
     @server.tool()
     def psa_mode_set(project_id: str, mode: str, changed_by: str, reason: str = "",
-                     projects_dir: str = "projects") -> dict[str, Any]:
+                     projects_dir: str = "projects", operation_id: str | None = None,
+                     expected_workflow_version: int | None = None) -> dict[str, Any]:
         """Set the research depth; this does not change tools or access permissions."""
-        return set_project_mode(workspace(project_id, projects_dir), mode, changed_by, reason)
+        return set_project_mode(workspace(project_id, projects_dir), mode, changed_by, reason,
+                                operation_id=operation_id, expected_workflow_version=expected_workflow_version)
 
     @server.tool()
     def psa_revisit(project_id: str, projects_dir: str = "projects") -> dict[str, Any]:
@@ -83,26 +102,33 @@ def create_server() -> Any:
     def psa_revisit_resolve(project_id: str, revision_event_id: str, reviewed_by: str, reason: str,
                             reviewed_claim_ids: list[str] | None = None,
                             reviewed_decision_ids: list[str] | None = None,
-                            projects_dir: str = "projects") -> dict[str, Any]:
+                            projects_dir: str = "projects", operation_id: str | None = None,
+                            expected_workflow_version: int | None = None) -> dict[str, Any]:
         """Record human review of all claims and decisions affected by a source revision."""
         return resolve_source_revision(workspace(project_id, projects_dir), revision_event_id,
-                                       reviewed_by, reason, reviewed_claim_ids, reviewed_decision_ids)
+                                       reviewed_by, reason, reviewed_claim_ids, reviewed_decision_ids,
+                                       operation_id=operation_id, expected_workflow_version=expected_workflow_version)
 
     @server.tool()
-    def psa_add_source(project_id: str, file_path: str, title: str = "", projects_dir: str = "projects") -> dict[str, Any]:
+    def psa_add_source(project_id: str, file_path: str, title: str = "", projects_dir: str = "projects",
+                       operation_id: str | None = None, expected_workflow_version: int | None = None) -> dict[str, Any]:
         """Import a local text/HTML file; its original material stays local to the workspace."""
-        return add_local_source(workspace(project_id, projects_dir), Path(file_path), title or None)
+        return add_local_source(workspace(project_id, projects_dir), Path(file_path), title or None,
+                                operation_id=operation_id, expected_workflow_version=expected_workflow_version)
 
     @server.tool()
-    def psa_fetch_source(project_id: str, url: str, title: str = "", projects_dir: str = "projects") -> dict[str, Any]:
+    def psa_fetch_source(project_id: str, url: str, title: str = "", projects_dir: str = "projects",
+                         operation_id: str | None = None, expected_workflow_version: int | None = None) -> dict[str, Any]:
         """Fetch an HTTP(S) text/HTML page and preserve extracted text with a content hash."""
-        return fetch_web_source(workspace(project_id, projects_dir), url, title or None)
+        return fetch_web_source(workspace(project_id, projects_dir), url, title or None,
+                                operation_id=operation_id, expected_workflow_version=expected_workflow_version)
 
     @server.tool()
     def psa_list_sources(project_id: str, projects_dir: str = "projects") -> list[dict[str, Any]]:
         """List source metadata registered in the project."""
-        path = workspace(project_id, projects_dir) / "sources.jsonl"
-        return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+        with case_access(projects_dir, project_id):
+            path = workspace(project_id, projects_dir) / "sources.jsonl"
+            return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
 
     @server.tool()
     def psa_add_claim(
@@ -160,9 +186,13 @@ def create_server() -> Any:
 
     @server.tool()
     def psa_approve_stage(project_id: str, stage: str, approved_by: str, reason: str = "",
-                          projects_dir: str = "projects") -> dict[str, Any]:
-        """Approve the current stage after checking its required artifacts and advance state."""
-        return approve_stage(workspace(project_id, projects_dir), stage, approved_by, reason)
+                          projects_dir: str = "projects", artifact_operation: str | None = None,
+                          artifact_version: int | None = None, operation_id: str | None = None,
+                          expected_workflow_version: int | None = None) -> dict[str, Any]:
+        """Human-authorized gate. Structured plans require the reviewed current operation/version."""
+        return approve_stage(workspace(project_id, projects_dir), stage, approved_by, reason,
+                             artifact_operation=artifact_operation, artifact_version=artifact_version,
+                             operation_id=operation_id, expected_workflow_version=expected_workflow_version)
 
     @server.tool()
     def psa_validate(project_id: str, projects_dir: str = "projects") -> dict[str, Any]:
@@ -178,16 +208,20 @@ def create_server() -> Any:
 
     @server.tool()
     def psa_render(project_id: str, discard_generated_edits_by: str = "", reason: str = "",
-                   projects_dir: str = "projects") -> dict[str, Any]:
+                   projects_dir: str = "projects", operation_id: str | None = None,
+                   expected_workflow_version: int | None = None) -> dict[str, Any]:
         """Regenerate derived Markdown; direct edits require an explicit actor and reason and are audited."""
         paths = render_project(workspace(project_id, projects_dir),
-                               discard_generated_edits_by=discard_generated_edits_by, discard_reason=reason)
+                               discard_generated_edits_by=discard_generated_edits_by, discard_reason=reason,
+                               operation_id=operation_id, expected_workflow_version=expected_workflow_version)
         return {"rendered": [str(path) for path in paths]}
 
     @server.tool()
-    def psa_render_adopt_existing(project_id: str, projects_dir: str = "projects") -> dict[str, Any]:
+    def psa_render_adopt_existing(project_id: str, projects_dir: str = "projects", operation_id: str | None = None,
+                                  expected_workflow_version: int | None = None) -> dict[str, Any]:
         """Track current generated Markdown hashes without overwriting the files."""
-        return adopt_existing_render(workspace(project_id, projects_dir))
+        return adopt_existing_render(workspace(project_id, projects_dir), operation_id=operation_id,
+                                      expected_workflow_version=expected_workflow_version)
 
     @server.tool()
     def psa_critic_pack(project_id: str, output_path: str = "", projects_dir: str = "projects") -> dict[str, str]:
@@ -216,7 +250,7 @@ def create_server() -> Any:
 
 
 def main() -> None:
-    create_server().run(transport="stdio")
+    create_server().run(transport="stdio", show_banner=False)
 
 
 if __name__ == "__main__":

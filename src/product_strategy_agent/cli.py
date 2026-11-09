@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import argparse
+from contextlib import ExitStack
 import json
 import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from uuid import UUID
 
 from product_strategy_agent import __version__
 from product_strategy_agent.critic import write_critic_pack
@@ -21,6 +23,13 @@ from product_strategy_agent.validation import validate_project, verify_project
 from product_strategy_agent.usage import add_usage, usage_report
 from product_strategy_agent.workflow import MODE_PROFILES, NEXT_ACTIONS, WORK_STAGES, approve_stage, set_project_mode
 from product_strategy_agent.revisit import build_revisit_report, resolve_source_revision
+from product_strategy_agent.application.services.instruction_context_service import instruction_context
+from product_strategy_agent.application.services.workspace_service import WorkspaceService
+from product_strategy_agent.adapters.persistence.files.workspace_repository import FileWorkspaceStore
+from product_strategy_agent.interfaces.cli.workspace_commands import add_workspace_commands, handle_workspace_command
+from product_strategy_agent.interfaces.cli.research_artifact_commands import add_research_artifact_commands, handle_research_artifact_command
+from product_strategy_agent.interfaces.cli.file_workflow_commands import add_workflow_commands, handle_workflow_command
+from product_strategy_agent.adapters.persistence.files.case_access import case_access
 
 STAGES = (
     "intake",
@@ -49,62 +58,27 @@ def state_file(project_id: str, projects_dir: Path) -> Path:
 
 
 def load_state(project_id: str, projects_dir: Path) -> dict[str, Any]:
-    path = state_file(project_id, projects_dir)
-    if not path.is_file():
-        raise FileNotFoundError(f"Project '{project_id}' was not found at {path}")
-    state = json.loads(path.read_text(encoding="utf-8"))
-    if state.get("schema_version") != 1 or state.get("project_id") != project_id:
-        raise ValueError(f"Unsupported or invalid project state: {path}")
-    return state
+    with case_access(projects_dir, project_id):
+        path = state_file(project_id, projects_dir)
+        if not path.is_file():
+            raise FileNotFoundError(f"Project '{project_id}' was not found at {path}")
+        state = json.loads(path.read_text(encoding="utf-8"))
+        if state.get("schema_version") != 1 or state.get("project_id") != project_id:
+            raise ValueError(f"Unsupported or invalid project state: {path}")
+        return state
 
 
 def init_project(project_id: str, projects_dir: Path) -> Path:
-    path = project_path(project_id, projects_dir)
-    path.mkdir(parents=True, exist_ok=True)
-    state_path = path / "state.json"
-    if state_path.exists():
-        raise FileExistsError(f"Project '{project_id}' already exists at {path}")
-
-    now = utc_now()
-    state = {
-        "schema_version": 1,
-        "project_id": project_id,
-        "created_at": now,
-        "updated_at": now,
-        "status": "intake",
-        "mode": "decision_grade",
-        "mode_history": [],
-        "stages": {stage: ("in_progress" if stage == "intake" else "not_started") for stage in STAGES},
-        "next_action": NEXT_ACTIONS["intake"],
-        "open_questions": [],
-    }
-    (path / "state.json").write_text(json.dumps(state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    (path / "01_brief.md").write_text(
-        f"# Бриф: {project_id}\n\n"
-        "## Вопрос решения\n\n"
-        "## Желаемый результат и критерии успеха\n\n"
-        "## Кто принимает решение и к какому сроку\n\n"
-        "## Ограничения и разрешённые данные\n\n"
-        "## Доступные материалы\n",
-        encoding="utf-8",
-    )
-    (path / "02_research-plan.md").write_text(
-        "# План исследования\n\n"
-        "## Вопросы исследования\n\n"
-        "## Методы и источники\n\n"
-        "## Критерии достаточности\n",
-        encoding="utf-8",
-    )
-    for name in ("sources.jsonl", "claims.jsonl", "gaps.jsonl", "options.jsonl", "decision-log.jsonl", "usage.jsonl", "events.jsonl", "capabilities.jsonl"):
-        (path / name).write_text("", encoding="utf-8")
-    (path / "sources").mkdir(exist_ok=True)
-    return path
+    return WorkspaceService(FileWorkspaceStore(projects_dir)).initialize(project_id)
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="psa", description="Evidence-based product strategy workflow")
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     commands = parser.add_subparsers(dest="command", required=True)
+    add_workspace_commands(commands)
+    add_research_artifact_commands(commands)
+    add_workflow_commands(commands)
 
     doctor = commands.add_parser("doctor", help="check Python, templates, and optional local configuration")
     doctor.add_argument("--json", action="store_true", help="print a JSON diagnostic report")
@@ -112,6 +86,11 @@ def build_parser() -> argparse.ArgumentParser:
     init = commands.add_parser("init", help="create a new project workspace")
     init.add_argument("project_id")
     init.add_argument("--projects-dir", type=Path, default=Path("projects"))
+
+    context = commands.add_parser("context", help="read stage-scoped instructions, skills and knowledge with hashes")
+    context.add_argument("project_id")
+    context.add_argument("--projects-dir", type=Path, default=Path("projects"))
+    context.add_argument("--instructions-root", type=Path, default=Path("."))
 
     for command, help_text in (
         ("status", "show the current project stage"),
@@ -129,6 +108,8 @@ def build_parser() -> argparse.ArgumentParser:
         sub.add_argument("project_id")
         sub.add_argument("value", help="local file path" if action == "add" else "http(s) URL")
         sub.add_argument("--title")
+        sub.add_argument("--operation", type=UUID, help="caller-chosen UUID; completed replay does not re-read/re-fetch")
+        sub.add_argument("--expected-workflow-version", type=int, help="expected shared workflow journal version")
         sub.add_argument("--projects-dir", type=Path, default=Path("projects"))
     source_list = source_commands.add_parser("list", help="list registered sources")
     source_list.add_argument("project_id")
@@ -211,6 +192,8 @@ def build_parser() -> argparse.ArgumentParser:
     render.add_argument("--discard-generated-edits", action="store_true", help="restore edited generated files and audit the explicit authorization")
     render.add_argument("--by", default="", help="person authorizing replacement of edited generated files")
     render.add_argument("--reason", default="", help="reason for replacing edited generated files")
+    render.add_argument("--operation", type=UUID, help="caller-chosen UUID for exact render/adopt replay")
+    render.add_argument("--expected-workflow-version", type=int, help="expected shared workflow journal version")
     critic = commands.add_parser("critic-pack", help="build a review bundle for an independent critic")
     critic.add_argument("project_id")
     critic.add_argument("--out", type=Path, help="output Markdown path (default: <project>/reviews/critic-pack.md)")
@@ -246,6 +229,10 @@ def build_parser() -> argparse.ArgumentParser:
     approve.add_argument("--stage", choices=(*WORK_STAGES,), required=True)
     approve.add_argument("--by", required=True, help="person or role making the approval")
     approve.add_argument("--reason", default="")
+    approve.add_argument("--artifact-operation", type=UUID, help="reviewed structured research plan operation UUID")
+    approve.add_argument("--artifact-version", type=int, help="reviewed artifact journal version")
+    approve.add_argument("--operation", type=UUID, help="caller-chosen UUID for exact gate replay")
+    approve.add_argument("--expected-workflow-version", type=int, help="expected shared workflow journal version")
     approve.add_argument("--projects-dir", type=Path, default=Path("projects"))
 
     mode = commands.add_parser("mode", help="set or show research depth for a project")
@@ -258,6 +245,8 @@ def build_parser() -> argparse.ArgumentParser:
     mode_set.add_argument("mode", choices=tuple(MODE_PROFILES))
     mode_set.add_argument("--by", required=True)
     mode_set.add_argument("--reason", default="")
+    mode_set.add_argument("--operation", type=UUID, help="caller-chosen UUID for exact mode-change replay")
+    mode_set.add_argument("--expected-workflow-version", type=int, help="expected shared workflow journal version")
     mode_set.add_argument("--projects-dir", type=Path, default=Path("projects"))
 
     revisit = commands.add_parser("revisit", help="review downstream work after a source revision")
@@ -270,6 +259,8 @@ def build_parser() -> argparse.ArgumentParser:
     revisit_resolve.add_argument("revision_event_id")
     revisit_resolve.add_argument("--by", required=True)
     revisit_resolve.add_argument("--reason", required=True)
+    revisit_resolve.add_argument("--operation", type=UUID, help="caller-chosen UUID for exact review replay")
+    revisit_resolve.add_argument("--expected-workflow-version", type=int, help="expected shared workflow journal version")
     revisit_resolve.add_argument("--reviewed-claim", action="append", default=[])
     revisit_resolve.add_argument("--reviewed-decision", action="append", default=[])
     revisit_resolve.add_argument("--projects-dir", type=Path, default=Path("projects"))
@@ -278,7 +269,23 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main() -> None:
     args = build_parser().parse_args()
+    access = ExitStack()
     try:
+        if args.command == "workflow":
+            handle_workflow_command(args)
+            return
+        if getattr(args, "project_id", None) and args.command not in {"init", "workspace"}:
+            access.enter_context(case_access(args.projects_dir, args.project_id))
+        if args.command == "artifact":
+            handle_research_artifact_command(args)
+            return
+        if args.command == "workspace":
+            handle_workspace_command(args)
+            return
+        if args.command == "context":
+            print(json.dumps(instruction_context(project_path(args.project_id, args.projects_dir), args.instructions_root),
+                             ensure_ascii=True, indent=2))
+            return
         if args.command == "doctor":
             report = doctor_report()
             print(json.dumps(report, ensure_ascii=False, indent=2) if args.json else format_doctor_report(report))
@@ -295,13 +302,15 @@ def main() -> None:
         if args.command == "source":
             project_dir = project_path(args.project_id, args.projects_dir)
             if args.source_command == "add":
-                record = add_local_source(project_dir, Path(args.value), args.title)
+                record = add_local_source(project_dir, Path(args.value), args.title,
+                                          operation_id=args.operation, expected_workflow_version=args.expected_workflow_version)
                 print(f"Imported {record['source_id']}: {record['title']}")
                 print(f"Extracted text: {project_dir / record['extracted_text_path']}")
                 if record.get("source_revision_event"):
                     print(f"Source changed; review dependent work with: psa revisit list {args.project_id}")
             elif args.source_command == "fetch":
-                record = fetch_web_source(project_dir, args.value, args.title)
+                record = fetch_web_source(project_dir, args.value, args.title,
+                                          operation_id=args.operation, expected_workflow_version=args.expected_workflow_version)
                 print(f"Fetched {record['source_id']}: {record['title']}")
                 print(f"Extracted text: {project_dir / record['extracted_text_path']}")
                 if record.get("source_revision_event"):
@@ -397,7 +406,7 @@ def main() -> None:
             if args.adopt_existing and args.discard_generated_edits:
                 raise ValueError("Choose either --adopt-existing or --discard-generated-edits")
             if args.adopt_existing:
-                report = adopt_existing_render(project_dir)
+                report = adopt_existing_render(project_dir, operation_id=args.operation, expected_workflow_version=args.expected_workflow_version)
                 print(f"Adopted existing artifacts without overwriting: {len(report['adopted_files'])} file(s)")
                 if report["replaced_invalid_manifest"]:
                     print("Replaced an invalid render manifest; existing Markdown was preserved")
@@ -407,6 +416,7 @@ def main() -> None:
                 project_dir,
                 discard_generated_edits_by=args.by if args.discard_generated_edits else "",
                 discard_reason=args.reason if args.discard_generated_edits else "",
+                operation_id=args.operation, expected_workflow_version=args.expected_workflow_version,
             ):
                 print(f"Rendered {output}")
             return
@@ -433,7 +443,9 @@ def main() -> None:
 
         if args.command == "gate":
             project_dir = project_path(args.project_id, args.projects_dir)
-            event = approve_stage(project_dir, args.stage, args.by, args.reason)
+            event = approve_stage(project_dir, args.stage, args.by, args.reason,
+                                  artifact_operation=args.artifact_operation, artifact_version=args.artifact_version,
+                                  operation_id=args.operation, expected_workflow_version=args.expected_workflow_version)
             print(f"Approved {event['stage']} by {event['approved_by']}; next stage: {event['next_stage']}")
             print(f"Next action: {NEXT_ACTIONS[event['next_stage']]}")
             return
@@ -441,7 +453,8 @@ def main() -> None:
         if args.command == "mode":
             project_dir = project_path(args.project_id, args.projects_dir)
             if args.mode_command == "set":
-                event = set_project_mode(project_dir, args.mode, args.by, args.reason)
+                event = set_project_mode(project_dir, args.mode, args.by, args.reason,
+                                         operation_id=args.operation, expected_workflow_version=args.expected_workflow_version)
                 print(f"Mode changed from {event['from']} to {event['to']} by {event['changed_by']}")
             else:
                 state = load_state(args.project_id, args.projects_dir)
@@ -460,7 +473,8 @@ def main() -> None:
                 print(json.dumps(build_revisit_report(project_dir), ensure_ascii=False, indent=2))
             else:
                 event = resolve_source_revision(project_dir, args.revision_event_id, args.by, args.reason,
-                                                args.reviewed_claim, args.reviewed_decision)
+                                                args.reviewed_claim, args.reviewed_decision,
+                                                operation_id=args.operation, expected_workflow_version=args.expected_workflow_version)
                 print(f"Reviewed source revision {event['revision_event_id']} by {event['reviewed_by']}")
             return
 
@@ -471,6 +485,7 @@ def main() -> None:
             if not isinstance(mode_name, str) or mode_name not in MODE_PROFILES:
                 raise ValueError(f"Unknown project mode: {mode_name}")
             print(f"Project: {args.project_id}\nStage: {stage}\nMode: {mode_name}\nNext action: {state['next_action']}")
+            print(f"Workflow version: {state.get('workflow_version', 0)}")
             if state["open_questions"]:
                 print("Open questions:")
                 for question in state["open_questions"]:
@@ -494,6 +509,8 @@ def main() -> None:
                 print(f"Last approved: {latest['stage']} by {latest['approved_by']} at {latest['approved_at']}")
     except (FileExistsError, FileNotFoundError, ValueError, OSError, json.JSONDecodeError) as error:
         raise SystemExit(f"psa: error: {error}") from error
+    finally:
+        access.close()
 
 
 if __name__ == "__main__":

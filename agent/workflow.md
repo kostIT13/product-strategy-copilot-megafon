@@ -1,0 +1,22 @@
+# Работа с файловым кейсом
+
+Все примеры выполняются из репозитория с установленным пакетом (`python -m pip install -e .`). `ID` — безопасный project ID, не полный путь. Для внешнего каталога у существующих команд есть `--projects-dir PATH`. У context дополнительно есть `--instructions-root REPO`.
+
+| Этап | Действие и сохраняемый результат |
+| --- | --- |
+| intake | В 01_brief.md: вопрос решения, критерии успеха, владелец/срок, ограничения и доступные данные. Задавай вопросы, способные изменить следующий шаг |
+| research_plan | В 02_research-plan.md: вопросы, влияние на выбор, источники/методы, достаточность и лимиты. Показать план человеку |
+| source_collection | `psa source add ID FILE` или явный `psa source fetch ID URL`; `psa source list ID`; прочитать извлечённый текст, сохранить происхождение/ограничения |
+| evidence_review | `psa claim add ID --type fact --text TEXT --source S-ID --locator LOCATOR --quote EXACT_QUOTE`; для неизвестного `psa gap add ID --question TEXT --priority high`; fact не используется без проверяемой цитаты |
+| options | `psa option add ID --name NAME --role status_quo --description TEXT`; аналогично stop и change. Сравнить стоимость, пользу, риск, возражение, допущение и проверку |
+| strategy | После указания человека `psa decision add ID --option NAME --option-id O-ID --owner OWNER --rationale TEXT --revisit-when TRIGGER`; затем `psa render ID` создаёт недостающие author drafts, их нужно содержательно заполнить |
+| validation | Заполнить drafts/validation-plan.md; validate/verify/coverage, render и review читаемых результатов |
+| completed | Показать решение, основание, ограничения и условие пересмотра; не начинать новое исследование без задачи |
+
+Перед переходом показать человеку результат и команду `psa gate approve ID --stage STAGE --by OWNER --reason TEXT`; выполнять её только по его явной инструкции. Текущий CLI требует gates на каждом этапе; не обходить это ручной правкой state. Не превращать обновлённый целевой план в обещание уже готового свободного перехода.
+
+Авторские стратегии: drafts/product-strategy.md, drafts/communication-strategy.md, drafts/validation-plan.md. После редактирования: `psa render ID`, `psa validate ID`, `psa verify ID`, `psa coverage ID`. Generated файлы не редактировать, флаги discard/adopt не использовать для скрытого обхода integrity.
+
+Critic: `psa critic-pack ID`; это пакет для отдельного review, не автоматический запуск модели. Usage: `psa usage report ID`; добавить реально доступную телеметрию через `psa usage add ID --provider PROVIDER --model MODEL --operation OP --stage STAGE`. Неизвестные tokens/cost не подменять нулём.
+
+При паузе сохранить разрешённые author drafts, показать текущий этап/следующий шаг, незакрытые вопросы и ошибки. Не повторять paid/fetch/import действия только потому, что чат новый. Если входы изменились — использовать resume skill и revisit. Файловая multi-file транзакционность целевого R2 ещё не заявляется готовой.

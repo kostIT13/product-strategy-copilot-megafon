@@ -5,35 +5,24 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import Any
+from uuid import uuid4
 
 from product_strategy_agent.sources import utc_now
 from product_strategy_agent.coverage import coverage_report
 from product_strategy_agent.artifacts import render_integrity_report
+from product_strategy_agent.adapters.persistence.files.case_access import case_access, locked_case
+from product_strategy_agent.adapters.persistence.files.research_artifact_repository import FileResearchArtifactStore
+from product_strategy_agent.application.services.research_artifact_service import ResearchArtifactService
+from product_strategy_agent.adapters.persistence.files.workflow_repository import FileWorkflowStore
+from product_strategy_agent.domain.projects.gate_approval import GateApproval
+from product_strategy_agent.domain.projects.mode_change import ModeChange
+from product_strategy_agent.application.services.mode_change_service import ModeChangeService
+from product_strategy_agent.domain.projects.research_modes import MODE_PROFILES
 
 WORK_STAGES = ("intake", "research_plan", "source_collection", "evidence_review", "options", "strategy", "validation")
-MODE_PROFILES = {
-    "quick_scan": {
-        "description": "Быстрая первичная ориентация; выводы остаются предварительными.",
-        "minimum_sources": 1,
-        "source_shortage_exception": False,
-        "guidance": "Сосредоточьтесь на вопросах, которые могут изменить направление; явно перечислите неизвестное.",
-    },
-    "decision_grade": {
-        "description": "Стандартная подготовка решения с основаниями, вариантами и планом проверки.",
-        "minimum_sources": 2,
-        "source_shortage_exception": True,
-        "guidance": "Подкрепите ключевые факты цитатами; сравните три варианта и зафиксируйте условие пересмотра. Стремитесь к двум источникам; при нехватке зафиксируйте открытый пробел высокого приоритета.",
-    },
-    "deep_research": {
-        "description": "Расширенное исследование с сопоставлением нескольких источников и альтернативных объяснений.",
-        "minimum_sources": 4,
-        "source_shortage_exception": True,
-        "guidance": "Ищите не менее четырёх различных источников, проверяйте их независимость, ищите противоречия; при нехватке источников добавьте открытый пробел высокого приоритета.",
-    },
-}
 NEXT_ACTIONS = {
     "intake": "Заполнить 01_brief.md и утвердить бриф",
-    "research_plan": "Подготовить 02_research-plan.md и утвердить план исследования",
+    "research_plan": "Подготовить и явно утвердить план исследования; для structured draft указать operation/version, иначе использовать 02_research-plan.md",
     "source_collection": "Добавить разрешённые источники и утвердить их сбор",
     "evidence_review": "Записать утверждения и пробелы, затем утвердить обзор доказательств",
     "options": "Записать статус-кво, закрытие и вариант изменения; затем утвердить сравнение",
@@ -106,11 +95,43 @@ def _check_stage(project_dir: Path, stage: str, mode: str) -> None:
             raise ValueError("Resolve generated artifact integrity issues before approving validation: " + "; ".join(integrity["errors"]))
 
 
-def approve_stage(project_dir: Path, stage: str, approved_by: str, reason: str = "") -> dict[str, Any]:
+def approve_stage(project_dir: Path, stage: str, approved_by: str, reason: str = "", *,
+                  artifact_operation=None, artifact_version=None, operation_id=None,
+                  expected_workflow_version=None) -> dict[str, Any]:
+    """Explicit human gate with write-ahead state/events publication and recovery."""
+    if not approved_by.strip():
+        raise ValueError("Approval requires a person or role in --by")
+    command = GateApproval(operation_id=operation_id or uuid4(), stage=stage, approved_by=approved_by, reason=reason,
+        artifact_operation=artifact_operation, artifact_version=artifact_version,
+        expected_workflow_version=expected_workflow_version)
+    if stage != "research_plan" and (artifact_operation is not None or artifact_version is not None):
+        raise ValueError("artifact selection is only supported for the research_plan gate")
+    project_dir = Path(project_dir).absolute()
+    with case_access(project_dir.parent, project_dir.name):
+        store = FileWorkflowStore(project_dir.parent)
+        replay = store.replay(project_dir.name, command)
+        if replay is not None:
+            return replay
+        reference = None
+        if stage == "research_plan":
+            service = ResearchArtifactService(FileResearchArtifactStore(project_dir.parent))
+            reference = service.review_for_approval(project_dir.name, artifact_operation, artifact_version)
+        return _approve_stage(project_dir, stage, command.approved_by, command.reason, reference, command, store)
+
+
+def _approve_stage(project_dir, stage, approved_by, reason, research_plan_reference, command, store):
     state_path = project_dir / "state.json"
     if not state_path.is_file():
         raise FileNotFoundError(f"Not a project workspace: {project_dir}")
-    state = json.loads(state_path.read_text(encoding="utf-8"))
+    before_state = state_path.read_bytes()
+    before_events = (project_dir / "events.jsonl").read_bytes()
+    inputs = store.input_snapshot(project_dir)
+    state = json.loads(before_state)
+    version = state.get("workflow_version", 0)
+    if type(version) is not int or version < 0:
+        raise ValueError("invalid workflow version")
+    if command.expected_workflow_version is not None and command.expected_workflow_version != version:
+        raise ValueError("expected_workflow_version conflict; review current workflow state")
     if state.get("status") == "completed":
         raise ValueError("Project is already completed")
     if stage != state.get("status"):
@@ -123,7 +144,8 @@ def approve_stage(project_dir: Path, stage: str, approved_by: str, reason: str =
     mode = state.get("mode", "decision_grade")
     if not isinstance(mode, str) or mode not in MODE_PROFILES:
         raise ValueError(f"Unknown project mode: {mode}")
-    _check_stage(project_dir, stage, mode)
+    if stage != "research_plan" or research_plan_reference is None:
+        _check_stage(project_dir, stage, mode)
 
     sequence = WORK_STAGES.index(stage)
     next_stage = WORK_STAGES[sequence + 1] if sequence + 1 < len(WORK_STAGES) else "completed"
@@ -132,6 +154,7 @@ def approve_stage(project_dir: Path, stage: str, approved_by: str, reason: str =
     state["status"] = next_stage
     state["updated_at"] = utc_now()
     state["next_action"] = NEXT_ACTIONS[next_stage]
+    state["workflow_version"] = version + 1
     approvals = state.setdefault("approvals", [])
     event = {
         "schema_version": 1,
@@ -141,51 +164,23 @@ def approve_stage(project_dir: Path, stage: str, approved_by: str, reason: str =
         "approved_at": utc_now(),
         "reason": reason.strip(),
         "next_stage": next_stage,
+        "operation_id": str(command.operation_id),
+        "workflow_version": version + 1,
     }
+    if research_plan_reference is not None:
+        event["research_plan_artifact"] = research_plan_reference
     approvals.append(event)
-    state_path.write_text(json.dumps(state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    with (project_dir / "events.jsonl").open("a", encoding="utf-8", newline="\n") as stream:
-        stream.write(json.dumps(event, ensure_ascii=False, sort_keys=True) + "\n")
-    return event
+    return store.commit(project_dir.name, command, before_state, state, before_events, event, inputs)
 
 
-def set_project_mode(project_dir: Path, mode: str, changed_by: str, reason: str = "") -> dict[str, Any]:
+@locked_case
+def set_project_mode(project_dir: Path, mode: str, changed_by: str, reason: str = "", *,
+                     operation_id=None, expected_workflow_version=None) -> dict[str, Any]:
     if not isinstance(mode, str) or mode not in MODE_PROFILES:
         raise ValueError(f"Mode must be one of: {', '.join(MODE_PROFILES)}")
-    changed_by = changed_by.strip()
-    if not changed_by:
+    if not changed_by.strip():
         raise ValueError("Mode change requires a person or role in --by")
-    state_path = project_dir / "state.json"
-    if not state_path.is_file():
-        raise FileNotFoundError(f"Not a project workspace: {project_dir}")
-    state = json.loads(state_path.read_text(encoding="utf-8"))
-    if state.get("status") == "completed":
-        raise ValueError("Cannot change the mode of a completed project")
-    previous = state.get("mode", "decision_grade")
-    if previous == mode:
-        raise ValueError(f"Project already uses mode '{mode}'")
-    if state.get("stages", {}).get("source_collection") == "done":
-        profile = MODE_PROFILES[mode]
-        source_count = len(_load_records(project_dir / "sources.jsonl"))
-        high_priority_gaps = [gap for gap in _load_records(project_dir / "gaps.jsonl") if gap.get("status") == "open" and gap.get("priority") == "high"]
-        shortage_allowed = profile["source_shortage_exception"] and source_count > 0 and high_priority_gaps
-        if source_count < profile["minimum_sources"] and not shortage_allowed:
-            raise ValueError(f"Mode '{mode}' requires at least {profile['minimum_sources']} sources or an open high-priority gap before switching")
-    history = state.setdefault("mode_history", [])
-    event = {
-        "schema_version": 1,
-        "event_id": f"MODE-{len(history) + 1:03d}",
-        "event_type": "mode_changed",
-        "from": previous,
-        "to": mode,
-        "changed_by": changed_by,
-        "changed_at": utc_now(),
-        "reason": reason.strip(),
-    }
-    history.append(event)
-    state["mode"] = mode
-    state["updated_at"] = utc_now()
-    state_path.write_text(json.dumps(state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    with (project_dir / "events.jsonl").open("a", encoding="utf-8", newline="\n") as stream:
-        stream.write(json.dumps(event, ensure_ascii=False, sort_keys=True) + "\n")
-    return event
+    command = ModeChange(operation_id=operation_id or uuid4(), mode=mode, changed_by=changed_by, reason=reason,
+                         expected_workflow_version=expected_workflow_version)
+    project_dir = Path(project_dir).absolute()
+    return ModeChangeService(FileWorkflowStore(project_dir.parent)).change(project_dir.name, command)

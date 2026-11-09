@@ -20,6 +20,8 @@ wheels/
 postgres-data/
 backups/
 *.sqlite3
+.psa-locks/
+.psa-staging/
 
 # Local project source material
 projects/*/sources/
