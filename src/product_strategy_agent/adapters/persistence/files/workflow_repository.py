@@ -21,6 +21,16 @@ class FileWorkflowStore:
     def __init__(self, projects_dir):
         self.root = Path(projects_dir).resolve()
 
+    def access(self, project_id):
+        return case_access(self.root, project_id)
+
+    @locked_store_method()
+    def capture(self, project_id):
+        case = self._case(project_id)
+        return {"state": read_small(case, "state.json"), "events": read_small(case, "events.jsonl"),
+                "inputs": self.input_snapshot(case), "sources": read_small(case, "sources.jsonl"),
+                "gaps": read_small(case, "gaps.jsonl")}
+
     def _case(self, project_id):
         case = confined(self.root, validate_workspace_id(project_id))
         if not case.is_dir():

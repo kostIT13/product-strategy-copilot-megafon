@@ -1,4 +1,4 @@
-"""Inspect and recover gate state/events publication without reissuing consent."""
+"""Inspect and recover gate/mode state/events publication without reissuing consent."""
 import json
 from pathlib import Path
 from uuid import UUID
@@ -7,7 +7,7 @@ from product_strategy_agent.adapters.persistence.files.workflow_repository impor
 
 
 def add_workflow_commands(commands):
-    parser = commands.add_parser("workflow", help="Inspect/recover interrupted workflow approvals")
+    parser = commands.add_parser("workflow", help="Inspect/recover interrupted gate/mode operations")
     actions = parser.add_subparsers(dest="workflow_action", required=True)
     for name in ("pending", "recover"):
         action = actions.add_parser(name)

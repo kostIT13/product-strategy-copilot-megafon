@@ -30,15 +30,16 @@ MODE_WRITER = r'''
 import sys,time
 from pathlib import Path
 from product_strategy_agent.workflow import set_project_mode
+from product_strategy_agent.adapters.persistence.files.workflow_repository import FileWorkflowStore
 root,signal,release=map(Path,sys.argv[1:])
-original=Path.write_text
-def write(self,*args,**kwargs):
-    result=original(self,*args,**kwargs)
-    if self==root/"case/state.json":
-        original(signal,"ready",encoding="utf-8")
+original=FileWorkflowStore._replace
+def write(self,case,name,data):
+    result=original(self,case,name,data)
+    if name=="state.json":
+        signal.write_text("ready",encoding="utf-8")
         while not release.exists(): time.sleep(.02)
     return result
-Path.write_text=write
+FileWorkflowStore._replace=write
 set_project_mode(root/"case","quick_scan","Fixture owner")
 '''
 
@@ -98,7 +99,7 @@ class CaseAccessTests(unittest.TestCase):
             with project_lock(root, "case"):
                 pass
 
-    def test_paused_legacy_mode_writer_blocks_all_core_readers_and_writers(self):
+    def test_paused_mode_writer_blocks_all_core_readers_and_writers(self):
         with TemporaryDirectory() as folder:
             root = Path(folder) / "projects"
             ready(root)

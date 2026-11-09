@@ -228,7 +228,7 @@ def build_parser() -> argparse.ArgumentParser:
     approve.add_argument("--artifact-operation", type=UUID, help="reviewed structured research plan operation UUID")
     approve.add_argument("--artifact-version", type=int, help="reviewed artifact journal version")
     approve.add_argument("--operation", type=UUID, help="caller-chosen UUID for exact gate replay")
-    approve.add_argument("--expected-workflow-version", type=int, help="optimistic gate-only workflow version")
+    approve.add_argument("--expected-workflow-version", type=int, help="expected shared gate/mode journal version")
     approve.add_argument("--projects-dir", type=Path, default=Path("projects"))
 
     mode = commands.add_parser("mode", help="set or show research depth for a project")
@@ -241,6 +241,8 @@ def build_parser() -> argparse.ArgumentParser:
     mode_set.add_argument("mode", choices=tuple(MODE_PROFILES))
     mode_set.add_argument("--by", required=True)
     mode_set.add_argument("--reason", default="")
+    mode_set.add_argument("--operation", type=UUID, help="caller-chosen UUID for exact mode-change replay")
+    mode_set.add_argument("--expected-workflow-version", type=int, help="expected shared gate/mode journal version")
     mode_set.add_argument("--projects-dir", type=Path, default=Path("projects"))
 
     revisit = commands.add_parser("revisit", help="review downstream work after a source revision")
@@ -442,7 +444,8 @@ def main() -> None:
         if args.command == "mode":
             project_dir = project_path(args.project_id, args.projects_dir)
             if args.mode_command == "set":
-                event = set_project_mode(project_dir, args.mode, args.by, args.reason)
+                event = set_project_mode(project_dir, args.mode, args.by, args.reason,
+                                         operation_id=args.operation, expected_workflow_version=args.expected_workflow_version)
                 print(f"Mode changed from {event['from']} to {event['to']} by {event['changed_by']}")
             else:
                 state = load_state(args.project_id, args.projects_dir)
@@ -472,6 +475,7 @@ def main() -> None:
             if not isinstance(mode_name, str) or mode_name not in MODE_PROFILES:
                 raise ValueError(f"Unknown project mode: {mode_name}")
             print(f"Project: {args.project_id}\nStage: {stage}\nMode: {mode_name}\nNext action: {state['next_action']}")
+            print(f"Workflow version: {state.get('workflow_version', 0)}")
             if state["open_questions"]:
                 print("Open questions:")
                 for question in state["open_questions"]:

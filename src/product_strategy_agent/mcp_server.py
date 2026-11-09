@@ -71,6 +71,7 @@ def create_server() -> Any:
         if not isinstance(mode, str) or mode not in MODE_PROFILES:
             raise ValueError(f"Unknown project mode: {mode}")
         return {"project_id": project_id, "status": state["status"], "mode": mode,
+                "workflow_version": state.get("workflow_version", 0),
                 "mode_guidance": MODE_PROFILES[mode]["guidance"], "next_action": state["next_action"],
                 "open_questions": state.get("open_questions", []), "approvals": state.get("approvals", [])}
 
@@ -86,9 +87,11 @@ def create_server() -> Any:
 
     @server.tool()
     def psa_mode_set(project_id: str, mode: str, changed_by: str, reason: str = "",
-                     projects_dir: str = "projects") -> dict[str, Any]:
+                     projects_dir: str = "projects", operation_id: str | None = None,
+                     expected_workflow_version: int | None = None) -> dict[str, Any]:
         """Set the research depth; this does not change tools or access permissions."""
-        return set_project_mode(workspace(project_id, projects_dir), mode, changed_by, reason)
+        return set_project_mode(workspace(project_id, projects_dir), mode, changed_by, reason,
+                                operation_id=operation_id, expected_workflow_version=expected_workflow_version)
 
     @server.tool()
     def psa_revisit(project_id: str, projects_dir: str = "projects") -> dict[str, Any]:

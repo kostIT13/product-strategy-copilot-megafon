@@ -24,8 +24,8 @@ import sys,time
 from pathlib import Path
 from uuid import UUID
 import product_strategy_agent.adapters.persistence.files.workflow_repository as module
-from product_strategy_agent.workflow import approve_stage
-root,signal,point,operation=sys.argv[1:]
+from product_strategy_agent.workflow import approve_stage,set_project_mode
+root,signal,point,operation,action=sys.argv[1:]
 def pause():
     Path(signal).write_text("ready",encoding="utf-8")
     while True: time.sleep(.02)
@@ -46,7 +46,10 @@ def durable(path,data):
     write(path,data)
     if point=="partial" and path.name=="event.json": pause()
 module.durable_write=durable
-approve_stage(Path(root)/"case","intake","Fixture owner",operation_id=UUID(operation),expected_workflow_version=0)
+if action=="mode":
+    set_project_mode(Path(root)/"case","quick_scan","Fixture owner",operation_id=UUID(operation),expected_workflow_version=0)
+else:
+    approve_stage(Path(root)/"case","intake","Fixture owner",operation_id=UUID(operation),expected_workflow_version=0)
 '''
 
 
@@ -56,10 +59,10 @@ def fixture(root):
     return WorkflowRecoveryService(FileWorkflowStore(root))
 
 
-def kill_at(root, point, inspect=None):
+def kill_at(root, point, inspect=None, action="gate"):
     operation = uuid4()
     signal = root.parent / f"signal-{operation.hex}"
-    child = subprocess.Popen([sys.executable, "-c", CHILD, str(root), str(signal), point, str(operation)],
+    child = subprocess.Popen([sys.executable, "-c", CHILD, str(root), str(signal), point, str(operation), action],
         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     try:
         deadline = time.monotonic() + 25
@@ -217,8 +220,133 @@ class WorkflowRecoveryTests(unittest.TestCase):
                         child.communicate(timeout=10)
 
 
+class ModeRecoveryTests(unittest.TestCase):
+    def test_mode_recovers_each_crash_boundary_without_advancing_or_approving_stage(self):
+        for point in ("prepared", "marker", "state", "events", "receipt", "done"):
+            with self.subTest(point=point), TemporaryDirectory() as folder:
+                root = Path(folder) / "projects"
+                service = fixture(root)
+                operation = kill_at(root, point, action="mode")
+                event = service.recover("case", operation)
+                self.assertEqual(service.recover("case", operation), event)
+                state = load_state("case", root)
+                self.assertEqual(state["mode"], "quick_scan")
+                self.assertEqual(state["status"], "intake")
+                self.assertEqual(state.get("approvals", []), [])
+                self.assertEqual(state["mode_history"], [event])
+                self.assertEqual(state["workflow_version"], 1)
+                self.assertEqual((root / "case/events.jsonl").read_text(encoding="utf-8").count(event["operation_id"]), 1)
+
+    def test_shared_version_exact_replay_and_cross_kind_uuid_collision(self):
+        with TemporaryDirectory() as folder:
+            root = Path(folder) / "projects"
+            fixture(root)
+            operation = uuid4()
+            event = set_project_mode(root / "case", "quick_scan", "Owner", operation_id=operation, expected_workflow_version=0)
+            gate = approve_stage(root / "case", "intake", "Owner", expected_workflow_version=1)
+            self.assertEqual(gate["workflow_version"], 2)
+            before = (root / "case/state.json").read_bytes()
+            self.assertEqual(set_project_mode(root / "case", "quick_scan", "Owner", operation_id=operation, expected_workflow_version=0), event)
+            for action in (lambda: set_project_mode(root / "case", "deep_research", "Owner", operation_id=operation, expected_workflow_version=0),
+                    lambda: approve_stage(root / "case", "intake", "Owner", operation_id=operation, expected_workflow_version=0),
+                    lambda: set_project_mode(root / "case", "deep_research", "Owner", expected_workflow_version=1)):
+                with self.assertRaises(ValueError):
+                    action()
+            self.assertEqual((root / "case/state.json").read_bytes(), before)
+
+    def test_mode_source_requirements_and_gap_exception_are_preserved(self):
+        from product_strategy_agent.sources import add_local_source
+        with TemporaryDirectory() as folder:
+            root = Path(folder) / "projects"
+            fixture(root)
+            case = root / "case"
+            state = load_state("case", root)
+            state["status"] = "evidence_review"
+            state["stages"]["source_collection"] = "done"
+            (case / "state.json").write_text(json.dumps(state), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "requires at least"):
+                set_project_mode(case, "deep_research", "Owner")
+            source = Path(folder) / "own.txt"
+            source.write_text("Synthetic research fixture; no real market conclusions.")
+            add_local_source(case, source)
+            add_gap(case, "Missing corroboration?", "Pilot uncertainty", priority="high")
+            event = set_project_mode(case, "deep_research", "Owner")
+            current = load_state("case", root)
+            self.assertEqual(current["status"], "evidence_review")
+            self.assertEqual(current.get("approvals", []), [])
+            self.assertEqual(current["mode_history"], [event])
+
+    def test_recovery_rejects_mode_stage_mutation_even_with_updated_file_hash(self):
+        from product_strategy_agent.adapters.persistence.files.artifact_bundle import encode, digest
+        with TemporaryDirectory() as folder:
+            root = Path(folder) / "projects"
+            service = fixture(root)
+            operation = kill_at(root, "prepared", action="mode")
+            bundle = root / f"case/.psa/workflow/operations/{operation.hex}"
+            state = json.loads((bundle / "state.after.json").read_bytes())
+            state["status"] = "completed"
+            data = encode(state)
+            (bundle / "state.after.json").write_bytes(data)
+            manifest = json.loads((bundle / "manifest.json").read_bytes())
+            manifest["files"]["state.after.json"] = digest(data)
+            (bundle / "manifest.json").write_bytes(encode(manifest))
+            with self.assertRaisesRegex(ValueError, "semantics"):
+                service.recover("case", operation)
+            self.assertEqual(load_state("case", root)["status"], "intake")
+
+    def test_portable_mode_preparation_rejects_changed_inputs_on_original(self):
+        with TemporaryDirectory() as folder:
+            root = Path(folder) / "projects"
+            service = fixture(root)
+            operation = kill_at(root, "state", action="mode")
+            copied = Path(folder) / "copied"
+            shutil.copytree(root / "case", copied / "case")
+            (root / "case/01_brief.md").write_text("Changed brief", encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "inputs changed"):
+                service.recover("case", operation)
+            event = WorkflowRecoveryService(FileWorkflowStore(copied)).recover("case", operation)
+            self.assertEqual(load_state("case", copied)["mode_history"], [event])
+            self.assertTrue((root / "case/.psa/workflow/ACTIVE.json").exists())
+
+    def test_cli_mode_uuid_replay_and_expected_version(self):
+        with TemporaryDirectory() as folder:
+            root = Path(folder) / "projects"
+            fixture(root)
+            operation = uuid4()
+            cli = [sys.executable, "-X", "utf8", "-m", "product_strategy_agent.cli", "mode", "set", "case", "quick_scan",
+                   "--by", "Owner", "--operation", str(operation), "--expected-workflow-version", "0", "--projects-dir", str(root)]
+            first = subprocess.check_output(cli)
+            self.assertEqual(subprocess.check_output(cli), first)
+            state = load_state("case", root)
+            self.assertEqual(len(state["mode_history"]), 1)
+            self.assertEqual(state["workflow_version"], 1)
+
+            status = subprocess.check_output([sys.executable, "-X", "utf8", "-m", "product_strategy_agent.cli", "status", "case", "--projects-dir", str(root)])
+            self.assertIn(b"Workflow version: 1", status)
+
+
 @unittest.skipUnless(importlib.util.find_spec("fastmcp"), "requires MCP extra")
 class WorkflowRecoveryStdioTests(unittest.IsolatedAsyncioTestCase):
+    async def test_mode_real_stdio_recovery_replay_and_gate_share_version(self):
+        from fastmcp import Client
+        from fastmcp.client.transports import StdioTransport
+        with TemporaryDirectory() as folder:
+            root = Path(folder) / "projects"
+            fixture(root)
+            operation = kill_at(root, "state", action="mode")
+            transport = StdioTransport(command=sys.executable, args=["-m", "product_strategy_agent.mcp_server"], cwd=str(ROOT), keep_alive=False)
+            async with Client(transport, timeout=60) as client:
+                args = {"project_id": "case", "projects_dir": str(root)}
+                event = (await client.call_tool("psa_recover_workflow", {**args, "operation_id": str(operation)})).data
+                replay = (await client.call_tool("psa_mode_set", {**args, "mode": "quick_scan", "changed_by": "Fixture owner",
+                    "operation_id": str(operation), "expected_workflow_version": 0})).data
+                self.assertEqual(event, replay)
+                gate = (await client.call_tool("psa_approve_stage", {**args, "stage": "intake", "approved_by": "Owner",
+                    "expected_workflow_version": 1})).data
+                self.assertEqual(gate["workflow_version"], 2)
+                self.assertEqual((await client.call_tool("psa_status", args)).data["workflow_version"], 2)
+                self.assertEqual(load_state("case", root)["mode_history"], [event])
+
     async def test_real_stdio_inspection_recovery_and_exact_gate_replay(self):
         from fastmcp import Client
         from fastmcp.client.transports import StdioTransport

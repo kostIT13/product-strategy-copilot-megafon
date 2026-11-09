@@ -32,6 +32,8 @@ Gate сохраняет state/events через write-ahead bundle. При пр�
 
 Файловые читатели и writers используют [общий lock кейса](docs/case-access.md). При занятой операции CLI/MCP возвращают `busy`; автоматического повтора нет. Вложенные core-вызовы используют один scope. Это защищает от участвующих конкурентных операций; crash recovery остальных legacy writes ещё переносится.
 
+Смена режима исследования также использует workflow recovery: `psa mode set ID quick_scan --by OWNER --operation UUID --expected-workflow-version N`. Общую версию gate/mode показывает `psa status ID`. Смена режима не утверждает этап; [контракт и совместимость](docs/file-mode-recovery.md).
+
 ### Импорт источников
 
 ```powershell
