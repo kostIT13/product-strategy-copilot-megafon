@@ -168,26 +168,3 @@ class StrategyOptionsTests(unittest.TestCase):
         self.fixture.reply(json.dumps(output))
         incomplete = critic.start("demo", target.id)
         self.assertEqual(self.pipeline.resume("demo", incomplete.id, 0).error_code, "invalid_model_output")
-
-
-@unittest.skipUnless(importlib.util.find_spec("fastmcp"), "requires MCP extra")
-class StrategyOptionsMCPTests(unittest.IsolatedAsyncioTestCase):
-    async def test_task_prepare_and_checkpointed_execution(self):
-        from fastmcp import Client
-        from product_strategy_agent.bootstrap import MainServices
-        from product_strategy_agent.interfaces.mcp.server import create_server
-        fixture, store, pipeline = test_agent_pipeline.pipeline_fixture()
-        fixture.reply(json.dumps(strategy_output(fixture)))
-        critic = AgentCriticService(fixture.service, pipeline)
-        args = {"project_key": "demo", "question": "Compare strategies", "query": "export", "task": "strategy_options"}
-        async with Client(create_server(MainServices(fixture.service, Mock(), pipeline, critic))) as client:
-            prepared = (await client.call_tool("psa_main_prepare_analysis", args)).data
-            self.assertEqual(prepared["task"], "strategy_options")
-            fixture.provider.generate.assert_not_called()
-            started = (await client.call_tool("psa_main_start_pipeline", args)).data
-            resume = {"project_key": "demo", "pipeline_id": started["id"], "expected_version": 0}
-            ready = (await client.call_tool("psa_main_resume_pipeline", resume)).data
-            done = (await client.call_tool("psa_main_resume_pipeline", {**resume, "expected_version": ready["version"]})).data
-            self.assertTrue(done["result"]["selection_required"])
-            self.assertEqual(len(done["result"]["draft"]["comparison"]), 3)
-            fixture.provider.generate.assert_called_once()

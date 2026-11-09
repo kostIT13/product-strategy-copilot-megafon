@@ -20,21 +20,6 @@ env:
   LITELLM_LOCAL_MODEL_COST_MAP: 'True'
 
 jobs:
-  docker:
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
-        with:
-          version: '0.11.30'
-          python-version: '3.12'
-          enable-cache: true
-      - run: uv sync --frozen --no-default-groups
-      - run: uv run --frozen --no-sync python -m scripts.ci.docker_smoke
-
   docs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -65,8 +50,11 @@ jobs:
           python-version: '3.12'
           enable-cache: true
       - run: uv sync --frozen --no-default-groups
-      - name: Pull pinned official Gitleaks CLI image
-        run: docker pull ghcr.io/gitleaks/gitleaks@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f
+      - name: Install checksum-pinned native Gitleaks
+        shell: bash
+        run: |
+          uv run --frozen --no-sync python -m scripts.ci.install_gitleaks --directory "$RUNNER_TEMP/psa-tools"
+          echo "$RUNNER_TEMP/psa-tools" >> "$GITHUB_PATH"
       - name: Check history, safe working tree and generated negative probes
         run: uv run --frozen --no-sync python -m scripts.ci.secrets
 
@@ -98,7 +86,6 @@ jobs:
       - run: uv run --frozen --no-sync ruff check .
       - run: uv run --frozen --no-sync python -m unittest discover -s tests
       - run: uv run --frozen --no-sync psa doctor
-      - run: uv run --frozen --no-sync psa-main --help
 
   base-install:
     runs-on: ubuntu-latest
@@ -115,43 +102,4 @@ jobs:
       - run: uv sync --frozen --no-default-groups
       - run: uv run --frozen --no-sync psa doctor
       - run: uv run --frozen --no-sync psa --help
-      - run: uv run --frozen --no-sync psa-main --help
-
-  postgres:
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    services:
-      postgres:
-        image: postgres:17-alpine
-        env:
-          POSTGRES_USER: ci
-          POSTGRES_PASSWORD: ci-local-only
-          POSTGRES_DB: strategy_ci
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U ci -d strategy_ci"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 10
-    env:
-      DATABASE_URL: postgresql+psycopg://ci:ci-local-only@127.0.0.1:5432/strategy_ci
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
-        with:
-          version: '0.11.30'
-          python-version: '3.12'
-          enable-cache: true
-      - run: uv sync --frozen --extra agent --extra documents --extra mcp --group dev
-      - run: uv run --frozen --no-sync alembic upgrade head
-      - run: uv run --frozen --no-sync alembic check
-      - name: Exercise PostgreSQL services, fixture pipelines, strategy approval and promise preflight
-        shell: bash
-        run: |
-          set -euo pipefail
-          for scenario in main agent agent_pipeline evidence_extraction agent_critic strategy_options strategy_selection strategy_plan promises main_mcp; do
-            uv run --frozen --no-sync python "scripts/smoke_${scenario}.py"
-          done
+      - run: uv run --frozen --no-sync python -m scripts.ci.base_smoke

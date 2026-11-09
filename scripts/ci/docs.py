@@ -10,8 +10,7 @@ from urllib.parse import unquote, urlsplit
 from markdown_it import MarkdownIt
 from scripts.ci.repository import git
 
-REQUIRED = ("README.md", "pyproject.toml", "uv.lock", ".env.example", "Dockerfile",
-            "docker-compose.yml", "alembic.ini", "alembic/env.py",
+REQUIRED = ("README.md", "pyproject.toml", "uv.lock", ".env.example",
             ".github/workflows/ci.yml", ".github/workflows/demo.yml",
             ".github/workflows/release.yml", "MANIFEST.in", "docs/distribution.md",
             "knowledge/README.md", "knowledge/catalog.json",

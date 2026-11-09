@@ -9,10 +9,8 @@ description = "Portable CLI for evidence-based product strategy work"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "alembic>=1.13,<2",
+    "pydantic>=2.10,<3",
     "pydantic-settings>=2.6,<3",
-    "psycopg[binary]>=3.2,<4",
-    "sqlalchemy>=2.0,<3",
 ]
 
 [project.optional-dependencies]
@@ -35,9 +33,7 @@ select = ["E9", "F63", "F7", "F82"]
 
 [project.scripts]
 psa = "product_strategy_agent.cli:main"
-psa-main = "product_strategy_agent.interfaces.cli.main:main"
 psa-mcp = "product_strategy_agent.mcp_server:main"
-psa-main-mcp = "product_strategy_agent.interfaces.mcp.server:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

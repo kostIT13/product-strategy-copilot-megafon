@@ -14,7 +14,7 @@ class DistributionChecks(unittest.TestCase):
     def test_allowlist_excludes_runtime_and_unrelated_projects(self):
         for name in ('.env', 'src/.env.local', 'knowledge/.env.local', 'backups/db.sql', '.venv/config', 'projects/private/data.md', '../README.md', 'src/__pycache__/cache.pyc'):
             self.assertFalse(allowed(name), name)
-        for name in ('README.md', '.env.example', 'alembic/env.py', 'projects/demo/sources/source.txt', 'knowledge/methods/segmentation.md'):
+        for name in ('README.md', '.env.example', 'projects/demo/sources/source.txt', 'knowledge/methods/segmentation.md'):
             self.assertTrue(allowed(name), name)
 
     def test_version_and_tag_must_match(self):

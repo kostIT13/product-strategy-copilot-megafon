@@ -23,10 +23,6 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     projects_dir: Path = Path("projects")
 
-    database_url: SecretStr = SecretStr(
-        "postgresql+psycopg://product_strategy:local-dev-change-this@127.0.0.1:5432/product_strategy"
-    )
-
     # QWEN_* aliases allow existing local environments to migrate gradually.
     llm_base_url: str = Field(default="https://provider.example/v1", validation_alias=AliasChoices("LLM_BASE_URL", "QWEN_BASE_URL"))
     llm_model: str = Field(default="Qwen3.8-27B", min_length=1, max_length=250,

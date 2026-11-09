@@ -1,18 +1,18 @@
 # R2: файловый контракт и безопасное создание кейса
 
-Реализован первый срез R2: существующий `psa init` использует отдельный WorkspaceService, порт WorkspaceStore и filesystem adapter. Файловый FastMCP `psa_init` вызывает тот же путь. Схема кейса остаётся v1; импорт из PostgreSQL и полная транзакционность обновлений существующего кейса ещё не реализованы. Проверки R1 в реальных IDE отложены пользователем 09.11.2026, не пройдены.
+Первый срез R2 (контракт ниже): существующий `psa init` использует отдельный WorkspaceService, порт WorkspaceStore и filesystem adapter. Файловый FastMCP `psa_init` вызывает тот же путь. Схема кейса остаётся v1. На 10.11.2026 основные canonical writers используют workflow journal v1–v4 с recovery; PG/Alembic/Docker runtime выведен после подтверждения пользователя об отсутствии нужных данных; generalized PG importer не требовался и не реализовывался. [Решение](legacy-retirement.md). Проверки R1 в реальных IDE отложены пользователем 09.11.2026, не пройдены.
 
 ## Инвентаризация и контракт переноса
 
 | Сценарий | Уже есть в файловом MVP | Старый PG-контур | Решение R2 |
 | --- | --- | --- | --- |
 | Создание/чтение/этапы | psa init/status/next, schema_version=1, строковый project ID | UUID project и отдельные workflow records | Сохранить читаемый ID/текущую v1 совместимость; atomic init выделен сейчас. UUID↔ID mapping при импорте — отдельный контракт |
-| Источники | Text/HTML/CSV/JSON, source cache, hashes/revisions/revisit | PDF/DOCX/XLSX, web provenance, source repositories | Переносить нужные парсеры через общий файловый service; полный revision text сохранять с проверкой hash |
-| Claims/решения/capabilities | JSONL, CLI записи и refs, обязательные роли options, coverage | Typed entities, FK/linked selection/critic | Сохранить бизнес-правила, внедрить файловые операции с ожидаемой версией и lifecycle; не копировать SQL locks/FKs как новое обязательное хранилище |
+| Источники | Text/HTML/CSV/JSON и PDF/DOCX/XLSX, source cache, hashes/revisions/revisit | Web policy/provenance, source repositories | Парсеры подключены к общему journal; [page/cell verify](file-document-import.md). [Public-HTTP guards/provenance](file-web-import.md) подключены; далее [mapping/import](legacy-retirement.md); полный revision text сохранять с проверкой hash |
+| Claims/решения/capabilities | JSONL, CLI записи и refs, обязательные роли options, coverage | Typed entities, FK/linked selection/critic | Typed append/expected version/recovery реализованы в workflow v4; полный correction/lifecycle остаётся R3. SQL locks/FKs не копировать как новое обязательное хранилище |
 | Авторские стратегии | drafts и generated Markdown, native IDE может создавать текст | API strategy_plan → critic → internal receipt/export | Сделать typed IDE-authored вход без обязательного API run; версии/quality gate и trace нужны до записи |
-| Promise check | Файловый coverage/capability gate | Более строгий read-only preflight по snapshot | Переиспользовать правила через coherent file snapshot; не вводить новый PG approval ledger |
+| Promise check | [File preflight](file-promise-check.md): v4 bindings, active facts, current hashes/revisions, exact locator quotes и coverage/gates | Read-only UUID/DB snapshot preflight | Нужные структурные правила перенесены; legacy import не создаёт текущие evidence bindings/новые approvals. Semantic review/corrections — R3 |
 | Resume/история | State/events, usage, источники и revisit | Pipeline/input snapshots, unknown paid outcome guards | Старые runs импортируются как история с original hashes/status; импорт не повторяет платный вызов |
-| Поиск/транспорт | Файлы/метаданные и файловый FastMCP | FTS и отдельный psa-main-mcp | Основной namespace psa/file core; reader/index только производный. Retire legacy после проверенной замены |
+| Поиск/транспорт | [Bounded literal search](file-source-search.md) по текущим текстам с hashes/locators и файловый FastMCP | FTS и отдельный psa-main-mcp | Основной namespace psa/file core; reader/index только производный. Legacy runtime выведен, правила R3 развиваются на файловом core |
 
 Канон — files/records текущей схемы, не строки Markdown и не PostgreSQL export. В этом срезе schema v1 не объявлена общей новой схемой всех PG entities. Новые mapping/versioning и многофайловое обновление существующих реестров требуют следующего ограниченного среза, а не массовой конвертации файлов на месте.
 
@@ -44,7 +44,7 @@ Recovery требует точный operation UUID и повторно пров
 
 Для **изменения существующих** источников/claims/решений нужен единый operation journal, expected_version, согласованный commit нескольких реестров и reader/recovery протокол. Atomic directory creation этого не заменяет. Текущие gate/claim/source writers не получили новую транзакционность автоматически; новый receipt не меняет их согласия/права.
 
-Typed IDE-authored research_plan draft с файловым HEAD commit/recovery реализован: [research-artifacts.md](research-artifacts.md). Research_plan gate CLI/MCP явно выбирает текущую structured operation/version, проверяет свежесть и сохраняет hash-bound ссылку в approval под общим lock. Без structured плана работает legacy Markdown path. Gate state/events получили [write-ahead bundle/recovery](workflow-recovery.md), ACTIVE guard, caller UUID replay и общий gate/mode/review workflow_version. Публичные readers/writers CLI/MCP/core/store теперь используют [общий access lock](case-access.md), включая вложенные вызовы и snapshot чтение. [Mode change](file-mode-recovery.md) и [revision review](revision-review-recovery.md) используют тот же bundle/recovery; оставшиеся ledger/usage writes ещё без него, raw-доступ обходит lock. Далее — перенос нужных операций на commit/recovery. После mapping/import и проверки parity выводить SQL/контейнерные dependencies и CI; они пока не удалены. Artifact/workflow recovery доступны через CLI/MCP; workspace recovery пока имеет CLI fallback.
+Typed IDE-authored research_plan draft с файловым HEAD commit/recovery реализован: [research-artifacts.md](research-artifacts.md). Research_plan gate CLI/MCP явно выбирает текущую structured operation/version, проверяет свежесть и сохраняет hash-bound ссылку в approval под общим lock. Без structured плана работает legacy Markdown path. Gate state/events получили [write-ahead bundle/recovery](workflow-recovery.md), ACTIVE guard, caller UUID replay и общий gate/mode/review workflow_version. Публичные readers/writers CLI/MCP/core/store теперь используют [общий access lock](case-access.md), включая вложенные вызовы и snapshot чтение. [Mode change](file-mode-recovery.md) и [revision review](revision-review-recovery.md) используют тот же bundle/recovery; canonical ledger/usage writes теперь используют workflow v4, raw-доступ обходит lock. Далее — перенос нужных операций на commit/recovery. После mapping/import и проверки parity выводить SQL/контейнерные dependencies и CI; они пока не удалены. Artifact/workflow recovery доступны через CLI/MCP; workspace recovery пока имеет CLI fallback.
 
 ## Проверка
 
@@ -53,3 +53,5 @@ Typed IDE-authored research_plan draft с файловым HEAD commit/recovery 
 Source import/revision creation теперь используют [workflow v2 bundle/recovery](source-import-recovery.md) с captured text/archive targets; общая версия учитывает и эти операции.
 
 Render и adoption integrity manifest теперь используют [workflow v3 recovery](render-recovery.md); Markdown builder отделён от публикации, existing drafts сохраняются.
+
+Canonical ledger/usage append теперь поддерживает [workflow v4 replay/recovery](ledger-recovery.md); shared version учитывает эти записи, usage business ID отделён от journal UUID.

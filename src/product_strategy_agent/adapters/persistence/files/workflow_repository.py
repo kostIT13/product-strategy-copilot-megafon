@@ -20,6 +20,8 @@ from product_strategy_agent.adapters.persistence.files.source_bundle import extr
 from product_strategy_agent.domain.projects.source_import import MAX_TEXT_BYTES, source_id
 from product_strategy_agent.domain.projects.render_plan import INPUTS as RENDER_INPUTS, TARGETS as RENDER_TARGETS
 from product_strategy_agent.adapters.persistence.files.render_bundle import extra_payload as render_payload
+from product_strategy_agent.domain.projects.ledger_append import INPUTS as LEDGER_INPUTS, PAYLOADS
+from product_strategy_agent.adapters.persistence.files.ledger_bundle import extra_payload as ledger_payload
 
 
 class FileWorkflowStore:
@@ -49,6 +51,17 @@ class FileWorkflowStore:
         snapshot["render_before"] = {name: (value.decode("utf-8") if (value := self._target(case, name)) is not None else None) for name in RENDER_TARGETS}
         snapshot["render_inputs"] = {name: snapshot["render_before"][name] if name.startswith("drafts/") else
             ((value.decode("utf-8") if (value := self._target(case, name)) is not None else "")) for name in RENDER_INPUTS}
+        return snapshot
+
+    @locked_store_method()
+    def capture_ledger(self, project_id, ledger):
+        if ledger not in PAYLOADS:
+            raise ValueError("unsupported canonical ledger")
+        snapshot = self.capture(project_id)
+        case = self._case(project_id)
+        snapshot["ledger_inputs"] = {name: (value.decode("utf-8") if (value := self._target(case, name)) is not None else "") for name in LEDGER_INPUTS}
+        before = self._target(case, ledger + ".jsonl")
+        snapshot["ledger_before"] = before.decode("utf-8") if before is not None else None
         return snapshot
 
     @locked_store_method()
@@ -173,6 +186,16 @@ class FileWorkflowStore:
     def commit_render(self, project_id, command, snapshot, timestamp):
         case = self._case(project_id)
         extras, targets, event, _ = render_payload(command, snapshot, timestamp)
+        state = json.loads(snapshot["state"])
+        state.update(updated_at=timestamp, workflow_version=state.get("workflow_version", 0) + 1)
+        inputs = {name: value for name, value in snapshot["inputs"].items() if name not in targets}
+        files, manifest = payload(project_id, command, snapshot["state"], state, snapshot["events"], event, inputs, extras)
+        return self._publish(case, command, files, manifest)
+
+    @locked_store_method()
+    def commit_ledger(self, project_id, command, snapshot, timestamp):
+        case = self._case(project_id)
+        extras, targets, event, _ = ledger_payload(command, snapshot, timestamp)
         state = json.loads(snapshot["state"])
         state.update(updated_at=timestamp, workflow_version=state.get("workflow_version", 0) + 1)
         inputs = {name: value for name, value in snapshot["inputs"].items() if name not in targets}

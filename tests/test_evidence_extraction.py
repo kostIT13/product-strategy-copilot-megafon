@@ -115,28 +115,3 @@ class ExtractionTests(unittest.TestCase):
         self.assertEqual(prepared.task, "evidence_answer")
         self.assertEqual(prepared.messages[0]["content"], SYSTEM)
         self.assertEqual(json.loads(prepared.messages[1]["content"])["output_schema"], AnswerDraft.model_json_schema())
-
-
-@unittest.skipUnless(importlib.util.find_spec("fastmcp"), "requires MCP extra")
-class ExtractionMCPTests(unittest.IsolatedAsyncioTestCase):
-    async def test_task_selection_in_analyze_prepare_and_pipeline(self):
-        from fastmcp import Client
-        from product_strategy_agent.bootstrap import MainServices
-        from product_strategy_agent.application.services.agent_critic_service import AgentCriticService
-        from product_strategy_agent.interfaces.mcp.server import create_server
-        fixture, store, pipeline = test_agent_pipeline.pipeline_fixture()
-        fixture.reply(json.dumps(extraction_output(fixture)))
-        args = {"project_key": "demo", "question": "Extract evidence", "query": "export", "task": "evidence_extraction"}
-        async with Client(create_server(MainServices(fixture.service, Mock(), pipeline, AgentCriticService(fixture.service, pipeline)))) as client:
-            prepared = (await client.call_tool("psa_main_prepare_analysis", args)).data
-            self.assertEqual(prepared["task"], "evidence_extraction")
-            fixture.provider.generate.assert_not_called()
-            invalid = await client.call_tool("psa_main_analyze", {**args, "task": "wrong"}, raise_on_error=False)
-            self.assertTrue(invalid.is_error)
-            fixture.provider.generate.assert_not_called()
-            run = (await client.call_tool("psa_main_analyze", args)).data
-            self.assertEqual(run["task"], "evidence_extraction")
-            started = (await client.call_tool("psa_main_start_pipeline", args)).data
-            ready = (await client.call_tool("psa_main_resume_pipeline", {"project_key": "demo",
-                "pipeline_id": started["id"], "expected_version": 0})).data
-            self.assertEqual(ready["task"], "evidence_extraction")

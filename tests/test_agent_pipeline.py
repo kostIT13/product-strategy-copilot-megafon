@@ -166,25 +166,3 @@ class PipelineTests(unittest.TestCase):
             self.service.resume("demo", ready.id, ready.version)
         self.assertEqual(self.service.show("demo", ready.id).status, "draft_ready")
         self.fixture.provider.generate.assert_called_once()
-
-
-@unittest.skipUnless(importlib.util.find_spec("fastmcp"), "requires MCP extra")
-class PipelineMCPTests(unittest.IsolatedAsyncioTestCase):
-    async def test_checkpoint_tools_use_same_service_and_reject_stale_resume(self):
-        from fastmcp import Client
-        from product_strategy_agent.bootstrap import MainServices
-        from product_strategy_agent.application.services.agent_critic_service import AgentCriticService
-        from product_strategy_agent.interfaces.mcp.server import create_server
-        fixture, store, service = pipeline_fixture()
-        async with Client(create_server(MainServices(fixture.service, Mock(), service, AgentCriticService(fixture.service, service)))) as client:
-            started = (await client.call_tool("psa_main_start_pipeline",
-                {"project_key": "demo", "question": "Can we export?", "query": "export"})).data
-            args = {"project_key": "demo", "pipeline_id": started["id"], "expected_version": 0}
-            ready = (await client.call_tool("psa_main_resume_pipeline", args)).data
-            stale = await client.call_tool("psa_main_resume_pipeline", args, raise_on_error=False)
-            self.assertTrue(stale.is_error)
-            completed = (await client.call_tool("psa_main_resume_pipeline", {**args, "expected_version": ready["version"]})).data
-            shown = (await client.call_tool("psa_main_get_pipeline", {"project_key": "demo", "pipeline_id": started["id"]})).data
-            self.assertEqual(shown, completed)
-            self.assertEqual(completed["status"], "completed")
-            fixture.provider.generate.assert_called_once()

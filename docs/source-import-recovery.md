@@ -2,6 +2,8 @@
 
 R2: `psa source add/fetch` сохраняют registry, extracted text, при необходимости архив прежнего текста, revision event и state через общий workflow journal. Модель, PostgreSQL и Docker не нужны.
 
+Новые веб-загрузки используют [public HTTP policy и provenance](file-web-import.md); PDF/DOCX/XLSX — [document import](file-document-import.md). Recovery/replay не запускают acquisition заново; исторические v2 bundles читаются в прежней семантике.
+
 ```bash
 psa status CASE
 psa source add CASE ./notes.md --operation f8f301b6-ae82-46a2-a4a5-934eb664b765 \
@@ -52,6 +54,8 @@ psa workflow recover CASE --operation UUID
 
 Raw input и saved UTF-8 extracted text ограничены 10 МиБ каждый; newline входит в saved-text limit. Source blobs имеют отдельный 10-МиБ лимит, поэтому текст больше metadata limit 512000 байт поддерживается. Registry/common metadata ограничены 512000 байтами на файл, input snapshot — 2000 файлами. Journal хранит копии source data: применять ту же дисциплину доступа/секретов, что и к case.
 
-Это recoverable publication участвующих файлов, не защита от raw/manual доступа и не сертификация power loss/NAS. Остальные ledger/usage writers ещё требуют переноса; затем mapping/import/retire прежней цепочки. Source review/corrections и semantic quality не заменяются успешным импортом или точным совпадением хэша.
+Это recoverable publication участвующих файлов, не защита от raw/manual доступа и не сертификация power loss/NAS. Canonical ledger/usage writers перенесены на workflow v4; затем mapping/import/retire прежней цепочки. Source review/corrections и semantic quality не заменяются успешным импортом или точным совпадением хэша.
 
 Render и adoption integrity manifest теперь используют [workflow v3 recovery](render-recovery.md); Markdown builder отделён от публикации, existing drafts сохраняются.
+
+Canonical ledger/usage append теперь поддерживает [workflow v4 replay/recovery](ledger-recovery.md); shared version учитывает эти записи, usage business ID отделён от journal UUID.

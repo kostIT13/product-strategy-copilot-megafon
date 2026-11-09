@@ -5,6 +5,7 @@ from product_strategy_agent.domain.projects.mode_change import ModeChange
 from product_strategy_agent.domain.projects.revision_review import RevisionReview
 from product_strategy_agent.domain.projects.source_import import SourceImport
 from product_strategy_agent.domain.projects.render_plan import RenderRequest
+from product_strategy_agent.domain.projects.ledger_append import LedgerAppend
 
 
 def parse_command(data):
@@ -18,6 +19,8 @@ def parse_command(data):
         return SourceImport.model_validate(data)
     if data["kind"] == "render":
         return RenderRequest.model_validate(data)
+    if data["kind"] == "ledger_append":
+        return LedgerAppend.model_validate(data)
     raise ValueError("unsupported workflow request kind")
 
 
@@ -46,5 +49,5 @@ def validate_transition(command, before, after, event, before_events):
     else:
         allowed = {"updated_at", "workflow_version"}
         valid = {k: v for k, v in before.items() if k not in allowed} == {k: v for k, v in after.items() if k not in allowed}
-    if not valid or (not isinstance(command, SourceImport) and event["reason"] != command.reason):
+    if not valid or (not isinstance(command, (SourceImport, LedgerAppend)) and event["reason"] != command.reason):
         raise ValueError("workflow before/after semantics mismatch")

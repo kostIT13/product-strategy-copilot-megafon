@@ -186,24 +186,3 @@ class StrategyPlanTests(unittest.TestCase):
         proposal["experiment"] = dict(reversed(list(proposal["experiment"].items())))
         self.assertEqual(option_description(proposal), f.option.description)
         self.assertTrue(f.strategy.prepare("demo", f.command.source_run_id,"Prepare").input_hash)
-
-
-@unittest.skipUnless(importlib.util.find_spec("fastmcp"),"requires MCP extra")
-class StrategyPlanMCPTests(unittest.IsolatedAsyncioTestCase):
-    async def test_prepare_start_resume_uses_same_core_without_implicit_model_call(self):
-        from fastmcp import Client
-        from product_strategy_agent.bootstrap import MainServices
-        from product_strategy_agent.interfaces.mcp.server import create_server
-        f = plan_fixture()
-        services = MainServices(f.fixture.service,Mock(),f.pipeline,AgentCriticService(f.fixture.service,f.pipeline),f.selection,f.strategy)
-        args = {"project_key":"demo","source_run_id":str(f.command.source_run_id),"question":"Prepare strategy"}
-        async with Client(create_server(services)) as client:
-            preview = (await client.call_tool("psa_main_prepare_strategy",args)).data
-            self.assertEqual(preview["task"],"strategy_plan")
-            self.assertFalse(f.inputs.rows)
-            started = (await client.call_tool("psa_main_start_strategy",args)).data
-            f.fixture.provider.generate.assert_not_called()
-            f.fixture.reply(json.dumps(plan_output(f)))
-            ready = (await client.call_tool("psa_main_resume_pipeline",{"project_key":"demo","pipeline_id":started["id"],"expected_version":0})).data
-            self.assertEqual(ready["status"],"draft_ready")
-        f.fixture.provider.generate.assert_called_once()
