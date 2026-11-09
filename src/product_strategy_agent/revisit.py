@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from product_strategy_agent.adapters.persistence.files.workflow_guard import require_workflow_ready
+
 import json
 from pathlib import Path
 from typing import Any
@@ -30,6 +32,7 @@ def _dependencies(project_dir: Path, source_id: str) -> tuple[list[str], list[st
 
 
 def build_revisit_report(project_dir: Path) -> dict[str, Any]:
+    require_workflow_ready(project_dir)
     events = _records(project_dir / "events.jsonl")
     sources = {source.get("source_id"): source for source in _records(project_dir / "sources.jsonl")}
     reviewed = {event.get("revision_event_id"): event for event in events
@@ -58,6 +61,7 @@ def resolve_source_revision(
     reviewed_claim_ids: list[str] | None = None,
     reviewed_decision_ids: list[str] | None = None,
 ) -> dict[str, Any]:
+    require_workflow_ready(project_dir)
     events_path = project_dir / "events.jsonl"
     if not events_path.is_file():
         raise FileNotFoundError(f"Not a project workspace: {project_dir}")

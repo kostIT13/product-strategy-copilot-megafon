@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from product_strategy_agent.adapters.persistence.files.workflow_guard import require_workflow_ready
+
 import json
 import re
 from pathlib import Path
@@ -54,6 +56,7 @@ def _paragraphs(path: Path) -> list[tuple[int, str, str]]:
 
 def coverage_report(project_dir: Path) -> dict[str, Any]:
     """Check prose paragraphs for claim/classification markers and valid commitments."""
+    require_workflow_ready(project_dir)
     errors: list[str] = []
     try:
         claims = _read_records(project_dir / "claims.jsonl")

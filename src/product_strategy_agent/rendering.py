@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from product_strategy_agent.adapters.persistence.files.workflow_guard import require_workflow_ready
+
 import json
 import hashlib
 from pathlib import Path
@@ -43,6 +45,7 @@ def render_project(
     discard_generated_edits_by: str = "",
     discard_reason: str = "",
 ) -> list[Path]:
+    require_workflow_ready(project_dir)
     integrity = render_integrity_report(project_dir)
     if not integrity["ok"]:
         if not (project_dir / MANIFEST_NAME).is_file():

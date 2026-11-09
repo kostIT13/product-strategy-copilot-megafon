@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import Any
+from uuid import uuid4
 
 from product_strategy_agent.sources import utc_now
 from product_strategy_agent.coverage import coverage_report
@@ -12,6 +13,9 @@ from product_strategy_agent.artifacts import render_integrity_report
 from product_strategy_agent.adapters.persistence.files.project_lock import project_lock
 from product_strategy_agent.adapters.persistence.files.research_artifact_repository import FileResearchArtifactStore
 from product_strategy_agent.application.services.research_artifact_service import ResearchArtifactService
+from product_strategy_agent.adapters.persistence.files.workflow_repository import FileWorkflowStore
+from product_strategy_agent.adapters.persistence.files.workflow_guard import require_workflow_ready
+from product_strategy_agent.domain.projects.gate_approval import GateApproval
 
 WORK_STAGES = ("intake", "research_plan", "source_collection", "evidence_review", "options", "strategy", "validation")
 MODE_PROFILES = {
@@ -110,27 +114,42 @@ def _check_stage(project_dir: Path, stage: str, mode: str) -> None:
 
 
 def approve_stage(project_dir: Path, stage: str, approved_by: str, reason: str = "", *,
-                  artifact_operation=None, artifact_version=None) -> dict[str, Any]:
-    """Explicit human gate; cooperating artifact writers share this lock.
-
-    State/events still use legacy writes, so this is not a multi-file transaction.
-    """
+                  artifact_operation=None, artifact_version=None, operation_id=None,
+                  expected_workflow_version=None) -> dict[str, Any]:
+    """Explicit human gate with write-ahead state/events publication and recovery."""
+    if not approved_by.strip():
+        raise ValueError("Approval requires a person or role in --by")
+    command = GateApproval(operation_id=operation_id or uuid4(), stage=stage, approved_by=approved_by, reason=reason,
+        artifact_operation=artifact_operation, artifact_version=artifact_version,
+        expected_workflow_version=expected_workflow_version)
     if stage != "research_plan" and (artifact_operation is not None or artifact_version is not None):
         raise ValueError("artifact selection is only supported for the research_plan gate")
     project_dir = Path(project_dir).absolute()
     with project_lock(project_dir.parent, project_dir.name):
+        store = FileWorkflowStore(project_dir.parent)
+        replay = store.replay(project_dir.name, command)
+        if replay is not None:
+            return replay
         reference = None
         if stage == "research_plan":
             service = ResearchArtifactService(FileResearchArtifactStore(project_dir.parent))
             reference = service.review_for_approval(project_dir.name, artifact_operation, artifact_version)
-        return _approve_stage(project_dir, stage, approved_by, reason, reference)
+        return _approve_stage(project_dir, stage, command.approved_by, command.reason, reference, command, store)
 
 
-def _approve_stage(project_dir, stage, approved_by, reason, research_plan_reference):
+def _approve_stage(project_dir, stage, approved_by, reason, research_plan_reference, command, store):
     state_path = project_dir / "state.json"
     if not state_path.is_file():
         raise FileNotFoundError(f"Not a project workspace: {project_dir}")
-    state = json.loads(state_path.read_text(encoding="utf-8"))
+    before_state = state_path.read_bytes()
+    before_events = (project_dir / "events.jsonl").read_bytes()
+    inputs = store.input_snapshot(project_dir)
+    state = json.loads(before_state)
+    version = state.get("workflow_version", 0)
+    if type(version) is not int or version < 0:
+        raise ValueError("invalid workflow version")
+    if command.expected_workflow_version is not None and command.expected_workflow_version != version:
+        raise ValueError("expected_workflow_version conflict; review current workflow state")
     if state.get("status") == "completed":
         raise ValueError("Project is already completed")
     if stage != state.get("status"):
@@ -153,6 +172,7 @@ def _approve_stage(project_dir, stage, approved_by, reason, research_plan_refere
     state["status"] = next_stage
     state["updated_at"] = utc_now()
     state["next_action"] = NEXT_ACTIONS[next_stage]
+    state["workflow_version"] = version + 1
     approvals = state.setdefault("approvals", [])
     event = {
         "schema_version": 1,
@@ -162,17 +182,17 @@ def _approve_stage(project_dir, stage, approved_by, reason, research_plan_refere
         "approved_at": utc_now(),
         "reason": reason.strip(),
         "next_stage": next_stage,
+        "operation_id": str(command.operation_id),
+        "workflow_version": version + 1,
     }
     if research_plan_reference is not None:
         event["research_plan_artifact"] = research_plan_reference
     approvals.append(event)
-    state_path.write_text(json.dumps(state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    with (project_dir / "events.jsonl").open("a", encoding="utf-8", newline="\n") as stream:
-        stream.write(json.dumps(event, ensure_ascii=False, sort_keys=True) + "\n")
-    return event
+    return store.commit(project_dir.name, command, before_state, state, before_events, event, inputs)
 
 
 def set_project_mode(project_dir: Path, mode: str, changed_by: str, reason: str = "") -> dict[str, Any]:
+    require_workflow_ready(project_dir)
     if not isinstance(mode, str) or mode not in MODE_PROFILES:
         raise ValueError(f"Mode must be one of: {', '.join(MODE_PROFILES)}")
     changed_by = changed_by.strip()

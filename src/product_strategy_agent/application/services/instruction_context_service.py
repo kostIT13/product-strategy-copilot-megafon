@@ -1,4 +1,6 @@
 """Read stage-scoped repository instructions/knowledge; never execute a model or mutate a case."""
+
+from product_strategy_agent.adapters.persistence.files.workflow_guard import require_workflow_ready
 import hashlib
 import json
 import re
@@ -18,6 +20,7 @@ def read_material(root: Path, relative: str):
 
 
 def instruction_context(project_dir: Path, root: Path):
+    require_workflow_ready(project_dir)
     root = root.resolve()
     state_bytes = (project_dir / "state.json").read_bytes()
     if len(state_bytes) > 64000:

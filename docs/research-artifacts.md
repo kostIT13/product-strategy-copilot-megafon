@@ -86,7 +86,7 @@ Gate требует оба селектора, текущую committed HEAD-в�
 
 В approval state/history и events записывается `research_plan_artifact`: kind, operation_id, version, manifest_hash и base_case_hash. Markdown не проецируется обратно в авторский файл. Утверждение меняет state/events, поэтому исторический draft затем показывает изменённые base inputs; это сравнение с исходным снимком, а не автоматический отзыв уже записанного approval. Более поздняя draft-версия сама не заменяет ссылку в историческом approval.
 
-Gate держит общий OS project lock от проверки версии до конца записи; новые artifact writers не могут вклиниться в этот интервал. **Запись state.json и events.jsonl пока остаётся legacy многофайловой записью без atomic commit/recovery.** Сбой между ними может оставить несогласованность; автоматический replay approval не реализован. Остальные legacy writers/ручные правки ещё могут обходить lock. Следующий R2-срез — перенос workflow state/events на общий commit-протокол; не считать текущую интеграцию транзакцией всего кейса.
+Gate держит общий OS project lock от проверки версии до конца записи; новые artifact writers не могут вклиниться в этот интервал. State/events теперь публикуются через [write-ahead bundle и явный recovery](workflow-recovery.md), с before/after hashes, ACTIVE guard и completion receipt. Для exact replay gate можно передать собственный operation UUID; это другой ID, чем выбранный artifact UUID. Остальные legacy writers/ручные правки ещё могут обходить lock. Не считать эту интеграцию глобальной транзакцией всех реестров.
 
 ## Сбой и recovery
 

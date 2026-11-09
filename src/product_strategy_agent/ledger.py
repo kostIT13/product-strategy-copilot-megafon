@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from product_strategy_agent.adapters.persistence.files.workflow_guard import require_workflow_ready
+
 import json
 import re
 from pathlib import Path
@@ -51,6 +53,7 @@ def add_claim(
     decision_impact: str = "",
     supersedes: str | None = None,
 ) -> dict[str, Any]:
+    require_workflow_ready(project_dir)
     text = text.strip()
     source_ids = source_ids or []
     source_locators = source_locators or []
@@ -115,6 +118,7 @@ def add_capability(
     claim_ids: list[str] | None = None,
 ) -> dict[str, Any]:
     """Append a product capability used to validate external commitments."""
+    require_workflow_ready(project_dir)
     name = name.strip()
     claim_ids = claim_ids or []
     if not name:
@@ -159,6 +163,7 @@ def add_option(
     assumptions: list[str] | None = None,
     claim_ids: list[str] | None = None,
 ) -> dict[str, Any]:
+    require_workflow_ready(project_dir)
     name = name.strip()
     description = description.strip()
     if not name or not description:
@@ -192,6 +197,7 @@ def add_option(
 
 
 def add_gap(project_dir: Path, question: str, why_it_matters: str, resolution_method: str = "", priority: str = "medium") -> dict[str, Any]:
+    require_workflow_ready(project_dir)
     question = question.strip()
     if not question:
         raise ValueError("Gap question cannot be empty")
@@ -225,6 +231,7 @@ def add_decision(
     revisit_when: str = "",
     option_id: str | None = None,
 ) -> dict[str, Any]:
+    require_workflow_ready(project_dir)
     chosen_option = chosen_option.strip()
     owner = owner.strip()
     if not chosen_option or not owner:

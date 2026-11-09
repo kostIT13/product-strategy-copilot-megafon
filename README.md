@@ -28,6 +28,8 @@ psa resume demo-retention
 
 Типизированный черновик плана от IDE-агента: `psa artifact status ID`, затем `psa artifact record ID --input FILE.json`. Новый файловый журнал связывает JSON/Markdown/event/receipt через atomic HEAD, проверяет expected_version и входные hashes, поддерживает replay/recovery. Это draft без gate/публикации; [контракт и ограничения совместимости](docs/research-artifacts.md).
 
+Gate сохраняет state/events через write-ahead bundle. При прерывании: `psa workflow pending ID`, затем `psa workflow recover ID --operation UUID`; до восстановления обычные команды блокируются. Для exact retry approval передавайте собственный `--operation UUID` и при необходимости `--expected-workflow-version N`. [Протокол, CLI/MCP и границы recovery](docs/workflow-recovery.md).
+
 ### Импорт источников
 
 ```powershell

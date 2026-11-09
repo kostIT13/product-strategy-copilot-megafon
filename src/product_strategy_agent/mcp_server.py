@@ -18,6 +18,7 @@ from product_strategy_agent.validation import validate_project, verify_project
 from product_strategy_agent.workflow import MODE_PROFILES, approve_stage, set_project_mode
 from product_strategy_agent.usage import add_usage, usage_report
 from product_strategy_agent.revisit import build_revisit_report, resolve_source_revision
+from product_strategy_agent.adapters.persistence.files.workflow_guard import require_workflow_ready
 
 
 def create_server() -> Any:
@@ -37,9 +38,12 @@ def create_server() -> Any:
     )
     from product_strategy_agent.interfaces.mcp.file_artifact_tools import register_file_artifact_tools
     register_file_artifact_tools(server)
+    from product_strategy_agent.interfaces.mcp.file_workflow_tools import register_file_workflow_tools
+    register_file_workflow_tools(server)
 
     def workspace(project_id: str, projects_dir: str = "projects") -> Path:
         path = project_path(project_id, Path(projects_dir))
+        require_workflow_ready(path)
         if not (path / "state.json").is_file():
             raise FileNotFoundError(f"Project '{project_id}' was not found at {path}")
         return path
@@ -172,10 +176,12 @@ def create_server() -> Any:
     @server.tool()
     def psa_approve_stage(project_id: str, stage: str, approved_by: str, reason: str = "",
                           projects_dir: str = "projects", artifact_operation: str | None = None,
-                          artifact_version: int | None = None) -> dict[str, Any]:
+                          artifact_version: int | None = None, operation_id: str | None = None,
+                          expected_workflow_version: int | None = None) -> dict[str, Any]:
         """Human-authorized gate. Structured plans require the reviewed current operation/version."""
         return approve_stage(workspace(project_id, projects_dir), stage, approved_by, reason,
-                             artifact_operation=artifact_operation, artifact_version=artifact_version)
+                             artifact_operation=artifact_operation, artifact_version=artifact_version,
+                             operation_id=operation_id, expected_workflow_version=expected_workflow_version)
 
     @server.tool()
     def psa_validate(project_id: str, projects_dir: str = "projects") -> dict[str, Any]:

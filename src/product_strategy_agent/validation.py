@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from product_strategy_agent.adapters.persistence.files.workflow_guard import require_workflow_ready
+
 import hashlib
 import json
 import re
@@ -55,6 +57,7 @@ def _safe_extracted_path(project_dir: Path, raw_path: str) -> Path | None:
 
 
 def validate_project(project_dir: Path) -> list[str]:
+    require_workflow_ready(project_dir)
     errors: list[str] = []
     state_path = project_dir / "state.json"
     if not state_path.is_file():
@@ -240,6 +243,7 @@ def _normalize_quote(text: str) -> str:
 
 
 def verify_project(project_dir: Path) -> tuple[list[str], list[str]]:
+    require_workflow_ready(project_dir)
     errors = validate_project(project_dir)
     warnings: list[str] = []
     if errors:

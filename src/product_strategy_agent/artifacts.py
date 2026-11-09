@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from product_strategy_agent.adapters.persistence.files.workflow_guard import require_workflow_ready
+
 import hashlib
 import json
 import os
@@ -47,6 +49,7 @@ def _read_manifest(project_dir: Path) -> tuple[dict[str, Any] | None, list[str]]
 
 def render_integrity_report(project_dir: Path) -> dict[str, Any]:
     """Report generated artifacts changed or missing since the last render."""
+    require_workflow_ready(project_dir)
     manifest, errors = _read_manifest(project_dir)
     if errors:
         return {"ok": False, "errors": errors, "changed_artifacts": [], "expected_hashes": {}}
@@ -81,6 +84,7 @@ def render_integrity_report(project_dir: Path) -> dict[str, Any]:
 
 def write_render_manifest(project_dir: Path, *, adopted_existing: bool = False) -> Path:
     """Record current generated artifact hashes atomically."""
+    require_workflow_ready(project_dir)
     manifest = {
         "schema_version": 1,
         "created_at": utc_now(),
@@ -96,6 +100,7 @@ def write_render_manifest(project_dir: Path, *, adopted_existing: bool = False) 
 
 def adopt_existing_render(project_dir: Path) -> dict[str, Any]:
     """Start tracking existing generated files without overwriting them."""
+    require_workflow_ready(project_dir)
     if not (project_dir / "state.json").is_file():
         raise FileNotFoundError(f"Not a project workspace: {project_dir}")
     report = render_integrity_report(project_dir)

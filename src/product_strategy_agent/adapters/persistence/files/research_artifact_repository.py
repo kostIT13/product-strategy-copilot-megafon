@@ -12,6 +12,7 @@ from product_strategy_agent.adapters.persistence.files.project_lock import proje
 from product_strategy_agent.adapters.persistence.files.workspace_repository import durable_write, sync_directory
 from product_strategy_agent.domain.projects.research_artifact import RecordResearchArtifact
 from product_strategy_agent.domain.projects.workspace import validate_workspace_id
+from product_strategy_agent.adapters.persistence.files.workflow_guard import require_workflow_ready
 
 
 class FileResearchArtifactStore:
@@ -21,6 +22,7 @@ class FileResearchArtifactStore:
     def _case(self, project_id):
         validate_workspace_id(project_id)
         case = confined(self.root, project_id)
+        require_workflow_ready(case)
         state = json.loads(read_small(case, "state.json"))
         if not isinstance(state, dict) or state.get("schema_version") != 1 or state.get("project_id") != project_id:
             raise ValueError("unsupported or mismatched case state")

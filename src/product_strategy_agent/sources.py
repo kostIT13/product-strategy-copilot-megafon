@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from product_strategy_agent.adapters.persistence.files.workflow_guard import require_workflow_ready
+
 import hashlib
 import json
 import re
@@ -221,6 +223,7 @@ def _store(project_dir: Path, uri: str, kind: str, data: bytes, content_type: st
 
 
 def add_local_source(project_dir: Path, source_path: Path, title: str | None = None) -> dict[str, Any]:
+    require_workflow_ready(project_dir)
     source_path = source_path.expanduser().resolve()
     if not source_path.is_file():
         raise FileNotFoundError(f"Source file not found: {source_path}")
@@ -238,6 +241,7 @@ def add_local_source(project_dir: Path, source_path: Path, title: str | None = N
 
 
 def fetch_web_source(project_dir: Path, url: str, title: str | None = None) -> dict[str, Any]:
+    require_workflow_ready(project_dir)
     parsed = urlparse(url)
     if parsed.scheme not in {"http", "https"} or not parsed.netloc:
         raise ValueError("URL must use http or https")

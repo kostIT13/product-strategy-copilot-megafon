@@ -27,6 +27,8 @@ from product_strategy_agent.application.services.workspace_service import Worksp
 from product_strategy_agent.adapters.persistence.files.workspace_repository import FileWorkspaceStore
 from product_strategy_agent.interfaces.cli.workspace_commands import add_workspace_commands, handle_workspace_command
 from product_strategy_agent.interfaces.cli.research_artifact_commands import add_research_artifact_commands, handle_research_artifact_command
+from product_strategy_agent.interfaces.cli.file_workflow_commands import add_workflow_commands, handle_workflow_command
+from product_strategy_agent.adapters.persistence.files.workflow_guard import require_workflow_ready
 
 STAGES = (
     "intake",
@@ -55,6 +57,7 @@ def state_file(project_id: str, projects_dir: Path) -> Path:
 
 
 def load_state(project_id: str, projects_dir: Path) -> dict[str, Any]:
+    require_workflow_ready(project_path(project_id, projects_dir))
     path = state_file(project_id, projects_dir)
     if not path.is_file():
         raise FileNotFoundError(f"Project '{project_id}' was not found at {path}")
@@ -74,6 +77,7 @@ def build_parser() -> argparse.ArgumentParser:
     commands = parser.add_subparsers(dest="command", required=True)
     add_workspace_commands(commands)
     add_research_artifact_commands(commands)
+    add_workflow_commands(commands)
 
     doctor = commands.add_parser("doctor", help="check Python, templates, and optional local configuration")
     doctor.add_argument("--json", action="store_true", help="print a JSON diagnostic report")
@@ -222,6 +226,8 @@ def build_parser() -> argparse.ArgumentParser:
     approve.add_argument("--reason", default="")
     approve.add_argument("--artifact-operation", type=UUID, help="reviewed structured research plan operation UUID")
     approve.add_argument("--artifact-version", type=int, help="reviewed artifact journal version")
+    approve.add_argument("--operation", type=UUID, help="caller-chosen UUID for exact gate replay")
+    approve.add_argument("--expected-workflow-version", type=int, help="optimistic gate-only workflow version")
     approve.add_argument("--projects-dir", type=Path, default=Path("projects"))
 
     mode = commands.add_parser("mode", help="set or show research depth for a project")
@@ -255,6 +261,11 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> None:
     args = build_parser().parse_args()
     try:
+        if args.command == "workflow":
+            handle_workflow_command(args)
+            return
+        if getattr(args, "project_id", None) and args.command not in {"init", "workspace"}:
+            require_workflow_ready(project_path(args.project_id, args.projects_dir))
         if args.command == "artifact":
             handle_research_artifact_command(args)
             return
@@ -420,7 +431,8 @@ def main() -> None:
         if args.command == "gate":
             project_dir = project_path(args.project_id, args.projects_dir)
             event = approve_stage(project_dir, args.stage, args.by, args.reason,
-                                  artifact_operation=args.artifact_operation, artifact_version=args.artifact_version)
+                                  artifact_operation=args.artifact_operation, artifact_version=args.artifact_version,
+                                  operation_id=args.operation, expected_workflow_version=args.expected_workflow_version)
             print(f"Approved {event['stage']} by {event['approved_by']}; next stage: {event['next_stage']}")
             print(f"Next action: {NEXT_ACTIONS[event['next_stage']]}")
             return
