@@ -26,6 +26,8 @@ psa resume demo-retention
 
 `psa doctor` проверяет версию Python, встроенные шаблоны, наличие `uv` и optional FastMCP. Конфигурацию он проверяет только по наличию файла и имён известных переменных: значения из `.env` и окружения не читаются и не выводятся. Состояние проекта меняют явные операции `gate`, `mode` и append-only команды записи; `status`, `next` и `resume` его читают.
 
+Типизированный черновик плана от IDE-агента: `psa artifact status ID`, затем `psa artifact record ID --input FILE.json`. Новый файловый журнал связывает JSON/Markdown/event/receipt через atomic HEAD, проверяет expected_version и входные hashes, поддерживает replay/recovery. Это draft без gate/публикации; [контракт и ограничения совместимости](docs/research-artifacts.md).
+
 ### Импорт источников
 
 ```powershell

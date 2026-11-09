@@ -35,6 +35,8 @@ def create_server() -> Any:
             "Source fetch performs an explicit network request. Synthetic records must never be treated as market evidence."
         ),
     )
+    from product_strategy_agent.interfaces.mcp.file_artifact_tools import register_file_artifact_tools
+    register_file_artifact_tools(server)
 
     def workspace(project_id: str, projects_dir: str = "projects") -> Path:
         path = project_path(project_id, Path(projects_dir))
@@ -225,7 +227,7 @@ def create_server() -> Any:
 
 
 def main() -> None:
-    create_server().run(transport="stdio")
+    create_server().run(transport="stdio", show_banner=False)
 
 
 if __name__ == "__main__":

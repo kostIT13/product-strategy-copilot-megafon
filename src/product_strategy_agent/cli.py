@@ -25,6 +25,7 @@ from product_strategy_agent.application.services.instruction_context_service imp
 from product_strategy_agent.application.services.workspace_service import WorkspaceService
 from product_strategy_agent.adapters.persistence.files.workspace_repository import FileWorkspaceStore
 from product_strategy_agent.interfaces.cli.workspace_commands import add_workspace_commands, handle_workspace_command
+from product_strategy_agent.interfaces.cli.research_artifact_commands import add_research_artifact_commands, handle_research_artifact_command
 
 STAGES = (
     "intake",
@@ -71,6 +72,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     commands = parser.add_subparsers(dest="command", required=True)
     add_workspace_commands(commands)
+    add_research_artifact_commands(commands)
 
     doctor = commands.add_parser("doctor", help="check Python, templates, and optional local configuration")
     doctor.add_argument("--json", action="store_true", help="print a JSON diagnostic report")
@@ -250,6 +252,9 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> None:
     args = build_parser().parse_args()
     try:
+        if args.command == "artifact":
+            handle_research_artifact_command(args)
+            return
         if args.command == "workspace":
             handle_workspace_command(args)
             return

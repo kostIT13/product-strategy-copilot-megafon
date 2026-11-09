@@ -6,7 +6,7 @@
 **Краткий рабочий порядок:** [roadmap-full-solution.md](roadmap-full-solution.md), этапы R1–R6 в разделе 14 этого плана.
 **Текущее положение:** файловый MVP и два синтетических демо работают; knowledge/ 1.0.0 наполнено. Отдельная ранее созданная ветка `psa-main`/PostgreSQL реализует импортеры, поиск, API runs/pipelines/critic, selection, внутреннее approval/export и promise preflight (19 MCP tools, schema 0017). Это существующий контур для инвентаризации/переноса, а не целевой backend; его файловая замена ещё не реализована. Последний полный технический прогон — 193 unit-теста, не доказательство качества реальной стратегии.
 **R1 начат 09.11.2026:** реализованы AGENTS.md, workflow/quality/safety, четыре skills, generated IDE adapters, sync-check и read-only psa context с версиями/hashes knowledge. Живой новый кейс и фактическая загрузка в hosts ещё не подтверждены, пользователь отложил эти проверки 09.11.2026; подробности — docs/ide-instructions.md. Перенос полезных новых функций и отказ от старых зависимостей — R2, обязательная полнота результата — R3. Приёмки M6/M8, отложенные пользователем, остаются открытыми.
-**R2 начат 09.11.2026:** инвентаризация/файловый v1 контракт и первый atomic init/recovery срез реализованы, см. docs/file-core.md; обновления existing ledgers, import и retire PG ещё открыты.
+**R2 начат 09.11.2026:** инвентаризация/v1 контракт, atomic init/recovery и typed research_plan draft journal с expected_version, case_hash и atomic HEAD реализованы (docs/file-core.md, docs/research-artifacts.md). Этот journal не меняет legacy gates/реестры автоматически; их перенос, import и retire PG ещё открыты.
 
 ## MVP: план по пунктам
 
@@ -336,7 +336,7 @@ CLI `psa usage add` добавляет provider-отчёт или явную о�
 | Этап | Работа | Условие завершения | Статус |
 |---|---|---|---|
 | R1. Рабочий IDE-агент | AGENTS.md, минимальные skills/quality/safety/workflow, адаптеры сред, применение knowledge/ и сценарий на существующем файловом CLI | Агент по новому запросу читает правила/методики, строит brief/research plan, использует источники и сохраняет проверяемый прогресс; не требует своего API/БД | Инструкции/context реализованы 09.11; live IDE проверки отложены пользователем 09.11 |
-| R2. Единое файловое ядро | План 4.2: adapters, safe writes/recovery, direct structured artifacts, перенос полезных функций/нужных данных, вывод PG/Docker и второй цепочки команд | CLI/MCP parity, restart/conflict/replay и перенос каталога без БД; clean install без старых runtime dependencies | Начат: atomic init/recovery, остальное открыто |
+| R2. Единое файловое ядро | План 4.2: adapters, safe writes/recovery, direct structured artifacts, перенос полезных функций/нужных данных, вывод PG/Docker и второй цепочки команд | CLI/MCP parity, restart/conflict/replay и перенос каталога без БД; clean install без старых runtime dependencies | Начат: init/recovery и typed research draft journal; legacy перенос открыт |
 | R3. Полнота результата ТЗ | Три обязательные роли вариантов, полнота стратегий и эксперимента, evidence/semantic review, исправление/отзыв/revisit и контроль обещаний в quality gate | На новом кейсе есть читаемые стратегии, основания выбора, baseline/metrics/window/guardrails и явные неизвестные; решение принимает человек | Частично есть в MVP; новая единая цепочка не принята |
 | R4. Переносимость и надёжность | Работа после паузы/ошибки, stop/correct, второй IDE host, недоверенный ввод, чистая установка и инструкции | Подтверждённый IDE-native сценарий и второй тип кейса, отсутствие скрытых повторов, no-DB/no-Docker runtime | Запланирован; M8 остаётся открытой |
 | R5. Оценка | Новый разрешённый корпус, сравнение с baseline при сопоставимых входах/бюджете, независимый review, время/стоимость/помощь человека | Измеренные результаты и честные ограничения; fixtures не выдаются за оценку стратегии | M6 отложена пользователем; не считать пройденной |
@@ -398,7 +398,7 @@ Workflow запускаются на PR/push main и feature/* и вручную
 
 ## 17. Первые практические действия
 
-1. R1 instructions/context реализованы; реальные IDE проверки отложены пользователем 09.11.2026, не объявлять их завершёнными. Продолжить R2 после первого atomic init/recovery среза: один typed IDE-authored artifact с expected_version и согласованной записью.
+1. R1 instructions/context реализованы; реальные IDE проверки отложены пользователем 09.11.2026, не объявлять их завершёнными. Typed IDE-authored research_plan journal с expected_version/commit/recovery реализован. Продолжить R2: связать потребление structured плана с workflow, затем переносить нужные writers/readers на общий протокол.
 2. Проверить один короткий IDE-native путь на новом запросе: brief → research plan → source/claim → сохранение → resume; не выдавать готовые fixture артефакты за исследование.
 3. Зафиксировать контракты R3 и проектную atomic-operation схему; начать R2 с одного полезного вертикального файлового среза и тестов, сохраняя модули сервисов раздельными.
 4. Только после проверенного переноса менять default entrypoints/dependencies/CI и выполнять retire legacy. Не добавлять новый PostgreSQL ledger обещаний как следующий этап.
