@@ -49,6 +49,7 @@ jobs:
           enable-cache: true
       - run: uv sync --frozen --group dev
       - run: uv run --frozen --no-sync python -m scripts.ci.docs
+      - run: uv run --frozen --no-sync python scripts/sync_harness.py --check
 
   secrets:
     runs-on: ubuntu-latest

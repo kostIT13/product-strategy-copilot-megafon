@@ -1,0 +1,14 @@
+---
+name: psa-options
+description: Compare evidence-grounded status-quo, stop and change alternatives for a product decision; use before human selection, not for code architecture choices.
+---
+
+# Альтернативы решения
+
+Прочитай AGENTS.md, agent/quality.md и результат context. Сверь evidence ledger, выполненные проверки и открытые пробелы; прежняя интерпретация не становится фактом от повторения.
+
+Примени M-OPTIONS-01 и C-EVIDENCE-01 из context. Сформируй минимум status_quo, stop и change. Сравни механизм/сегмент, ожидаемую пользу, затраты/риски, обратимость, сильнейшее возражение, ключевое допущение и минимальную проверку. Отличающиеся названия не равны разным стратегиям. Не подставляй придуманные цены, спрос и измеренный эффект.
+
+Запиши option add с --role, --description, --benefits, --costs, --risks, --objection, --assumption и --claim по фактическим возможностям CLI; недоступное численное основание явно обозначь как неизвестное. Отдельно покажи сравнение и рекомендованный вариант с причиной/условием пересмотра. Содержательную различимость проверяет review, не только schema.
+
+Выход: три опции в реестре и сравнение в author notes, ссылки на claims и пробелы, validate/verify. Решение и gate остаются человеку. Если пользователь ещё не выбрал вариант, не вызывай decision add и не выдумывай owner/confirmed.

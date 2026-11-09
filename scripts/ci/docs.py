@@ -15,6 +15,7 @@ REQUIRED = ("README.md", "pyproject.toml", "uv.lock", ".env.example", "Dockerfil
             ".github/workflows/ci.yml", ".github/workflows/demo.yml",
             ".github/workflows/release.yml", "MANIFEST.in", "docs/distribution.md",
             "knowledge/README.md", "knowledge/catalog.json",
+            "AGENTS.md", "agent/README.md", "agent/harness.json", "docs/ide-instructions.md",
             "docs/solution_plans/plan-main.md", "docs/solution_plans/roadmap-full-solution.md",
             "projects/demo/state.json", "projects/table-demo/state.json")
 MARKDOWN = MarkdownIt("commonmark")

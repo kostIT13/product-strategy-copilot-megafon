@@ -13,8 +13,8 @@ import zipfile
 from scripts.ci.repository import forbidden_path, git
 
 ROOT_FILES = {"README.md", "pyproject.toml", "uv.lock", ".env.example", ".gitignore", ".dockerignore",
-              "Dockerfile", "docker-compose.yml", "alembic.ini", "MANIFEST.in", "AGENTS.md", "QWEN.md"}
-TREES = {"src", "alembic", "scripts", "tests", "docs", "diagrams", "specs", "reports", "evals", ".github", "knowledge"}
+              "Dockerfile", "docker-compose.yml", "alembic.ini", "MANIFEST.in", "AGENTS.md", "CLAUDE.md", "QWEN.md"}
+TREES = {"src", "alembic", "scripts", "tests", "docs", "diagrams", "specs", "reports", "evals", ".github", "knowledge", "agent"}
 
 
 def allowed(name):
@@ -22,8 +22,15 @@ def allowed(name):
     return (bool(path.parts) and not path.is_absolute() and ".." not in path.parts and not forbidden_path(name)
             and "__pycache__" not in path.parts and not name.endswith((".pyc", ".pyo"))
             and not any(part.endswith(".egg-info") for part in path.parts)
-            and (name in ROOT_FILES or path.parts[0] in TREES
+            and (name in ROOT_FILES or path.parts[0] in TREES or harness_file(path)
                  or path.parts[:2] in {("projects", "demo"), ("projects", "table-demo")}))
+
+
+def harness_file(path):
+    if path.as_posix() in {".codex/README.md", ".claude/README.md", ".cursor/rules/product-strategy.mdc"}:
+        return True
+    return (len(path.parts) == 4 and path.parts[:2] in {(".agents", "skills"), (".claude", "skills")}
+            and re.fullmatch(r"psa-[a-z0-9-]+", path.parts[2]) is not None and path.name == "SKILL.md")
 
 
 def version_for(root, tag=None):
@@ -68,7 +75,8 @@ def package(root, output, tag=None, require_clean=False):
             files[f"distributions/{path.name}"] = path.read_bytes()
             (output / path.name).write_bytes(files[f"distributions/{path.name}"])
     required = {"README.md", "uv.lock", ".env.example", "alembic/env.py", "scripts/ci/demo.py",
-                "projects/demo/state.json", "projects/table-demo/state.json", "knowledge/README.md", "knowledge/catalog.json"}
+                "projects/demo/state.json", "projects/table-demo/state.json", "knowledge/README.md", "knowledge/catalog.json",
+                "AGENTS.md", "CLAUDE.md", "agent/harness.json", ".agents/skills/psa-research/SKILL.md"}
     if not required <= files.keys():
         raise ValueError("release is missing required tracked files")
     manifest = {"version": version, "commit": git(root, "rev-parse", "HEAD")[0].strip(), "dirty": dirty,

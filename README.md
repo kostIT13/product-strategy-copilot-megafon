@@ -6,6 +6,8 @@ GitHub CI проверяет frozen-установку по `uv.lock`, unittest/
 
 Сборка проверяемого ZIP, wheel/sdist и Docker smoke описана в [docs/distribution.md](docs/distribution.md). Теговый release workflow готовит draft после CI и проверки установки.
 
+Работа IDE-агента: [инструкции и запуск R1](docs/ide-instructions.md), канон — [AGENTS.md](AGENTS.md). После создания/открытия кейса команда `psa context ID` выдаёт подходящие skills и knowledge с версиями/хэшами; загрузка в конкретной IDE проверяется отдельно.
+
 ## CLI
 
 Требуется Python 3.11 или новее. Из корня репозитория установите пакет в editable-режиме и используйте команду `psa`:
@@ -20,9 +22,23 @@ psa next demo-retention
 psa resume demo-retention
 ```
 
-`init` создаёт папку `projects/<project-id>` с версионируемым `state.json`, шаблоном брифа и пустыми журналами. Исходные материалы в `projects/*/sources/` исключены из Git по умолчанию.
+`init` создаёт папку `projects/<project-id>` с версионируемым `state.json`, шаблоном брифа и пустыми журналами. Исходные материалы в `projects/*/sources/` исключены из Git по умолчанию. Теперь начальный набор готовится отдельно, проверяется по hash receipt и публикуется целиком; занятая папка не дополняется. После сбоя: `psa workspace pending ID`, затем явный `psa workspace recover ID --operation UUID`. [Файловый контракт и границы восстановления](docs/file-core.md).
 
 `psa doctor` проверяет версию Python, встроенные шаблоны, наличие `uv` и optional FastMCP. Конфигурацию он проверяет только по наличию файла и имён известных переменных: значения из `.env` и окружения не читаются и не выводятся. Состояние проекта меняют явные операции `gate`, `mode` и append-only команды записи; `status`, `next` и `resume` его читают.
+
+Типизированный черновик плана от IDE-агента: `psa artifact status ID`, затем `psa artifact record ID --input FILE.json`. Новый файловый журнал связывает JSON/Markdown/event/receipt через atomic HEAD, проверяет expected_version и входные hashes, поддерживает replay/recovery. Это draft без gate/публикации; [контракт и ограничения совместимости](docs/research-artifacts.md).
+
+Gate сохраняет state/events через write-ahead bundle. При прерывании: `psa workflow pending ID`, затем `psa workflow recover ID --operation UUID`; до восстановления обычные команды блокируются. Для exact retry approval передавайте собственный `--operation UUID` и при необходимости `--expected-workflow-version N`. [Протокол, CLI/MCP и границы recovery](docs/workflow-recovery.md).
+
+Файловые читатели и writers используют [общий lock кейса](docs/case-access.md). При занятой операции CLI/MCP возвращают `busy`; автоматического повтора нет. Вложенные core-вызовы используют один scope. Это защищает от участвующих конкурентных операций; crash recovery остальных legacy writes ещё переносится.
+
+Смена режима исследования также использует workflow recovery: `psa mode set ID quick_scan --by OWNER --operation UUID --expected-workflow-version N`. Общую версию workflow показывает `psa status ID`. Смена режима не утверждает этап; [контракт и совместимость](docs/file-mode-recovery.md).
+
+`psa revisit resolve` сохраняет review ревизии источника с теми же `--operation`/`--expected-workflow-version` и workflow recovery. Проверяются current/archive hashes и все затронутые claims/решения; review не меняет этап или approvals. [Контракт](docs/revision-review-recovery.md).
+
+`psa source add/fetch` также используют workflow recovery для registry/current text/archive/revision. Передавайте `--operation UUID` для exact replay без нового чтения файла/HTTP и `--expected-workflow-version N` для проверки версии. [Source import/recovery](docs/source-import-recovery.md).
+
+`psa render` и `--adopt-existing` публикуют Markdown/manifest через workflow recovery. Существующие drafts сохраняются, changed generated files требуют явного разрешения на discard. Поддерживаются те же UUID/expected version; [контракт render/adoption](docs/render-recovery.md).
 
 ### Импорт источников
 

@@ -34,7 +34,7 @@ class DocumentationChecks(unittest.TestCase):
 
 class RepositoryChecks(unittest.TestCase):
     def test_local_runtime_policy_allows_only_env_example(self):
-        for name in ('.env', 'nested/.env.production', '.ENV.production', 'backups/data.sql', '.venv-ci/config', 'data.sqlite3'):
+        for name in ('.env', 'nested/.env.production', '.ENV.production', 'backups/data.sql', '.venv-ci/config', 'data.sqlite3', 'projects/.psa-staging/case/data.md', 'projects/.psa-locks/case.lock'):
             self.assertTrue(forbidden_path(name), name)
         self.assertFalse(forbidden_path('.env.example'))
         self.assertFalse(forbidden_path('.environment.md'))

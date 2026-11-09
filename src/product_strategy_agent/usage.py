@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from product_strategy_agent.adapters.persistence.files.workflow_guard import require_workflow_ready
+from product_strategy_agent.adapters.persistence.files.case_access import locked_case
+
 import json
 import re
 import uuid
@@ -34,6 +37,7 @@ def _records(project_dir: Path) -> list[dict[str, Any]]:
     return records
 
 
+@locked_case
 def add_usage(
     project_dir: Path,
     provider: str,
@@ -52,6 +56,7 @@ def add_usage(
     operation_id: str | None = None,
 ) -> dict[str, Any]:
     """Record provider-reported or explicitly estimated usage; never logs request text."""
+    require_workflow_ready(project_dir)
     if not (project_dir / "state.json").is_file():
         raise FileNotFoundError(f"Not a project workspace: {project_dir}")
     for label, value in (("provider", provider), ("model", model), ("operation", operation)):
@@ -111,7 +116,9 @@ def add_usage(
     return record
 
 
+@locked_case
 def usage_report(project_dir: Path) -> dict[str, Any]:
+    require_workflow_ready(project_dir)
     records = _records(project_dir)
     input_values = [record["input_tokens"] for record in records if isinstance(record.get("input_tokens"), int)]
     output_values = [record["output_tokens"] for record in records if isinstance(record.get("output_tokens"), int)]
