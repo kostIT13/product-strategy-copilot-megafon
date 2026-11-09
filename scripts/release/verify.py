@@ -59,7 +59,7 @@ def verify(archive, python):
     if archive.name not in checked or "release-manifest.json" not in checked or len(checked) != 4:
         raise ValueError("incomplete external checksum list")
     env = {key: value for key, value in os.environ.items()
-           if key not in {"PYTHONPATH", "PYTHONHOME", "VIRTUAL_ENV", "UV_PROJECT_ENVIRONMENT"}
+           if key not in {"PYTHONPATH", "PYTHONHOME", "VIRTUAL_ENV", "UV_PROJECT_ENVIRONMENT", "DATABASE_URL"}
            and not key.startswith(("LLM_", "QWEN_"))}
     env.update(LLM_API_KEY="", LLM_BASE_URL="https://provider.invalid/v1")
     with TemporaryDirectory(prefix="psa-install-") as folder:
@@ -81,8 +81,9 @@ def verify(archive, python):
             run("uv", "pip", "install", "--python", str(interpreter), "--no-deps", "--reinstall", str(packages[0]))
             run(str(interpreter), "-c", "import product_strategy_agent as p; from pathlib import Path; import sys; assert Path(p.__file__).is_relative_to(sys.prefix)", cwd=Path(folder))
             run(str(interpreter), "-m", "product_strategy_agent.cli", "doctor", cwd=Path(folder))
-            run(str(interpreter), "-m", "product_strategy_agent.interfaces.cli.main", "--help", cwd=Path(folder))
+            run(str(interpreter), "-m", "product_strategy_agent.cli", "--help", cwd=Path(folder))
             run(str(interpreter), "-m", "scripts.ci.demo")
+            run(str(interpreter), "-m", "scripts.ci.base_smoke")
     return {"ok": True, "wheel_installed": True, "sdist_installed": True, "source_imports": False, "model_calls": 0}
 
 

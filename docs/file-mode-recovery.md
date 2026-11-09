@@ -33,8 +33,10 @@ psa workflow recover CASE --operation UUID
 
 Те же `psa_pending_workflow`/`psa_recover_workflow` поддерживают gate и mode. До завершения ACTIVE обычные команды блокируются. Recovery проверяет before/after, kind semantics и inputs; посторонние изменения не перезаписываются. Copy case вместе с journal позволяет продолжить по исходному UUID в другом projects-dir. Восстановление mode не продвигает этап и не добавляет approval.
 
-Пределы общего journal сохранены: 512000 байт на payload file, 2000 входных файлов. Capture source/gap JSONL также ограничен 512000 байтами на файл. Это не глобальная версия/транзакция всех реестров: оставшиеся ledger/usage writes ещё требуют переноса. БД, Docker и модель для смены режима не нужны.
+Пределы общего journal сохранены: 512000 байт на payload file, 2000 входных файлов. Capture source/gap JSONL также ограничен 512000 байтами на файл. Это не глобальная версия/транзакция всех реестров: canonical ledger/usage writes перенесены на workflow v4. БД, Docker и модель для смены режима не нужны.
 
 Source import/revision creation теперь используют [workflow v2 bundle/recovery](source-import-recovery.md) с captured text/archive targets; общая версия учитывает и эти операции.
 
 Render и adoption integrity manifest теперь используют [workflow v3 recovery](render-recovery.md); Markdown builder отделён от публикации, existing drafts сохраняются.
+
+Canonical ledger/usage append теперь поддерживает [workflow v4 replay/recovery](ledger-recovery.md); shared version учитывает эти записи, usage business ID отделён от journal UUID.

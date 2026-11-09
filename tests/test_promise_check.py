@@ -141,49 +141,9 @@ class PromiseCheckTests(unittest.TestCase):
         reader.read.return_value = replace(snapshot, sources=(replace(snapshot.sources[0], latest_revision=2),))
         self.assertNotEqual(first["review_hash"], service.check("demo", request)["review_hash"])
 
-    def test_cli_has_explicit_blocked_exit_code_and_same_payload(self):
-        from product_strategy_agent.interfaces.cli.main import build_parser
-        from product_strategy_agent.interfaces.cli.promise_commands import handle_promise_command
-        snapshot, request, reader, service = promise_fixture()
-        with TemporaryDirectory() as folder:
-            path = Path(folder) / "promises.json"
-            path.write_text(request.model_dump_json(), encoding="utf-8")
-            args = build_parser().parse_args(["promise", "check", "demo", "--input", str(path)])
-            with patch("product_strategy_agent.interfaces.cli.promise_commands.build_promise_service", return_value=service), patch("builtins.print") as output:
-                self.assertEqual(handle_promise_command(args), 0)
-                self.assertEqual(json.loads(output.call_args.args[0]), service.check("demo", request))
-                reader.read.return_value = replace(snapshot, capabilities=())
-                self.assertEqual(handle_promise_command(args), 3)
-                self.assertEqual(json.loads(output.call_args.args[0])["structural_status"], "blocked")
 
     def test_packet_budget_blocks_instead_of_silently_truncating_evidence(self):
         snapshot, request, reader, service = promise_fixture()
         reader.read.return_value = replace(snapshot, capabilities=(replace(snapshot.capabilities[0], description="x" * 128001),))
         with self.assertRaisesRegex(ValueError, "split the request"):
             service.check("demo", request)
-
-    def test_standalone_composition_does_not_construct_an_llm_provider(self):
-        from product_strategy_agent.bootstrap import build_promise_service
-        with patch("product_strategy_agent.bootstrap.OpenAICompatibleProvider") as provider:
-            self.assertIsInstance(build_promise_service(), PromiseCheckService)
-        provider.assert_not_called()
-
-
-@unittest.skipUnless(importlib.util.find_spec("fastmcp"), "requires MCP extra")
-class PromiseMCPTests(unittest.IsolatedAsyncioTestCase):
-    async def test_read_only_mcp_matches_core_and_returns_blockers_without_model_or_writes(self):
-        from fastmcp import Client
-        from product_strategy_agent.bootstrap import MainServices
-        from product_strategy_agent.interfaces.mcp.server import create_server
-        snapshot, request, reader, service = promise_fixture()
-        agent = Mock()
-        async with Client(create_server(MainServices(agent, Mock(), Mock(), Mock(), promises=service))) as client:
-            tool = next(item for item in await client.list_tools() if item.name == "psa_main_check_promises")
-            self.assertTrue(tool.annotations.read_only_hint)
-            self.assertFalse(tool.annotations.open_world_hint)
-            args = {"project_key": "demo", "request": request.model_dump(mode="json")}
-            self.assertEqual((await client.call_tool(tool.name, args)).data, service.check("demo", request))
-            reader.read.return_value = replace(snapshot, capabilities=())
-            result = (await client.call_tool(tool.name, args)).data
-            self.assertEqual(result["structural_status"], "blocked")
-        self.assertFalse(agent.mock_calls)

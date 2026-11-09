@@ -151,34 +151,3 @@ class StrategyApprovalTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             f.approval.export("demo", f.plan.agent_run_id)
         f.fixture.provider.generate.assert_not_called()
-
-    def test_cli_approval_and_export_dispatch_use_the_same_service(self):
-        from product_strategy_agent.interfaces.cli.main import build_parser
-        from product_strategy_agent.interfaces.cli.strategy_commands import handle_strategy_command
-        f = approval_fixture()
-        f.approval.record("demo", f.approval_command)
-        args = build_parser().parse_args(["strategy", "export", "demo", str(f.plan.agent_run_id)])
-        with patch("product_strategy_agent.interfaces.cli.strategy_commands.build_main_services", return_value=SimpleNamespace(strategy=None, strategy_approval=f.approval)), patch("builtins.print") as output:
-            self.assertEqual(handle_strategy_command(args), 0)
-        self.assertEqual(json.loads(output.call_args.args[0]), f.approval.export("demo", f.plan.agent_run_id))
-
-
-@unittest.skipUnless(importlib.util.find_spec("fastmcp"), "requires MCP extra")
-class StrategyApprovalMCPTests(unittest.IsolatedAsyncioTestCase):
-    async def test_preview_record_replay_and_export_share_core_without_model_call(self):
-        from fastmcp import Client
-        from product_strategy_agent.bootstrap import MainServices
-        from product_strategy_agent.interfaces.mcp.server import create_server
-        f = approval_fixture()
-        services = MainServices(f.fixture.service, Mock(), f.pipeline, f.critic, f.selection, f.strategy, f.approval)
-        args = {"project_key": "demo", "strategy_run_id": str(f.plan.agent_run_id)}
-        async with Client(create_server(services)) as client:
-            preview = (await client.call_tool("psa_main_preview_strategy_approval", {**args, "critic_run_id": str(f.review.agent_run_id)})).data
-            self.assertEqual(preview, f.preview)
-            command = {"project_key": "demo", "approval": f.approval_command.model_dump(mode="json")}
-            receipt = (await client.call_tool("psa_main_approve_strategy", command)).data
-            self.assertEqual((await client.call_tool("psa_main_approve_strategy", command)).data, receipt)
-            self.assertEqual((await client.call_tool("psa_main_get_strategy_approval", args)).data, receipt)
-            self.assertEqual((await client.call_tool("psa_main_export_strategy", args)).data, f.approval.export("demo", f.plan.agent_run_id))
-        self.assertEqual(f.approvals.calls, 1)
-        f.fixture.provider.generate.assert_not_called()

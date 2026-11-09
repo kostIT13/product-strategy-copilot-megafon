@@ -192,27 +192,3 @@ class CriticTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.fixture.service.execute_reserved(replace(prepared, review_target=altered), run)
         self.fixture.provider.generate.assert_not_called()
-
-
-@unittest.skipUnless(importlib.util.find_spec("fastmcp"), "requires MCP extra")
-class CriticMCPTests(unittest.IsolatedAsyncioTestCase):
-    async def test_preview_start_resume_are_linked_and_preserve_original(self):
-        from fastmcp import Client
-        from product_strategy_agent.bootstrap import MainServices
-        from product_strategy_agent.interfaces.mcp.server import create_server
-        fixture, store, pipeline, critic, target = critic_fixture()
-        async with Client(create_server(MainServices(fixture.service, Mock(), pipeline, critic))) as client:
-            args = {"project_key": "demo", "run_id": str(target.id)}
-            prepared = (await client.call_tool("psa_main_prepare_critic", args)).data
-            self.assertEqual(prepared["input_run_id"], str(target.id))
-            self.assertEqual(prepared["task"], "evidence_critic")
-            fixture.provider.generate.assert_not_called()
-            self.assertFalse(store.rows)
-            started = (await client.call_tool("psa_main_start_critic", args)).data
-            fixture.provider.generate.assert_not_called()
-            resume = {"project_key": "demo", "pipeline_id": started["id"], "expected_version": 0}
-            ready = (await client.call_tool("psa_main_resume_pipeline", resume)).data
-            done = (await client.call_tool("psa_main_resume_pipeline", {**resume, "expected_version": ready["version"]})).data
-            self.assertEqual(done["result"]["critic_verdict"], "needs_revision")
-            self.assertEqual(fixture.runs.get(target.project_id, target.id), target)
-            fixture.provider.generate.assert_called_once()

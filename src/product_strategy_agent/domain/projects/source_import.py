@@ -7,6 +7,8 @@ from typing import Annotated, Literal
 from urllib.parse import urlparse
 from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints
+from product_strategy_agent.domain.projects.file_documents import DocumentInfo
+from product_strategy_agent.domain.projects.web_capture import WebCapture
 
 MAX_TEXT_BYTES = 10 * 1024 * 1024
 
@@ -15,7 +17,7 @@ class SourceImport(BaseModel):
     model_config = ConfigDict(extra="forbid", revalidate_instances="always")
     kind: Literal["source_import"] = "source_import"
     operation_id: UUID
-    input_kind: Literal["local_text", "web_page"]
+    input_kind: Literal["local_text", "web_page", "local_document"]
     locator: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=4000)]
     title: Annotated[str, StringConstraints(max_length=4000)] | None = None
     expected_workflow_version: int | None = Field(default=None, strict=True, ge=0)
@@ -32,7 +34,7 @@ def plan_source(command, material, text, timestamp, registry, events, current, a
     uri = material["uri"]
     if not isinstance(uri, str) or not uri.strip() or uri != uri.strip():
         raise ValueError("invalid captured source URI")
-    if command.input_kind == "local_text" and uri != command.locator:
+    if command.input_kind in {"local_text", "local_document"} and uri != command.locator:
         raise ValueError("local source locator changed")
     if command.input_kind == "web_page" and (urlparse(uri).scheme not in {"http", "https"} or not urlparse(uri).netloc):
         raise ValueError("captured source URL must use http(s)")
@@ -59,6 +61,17 @@ def plan_source(command, material, text, timestamp, registry, events, current, a
         "accessed_at": timestamp, "locator": "paragraphs:1-" + str(max(1, sum(bool(line.strip()) for line in text.decode("utf-8").splitlines()))),
         "reliability": "unassessed", "limitations": [], "status": "extracted", "content_hash": content_hash,
         "extracted_text_path": current_path}
+    if command.input_kind == "local_document":
+        document = DocumentInfo.model_validate(material["document"])
+        record.update(kind="dataset" if document.format == "xlsx" else "uploaded_document",
+                      document_format=document.format, locator=document.locator, limitations=document.limitations)
+    if command.input_kind == "web_page" and "web" in material:
+        capture = WebCapture.model_validate(material["web"])
+        if capture.final_url != uri:
+            raise ValueError("captured final URL does not match source identity")
+        provenance = capture.model_dump()
+        record.update(provenance={key: value for key, value in provenance.items() if key != "limitations"},
+                      limitations=capture.limitations)
     registry_after = "".join(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n" for row in
                              [row for row in rows if row["source_id"] != identifier] + [record]).encode("utf-8")
     targets = {"sources.jsonl": (registry, registry_after), current_path: (current, text)}

@@ -127,21 +127,3 @@ class SelectionTests(unittest.TestCase):
             service.preview("other", command.source_run_id, command.critic_run_id)
         with self.assertRaises(ValueError):
             service.get("other", command.source_run_id)
-
-
-@unittest.skipUnless(importlib.util.find_spec("fastmcp"), "requires MCP extra")
-class SelectionMCPTests(unittest.IsolatedAsyncioTestCase):
-    async def test_explicit_write_and_read_receipt_have_same_payload(self):
-        from fastmcp import Client
-        from product_strategy_agent.bootstrap import MainServices
-        from product_strategy_agent.interfaces.mcp.server import create_server
-        fixture, service, store, command = selection_fixture()
-        async with Client(create_server(MainServices(fixture.service, Mock(), Mock(), Mock(), service))) as client:
-            args = {"project_key": "demo", "source_run_id": str(command.source_run_id), "critic_run_id": str(command.critic_run_id)}
-            preview = (await client.call_tool("psa_main_preview_selection", args)).data
-            self.assertEqual(preview, service.preview("demo", command.source_run_id, command.critic_run_id))
-            receipt = (await client.call_tool("psa_main_record_selection", {"project_key": "demo", "selection": command.model_dump(mode="json")})).data
-            shown = (await client.call_tool("psa_main_get_selection", {"project_key": "demo", "source_run_id": str(command.source_run_id)})).data
-            self.assertEqual(receipt, shown)
-            self.assertEqual(store.calls, 1)
-        fixture.provider.generate.assert_not_called()

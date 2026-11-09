@@ -43,4 +43,6 @@ Compatibility helper `write_render_manifest` теперь также вызыв�
 
 До ACTIVE сохраняется полный bundle; затем общим temp+replace publisher записываются targets, state/events, completion receipt, ACTIVE удаляется последним. Participating readers/writers получают busy/pending, не промежуточный набор документов. Recovery сверяет каждый target с before/after и snapshot остальных входов. Ручные edits, появившиеся после подготовки, не перезаписываются. Copy case с journal позволяет завершить exact operation в другом projects-dir без повторной сборки из новых входов.
 
-Common metadata ограничены 512000 байтами, каждый UTF-8 target — 512000 байтами, каждый render snapshot payload — 4 МиБ. Превышение отклоняется до публикации, текст не усекается. Raw/manual доступ обходит lock, power loss/NAS не сертифицированы. Остальные canonical ledger/usage writers и перенос/retire старого контура ещё остаются R2.
+Common metadata ограничены 512000 байтами, каждый UTF-8 target — 512000 байтами, каждый render snapshot payload — 4 МиБ. Превышение отклоняется до публикации, текст не усекается. Raw/manual доступ обходит lock, power loss/NAS не сертифицированы. Canonical ledger/usage writers перенесены на workflow v4; перенос/retire старого контура остаётся R2.
+
+Canonical ledger/usage append теперь поддерживает [workflow v4 replay/recovery](ledger-recovery.md); shared version учитывает эти записи, usage business ID отделён от journal UUID.

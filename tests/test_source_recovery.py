@@ -1,7 +1,6 @@
 """Source text/registry/archive/event/state publication survives real interruptions."""
 from contextlib import contextmanager
 import importlib.util
-import io
 import json
 from pathlib import Path
 import shutil
@@ -18,6 +17,7 @@ from product_strategy_agent.revisit import build_revisit_report
 from product_strategy_agent.adapters.persistence.files.workflow_repository import FileWorkflowStore
 from product_strategy_agent.application.services.workflow_recovery_service import WorkflowRecoveryService
 from product_strategy_agent.validation import verify_project
+from product_strategy_agent.domain.sources.web import FetchedPage
 
 ROOT = Path(__file__).resolve().parents[1]
 CHILD = r'''
@@ -131,14 +131,13 @@ class SourceRecoveryTests(unittest.TestCase):
             source.unlink()
             with patch("product_strategy_agent.adapters.persistence.files.source_reader.FileWebSourceReader.read", side_effect=AssertionError("must not read")):
                 self.assertEqual(add_local_source(root / "case", source, operation_id=operation, expected_workflow_version=0), first)
-            class Response(io.BytesIO):
-                headers = {"Content-Type": "text/html; charset=utf-8"}
-                def geturl(self): return "https://fixture.invalid/final"
             web_operation = uuid4()
-            with patch("product_strategy_agent.sources.urlopen", return_value=Response(b"<title>Fixture</title><p>Synthetic only</p>")) as http:
+            page = FetchedPage("https://fixture.invalid/input", "https://fixture.invalid/final",
+                               b"<title>Fixture</title><p>Synthetic only</p>", "text/html", "utf-8", "2026-11-10T00:00:00Z")
+            with patch("product_strategy_agent.adapters.web.fetcher.PublicWebFetcher.fetch", return_value=page) as http:
                 web = fetch_web_source(root / "case", "https://fixture.invalid/input#section", operation_id=web_operation, expected_workflow_version=1)
                 self.assertEqual(http.call_count, 1)
-            with patch("product_strategy_agent.sources.urlopen", side_effect=AssertionError("must not fetch")):
+            with patch("product_strategy_agent.adapters.web.fetcher.PublicWebFetcher.fetch", side_effect=AssertionError("must not fetch")):
                 self.assertEqual(fetch_web_source(root / "case", "https://fixture.invalid/input", operation_id=web_operation, expected_workflow_version=1), web)
             self.assertEqual(web["uri_or_path"], "https://fixture.invalid/final")
 
@@ -148,7 +147,7 @@ class SourceRecoveryTests(unittest.TestCase):
             source, _ = fixture(root, revision=False)
             operation = uuid4()
             add_local_source(root / "case", source, operation_id=operation)
-            with patch("product_strategy_agent.sources.urlopen", side_effect=AssertionError("must not fetch")):
+            with patch("product_strategy_agent.adapters.web.fetcher.PublicWebFetcher.fetch", side_effect=AssertionError("must not fetch")):
                 for action in (lambda: fetch_web_source(root / "case", "https://fixture.invalid", expected_workflow_version=0),
                                lambda: fetch_web_source(root / "case", "https://fixture.invalid", operation_id=""),
                                lambda: fetch_web_source(root / "case", "https://fixture.invalid", operation_id=operation)):

@@ -12,7 +12,7 @@ uv run --frozen --no-sync python -m scripts.release.package
 uv run --frozen --no-sync python -m scripts.release.verify dist/release/product-strategy-agent-0.1.0.zip
 ```
 
-Для выпуска используйте `--require-clean --tag v0.1.0` у package. Обычная локальная сборка допускает незакоммиченные правки и явно отмечает dirty=true в манифесте; такой архив не подтверждает конкретный чистый commit. В архив входят только отслеживаемые Git файлы из allowlist: исходники, миграции, инструкции, тесты/CI scripts, документация/диаграммы, knowledge/ с методиками и чек-листами, сохранённые отчёты и синтетические evals, projects/demo и projects/table-demo. Личные проекты, .env, .git, .venv, backups и volumes не включаются. Игнорируемые локальные данные не читаются. Symlinks запрещены.
+Для выпуска используйте `--require-clean --tag v0.1.0` у package. Обычная локальная сборка допускает незакоммиченные правки и явно отмечает dirty=true в манифесте; такой архив не подтверждает конкретный чистый commit. В архив входят только отслеживаемые Git файлы из allowlist: исходники, инструкции, тесты/CI scripts, документация/диаграммы, knowledge/ с методиками и чек-листами, сохранённые отчёты и синтетические evals, projects/demo и projects/table-demo. Личные проекты, .env, .git, .venv, backups и volumes не включаются. Игнорируемые локальные данные не читаются. Symlinks запрещены.
 
 Результат в dist/release/: ZIP, wheel, sdist, release-manifest.json и SHA256SUMS. В ZIP есть distributions/ с теми же wheel/sdist. Manifest содержит версию, source commit, dirty flag и SHA-256 каждого файла; SHA256SUMS покрывает внешние assets. Это проверка целостности, не криптографическая подпись автора. ZIP использует фиксированные timestamps, но wheel/sdist и сборочные инструменты не гарантируют побайтово одинаковый результат разных запусков.
 
@@ -20,18 +20,14 @@ Verifier проверяет список файлов и hashes до распа�
 
 ## Использование архива
 
-Проверьте SHA256SUMS доверенным локальным инструментом, распакуйте ZIP и перейдите в верхний каталог. Для обычной установки из исходников выполните `uv sync --frozen --no-default-groups`, затем `uv run --frozen --no-sync psa doctor` и `uv run --frozen --no-sync python -m scripts.ci.demo`. Это не требует .env, PostgreSQL и ключа модели. Для основной системы установите extras agent/documents/mcp и отдельно настройте PostgreSQL по README; миграции лежат в alembic/. Git-зависимые проверки CI запускаются из clone, а не из распакованного архива без .git.
+Проверьте SHA256SUMS доверенным локальным инструментом, распакуйте ZIP и перейдите в верхний каталог. Для обычной установки из исходников выполните `uv sync --frozen --no-default-groups`, затем `uv run --frozen --no-sync psa doctor` и `uv run --frozen --no-sync python -m scripts.ci.demo`. Это не требует .env, PostgreSQL и ключа модели. При необходимости установите extras documents/mcp; PostgreSQL, Alembic и Docker в текущем пакете отсутствуют. Extra agent — отдельный optional helper. Git-зависимые проверки CI запускаются из clone, а не из распакованного архива без .git.
 
 ## GitHub workflow
 
-release.yml запускается по тегу v* или вручную. Переиспользует ci.yml и demo.yml на том же commit, включая PostgreSQL, секреты и Docker. Только после их успеха собирает и проверяет дистрибутив, сохраняет artifact на 14 дней. Ручной запуск на ветке даёт проверочный artifact. Теговый запуск создаёт только draft GitHub Release; перед созданием сравнивает remote tag commit с проверенным SHA. Публикация остаётся отдельным действием владельца, существующий release не перезаписывается. LLM-секреты не используются; права contents: write выдаются только draft job, который не исполняет код из пакета.
+release.yml запускается по тегу v* или вручную. Переиспользует ci.yml и demo.yml на том же commit, включая native secrets, чистую базовую установку и файловое демо. Только после их успеха собирает и проверяет дистрибутив, сохраняет artifact на 14 дней. Ручной запуск на ветке даёт проверочный artifact. Теговый запуск создаёт только draft GitHub Release; перед созданием сравнивает remote tag commit с проверенным SHA. Публикация остаётся отдельным действием владельца, существующий release не перезаписывается. LLM-секреты не используются; права contents: write выдаются только draft job, который не исполняет код из пакета.
 
 Сборка использует [uv build](https://docs.astral.sh/uv/guides/package/), draft — [GitHub CLI release create](https://cli.github.com/manual/gh_release_create) с --verify-tag/--draft. Checkout/setup-uv/upload-artifact закреплены на проверенные commit SHA.
 
-## Docker smoke
+## Базовая проверка без runtime extras
 
-```powershell
-uv run --frozen --no-sync python -m scripts.ci.docker_smoke
-```
-
-Нужен Docker. Dockerfile закрепляет Python/uv images по digest, устанавливает agent/documents/mcp через frozen uv.lock и запускается от app. Smoke собирает временный image, проверяет doctor, main CLI help, offline Alembic SQL, реальный main FastMCP stdio inventory (19 tools), затем оба demo с read-only fixture mounts. Runtime-контейнеры имеют --network none, --read-only и временный /tmp; БД и API не вызываются. Загрузка образов и зависимостей при build требует сети. Временный тег image удаляется; build cache остаётся для следующих запусков. Это startup/offline проверка, не замена PostgreSQL integration job.
+В изолированном base environment выполните `python -m scripts.ci.base_smoke`. Сценарий отклоняет окружения с SQL/model/parser/MCP extras, создаёт только временный синтетический кейс, проходит workflow до completed, проверяет promise/evidence/render и продолжение после копирования. Пользовательские данные не используются. Эта механическая проверка не заменяет live IDE acceptance или оценку пользы.
