@@ -56,6 +56,7 @@ uv run --no-sync psa claim impact my-case
 - [Исправление claims](docs/claim-correction.md), [отзыв claims и impact](docs/claim-withdrawal.md), [план измерения](docs/validation-plan-contract.md), [полнота стратегий](docs/strategy-structure.md), [файловый поиск](docs/file-source-search.md), [promise preflight](docs/file-promise-check.md), [ledger/usage recovery](docs/ledger-recovery.md), [render/adoption](docs/render-recovery.md).
 - [Пересмотр и повторное открытие completed workflow](docs/workflow-reopen.md): snapshot review, явный человек и повторные gates с сохранением истории.
 - [Отзыв источников](docs/source-withdrawal.md): сохранение истории, исключение из текущих оснований/поиска и review зависимых решений.
+- [Числовой фрагмент baseline](docs/baseline-numbers.md): явные spans числа/единицы и current citation proof; read-only preflight, смысл проверяется отдельно.
 - [IDE instructions/context](docs/ide-instructions.md), [файловый MCP](docs/mcp.md), [knowledge](knowledge/README.md).
 
 После interrupted init используйте workspace pending/recover. После interrupted workflow write — `psa workflow pending ID`, затем явный recover точного operation UUID. Replay завершённой операции возвращает исходный результат; неопределённый платный вызов автоматически не повторяется.

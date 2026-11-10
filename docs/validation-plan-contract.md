@@ -74,3 +74,6 @@ Report содержит schema plan, baseline proof, input hashes и review_hash
 Схема кейса, workflow journal и frozen render v1/templates не менялись. Старые narrative-only планы читаются/рендерятся, но для **нового** validation gate требуют authored block. Legacy demo replay не переутверждает gates и остаётся работоспособным. Исправлять generated Markdown/state вручную не нужно; меняется authored draft и запускается render.
 
 R3 остаётся открытым: semantic consistency, согласование численных критериев и baseline с evidence, human decisions и correction/withdrawal lifecycle ещё требуют следующих срезов. Наличие complete schema не означает готовность к production или победу в хакатоне.
+
+
+Дополнительный read-only [psa validation numbers](baseline-numbers.md) проверяет author-selected numeric/unit literals reported baseline по текущей recorded citation. Исходный plan_report и gates не менялись; literal_match не является semantic/numeric approval.
