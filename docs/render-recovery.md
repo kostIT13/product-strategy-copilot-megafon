@@ -1,5 +1,7 @@
 # Восстановимые render и adoption
 
+Обновление R3: новые generations используют [builder v2 с effective claim lifecycle](claim-withdrawal.md). Frozen builder v1 сохранён для исторического replay; формат workflow v3 bundle не меняется. Внутренний builder_version записывается в новые requests, auto replay сохраняет прежнюю business identity.
+
 R2: Markdown, недостающие author templates, integrity manifest и state/events публикуются одной recoverable workflow-операцией. Чистый version-one builder отделён от application service/port и filesystem codec/store. Render не утверждает этап или стратегию.
 
 ```bash

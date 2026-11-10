@@ -14,6 +14,7 @@ from product_strategy_agent.domain.projects.strategy_paragraphs import (
 )
 from product_strategy_agent.application.services.file_promise_service import FilePromiseService
 from product_strategy_agent.adapters.persistence.files.promise_reader import FilePromiseReader
+from product_strategy_agent.domain.projects.claim_lifecycle import claim_statuses
 
 
 
@@ -48,6 +49,7 @@ def coverage_report(project_dir: Path) -> dict[str, Any]:
     try:
         claims = _read_records(project_dir / "claims.jsonl")
         capabilities = _read_records(project_dir / "capabilities.jsonl")
+        effective = claim_statuses(claims, _read_records(project_dir / "events.jsonl"))
     except ValueError as error:
         return {"ok": False, "checked_paragraphs": 0, "errors": [str(error)]}
 
@@ -72,6 +74,8 @@ def coverage_report(project_dir: Path) -> dict[str, Any]:
             for claim_id in claims_found:
                 if claim_id not in claim_ids:
                     errors.append(f"drafts/{name}:{line_number}: unknown claim marker [{claim_id}]")
+                elif effective[claim_id] != "active":
+                    errors.append(f"drafts/{name}:{line_number}: inactive claim [{claim_id}] ({effective[claim_id]})")
             if "[COMMITMENT" in paragraph.upper() and not commitments:
                 errors.append(f"drafts/{name}:{line_number}: commitment marker must name a capability, e.g. [COMMITMENT: CAP-001]")
             for capability_id in commitments:

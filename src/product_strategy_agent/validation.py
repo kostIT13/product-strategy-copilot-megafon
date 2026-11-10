@@ -5,6 +5,8 @@ from __future__ import annotations
 from product_strategy_agent.adapters.persistence.files.workflow_guard import require_workflow_ready
 from product_strategy_agent.adapters.persistence.files.case_access import locked_case
 from product_strategy_agent.domain.projects.file_documents import document_excerpt
+from product_strategy_agent.domain.projects.claim_lifecycle import claim_statuses
+from product_strategy_agent.domain.projects.source_lifecycle import source_statuses
 
 import hashlib
 import json
@@ -271,8 +273,16 @@ def verify_project(project_dir: Path) -> tuple[list[str], list[str]]:
             continue
         source_texts[source_id] = data.decode("utf-8", errors="replace")
 
-    for claim in _read_jsonl(project_dir / "claims.jsonl", registry_errors):
+    claim_rows = _read_jsonl(project_dir / "claims.jsonl", registry_errors)
+    try:
+        source_statuses(sources, _read_jsonl(project_dir / "events.jsonl", registry_errors))
+        effective = claim_statuses(claim_rows, _read_jsonl(project_dir / "events.jsonl", registry_errors))
+    except ValueError as error:
+        return [*errors, str(error)], warnings
+    for claim in claim_rows:
         claim_id = claim.get("claim_id", "<unknown>")
+        if effective.get(claim_id) != "active":
+            continue
         source_ids = claim.get("source_ids", [])
         locators = claim.get("source_locators", [])
         quotes = claim.get("quotes", [])

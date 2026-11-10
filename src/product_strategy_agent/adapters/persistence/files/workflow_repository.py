@@ -18,10 +18,12 @@ from product_strategy_agent.domain.projects.workspace import validate_workspace_
 from product_strategy_agent.adapters.persistence.files.revision_review_reader import review_inputs
 from product_strategy_agent.adapters.persistence.files.source_bundle import extra_payload
 from product_strategy_agent.domain.projects.source_import import MAX_TEXT_BYTES, source_id
-from product_strategy_agent.domain.projects.render_plan import INPUTS as RENDER_INPUTS, TARGETS as RENDER_TARGETS
+from product_strategy_agent.domain.projects.render_plan import RenderRequest, INPUTS as RENDER_INPUTS, TARGETS as RENDER_TARGETS
 from product_strategy_agent.adapters.persistence.files.render_bundle import extra_payload as render_payload
 from product_strategy_agent.domain.projects.ledger_append import INPUTS as LEDGER_INPUTS, PAYLOADS
 from product_strategy_agent.adapters.persistence.files.ledger_bundle import extra_payload as ledger_payload
+from product_strategy_agent.adapters.persistence.files.correction_bundle import extra_payload as correction_payload
+from product_strategy_agent.adapters.persistence.files.source_withdrawal_bundle import extra_payload as source_withdrawal_payload
 
 
 class FileWorkflowStore:
@@ -30,6 +32,35 @@ class FileWorkflowStore:
 
     def access(self, project_id):
         return case_access(self.root, project_id)
+
+    @locked_store_method()
+    def inspect_claims(self, project_id):
+        case = self._case(project_id)
+        names = {"state": "state.json", "events": "events.jsonl", "sources": "sources.jsonl", "claims": "claims.jsonl", "options": "options.jsonl", "decisions": "decision-log.jsonl", "capabilities": "capabilities.jsonl"}
+        result = {}
+        for key, name in names.items():
+            data = self._target(case, name)
+            if data is None and key != "capabilities":
+                raise ValueError("missing claim lifecycle input: " + name)
+            result[key] = data if data is not None else b""
+        return result
+
+    @locked_store_method()
+    def capture_claims(self, project_id):
+        return {**self.inspect_claims(project_id), "inputs": self.input_snapshot(self._case(project_id))}
+
+    @locked_store_method()
+    def capture_correction(self, project_id):
+        return self.capture_ledger(project_id, "claims")
+
+    @locked_store_method()
+    def capture_sources(self, project_id):
+        return self.capture_ledger(project_id, "claims")
+
+    @locked_store_method()
+    def correction_evidence(self, project_id):
+        from product_strategy_agent.adapters.persistence.files.source_search_repository import FileSourceSearchStore
+        return FileSourceSearchStore(self.root).snapshot(project_id)
 
     @locked_store_method()
     def capture(self, project_id):
@@ -155,7 +186,10 @@ class FileWorkflowStore:
         if not folder.exists():
             return None
         item = load(folder, project_id, command.operation_id)
-        if item["command"] != command:
+        matches = item["command"] == command
+        if isinstance(command, RenderRequest) and command.builder_version is None and isinstance(item["command"], RenderRequest):
+            matches = item["command"].model_dump(exclude={"builder_version"}) == command.model_dump(exclude={"builder_version"})
+        if not matches:
             raise ValueError("workflow operation ID belongs to a different request")
         if not self._completion(case, command.operation_id, item):
             raise ValueError("workflow preparation exists; inspect pending and explicitly recover its UUID")
@@ -168,6 +202,23 @@ class FileWorkflowStore:
         require_workflow_ready(case)
         folder = self._folder(case, command.operation_id)
         files, manifest = payload(project_id, command, before_state, after_state, before_events, event, inputs)
+        return self._publish(case, command, files, manifest)
+
+    @locked_store_method()
+    def commit_correction(self, project_id, command, snapshot, timestamp):
+        case = self._case(project_id)
+        extras, targets, event, _ = correction_payload(command, snapshot, timestamp)
+        state = json.loads(snapshot["state"])
+        state.update(updated_at=timestamp, workflow_version=state.get("workflow_version", 0) + 1)
+        inputs = {name: value for name, value in snapshot["inputs"].items() if name not in targets}
+        files, manifest = payload(project_id, command, snapshot["state"], state, snapshot["events"], event, inputs, extras)
+        return self._publish(case, command, files, manifest)
+
+    @locked_store_method()
+    def commit_source_withdrawal(self, project_id, command, snapshot, timestamp):
+        case = self._case(project_id)
+        extras, state, event = source_withdrawal_payload(command, snapshot, timestamp)
+        files, manifest = payload(project_id, command, snapshot["state"], state, snapshot["events"], event, snapshot["inputs"], extras)
         return self._publish(case, command, files, manifest)
 
     @locked_store_method()

@@ -43,4 +43,7 @@ Unknown tokens/duration/cost остаются None/unknown. Известная �
 
 V1–v3 readers/история сохранены. V4 добавляет ledger-inputs.json, ledger-before.json, ledger-after.json и ledger-result.json. Codec заново строит record/target/event из typed request и captured inputs, проверяет ровно один append и fixed target allowlist. Произвольные filenames, скрытое изменение state/stage или дополнительная строка при совпадающих пересчитанных file hashes не принимаются. Алгоритмы pure builders v1 — часть historical format, сохранять их для старых bundles.
 
-Target/common metadata и encoded before/after/result ограничены 512000 байтами; ledger-inputs snapshot — 4 МиБ. JSON escaping входит в payload limit. Превышение отклоняется без усечения и публикации. Raw/manual доступ обходит lock; power loss/NAS не сертифицированы. R2 ещё требует инвентаризации/переноса нужных legacy функций/данных и retire SQL/container цепочки; derived critic pack и полнота semantic corrections остаются отдельными задачами.
+Target/common metadata и encoded before/after/result ограничены 512000 байтами; ledger-inputs snapshot — 4 МиБ. JSON escaping входит в payload limit. Превышение отклоняется без усечения и публикации. Raw/manual доступ обходит lock; power loss/NAS не сертифицированы. SQL/container runtime выведен в R2; [claim correction](claim-correction.md) использует отдельный v5 protocol и не меняет frozen v4 append. Полнота semantic review остаётся отдельной задачей.
+
+
+R3: новые supporting links проверяют effective active claims по [lifecycle projection](claim-withdrawal.md); inactive evidence и затронутые selected/rejected options не принимаются новым decision append. Frozen v4 reconstruction и historical UUID replay не менялись.

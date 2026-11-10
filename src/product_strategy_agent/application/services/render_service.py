@@ -24,5 +24,9 @@ class RenderService:
                 raise ValueError("invalid render workflow state")
             if command.expected_workflow_version is not None and command.expected_workflow_version != version:
                 raise ValueError("expected_workflow_version conflict; review current render inputs")
+            if command.mode == "render":
+                if command.builder_version not in {None, 2}:
+                    raise ValueError("new renders require builder v2; v1 is reserved for historical replay")
+                command = command.model_copy(update={"builder_version": 2})
             now = datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
             return self.store.commit_render(project_id, command, snapshot, now)

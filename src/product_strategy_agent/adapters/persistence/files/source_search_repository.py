@@ -13,6 +13,7 @@ from product_strategy_agent.domain.projects.file_search import (
     SearchSource,
 )
 from product_strategy_agent.domain.projects.source_import import MAX_TEXT_BYTES
+from product_strategy_agent.domain.projects.source_lifecycle import source_statuses
 
 METADATA_BYTES = 512 * 1024
 
@@ -52,6 +53,8 @@ class FileSourceSearchStore:
             ]
             if len(records) > MAX_SOURCES:
                 raise ValueError("source corpus exceeds the 500-source search limit")
+            events = [json.loads(line) for line in read_bounded(confined(case, "events.jsonl"), METADATA_BYTES).splitlines() if line.strip()]
+            statuses = source_statuses(records, events)
             sources, seen, total = [], set(), 0
             for row in records:
                 if not isinstance(row, dict):
@@ -95,5 +98,6 @@ class FileSourceSearchStore:
                 text = data.decode("utf-8")
                 if not text.strip() or "\x00" in text:
                     raise ValueError("source search text is empty or contains NUL")
-                sources.append(SearchSource(row, text))
+                if statuses[identifier] != "withdrawn":
+                    sources.append(SearchSource(row, text))
             return SearchSnapshot(version, total, tuple(sources))

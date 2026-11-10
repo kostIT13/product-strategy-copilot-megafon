@@ -43,6 +43,13 @@ Use the Python executable from the environment where `product-strategy-agent[mcp
 - `psa_coverage`, `psa_validate`, `psa_verify`, `psa_render`, `psa_render_adopt_existing`, `psa_critic_pack`
 - `psa_usage_add`, `psa_usage_report`
 - `psa_check_promises` — [file draft promise/evidence preflight](file-promise-check.md), read-only and never approval
+- `psa_check_strategy` — [required strategy sections](strategy-structure.md), read-only structural completeness and never semantic/publication approval
+- `psa_check_validation_plan` — [measurement plan contract](validation-plan-contract.md), read-only schema/current baseline proof and never observed effect or experiment permission
+- `psa_withdraw_claim`, `psa_claim_impact` — [human withdrawal/effective evidence](claim-withdrawal.md), immutable history and derived review without changing human decisions
+- `psa_correct_claim` — [attributed correction](claim-correction.md), append replacement with current citations and workflow v5 recovery; preserves original claims and human decisions
+- `psa_review_workflow`, `psa_reopen_workflow` — [review/reopen](workflow-reopen.md): reviewed snapshot, explicit human instruction, selected stage reset, preserved history and fresh gates
+- `psa_withdraw_source`, `psa_source_impact` — [source withdrawal](source-withdrawal.md): attributed v6 journal operation, dependent evidence review and no automatic reactivation
+- `psa_check_baseline_numbers` — [numeric baseline literal](baseline-numbers.md): selected numeric/unit spans against current recorded citation; read-only, no inferred semantic alignment or approval
 
 `psa_fetch_source` performs a network request only when explicitly called. Tools write only inside the selected project workspace, except for caller-supplied input/output paths. The server has no delete, shell, or arbitrary command tool.
 

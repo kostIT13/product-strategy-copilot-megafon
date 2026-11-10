@@ -1,0 +1,13 @@
+"""Read-only impact and recoverable source withdrawal publication boundary."""
+
+from contextlib import AbstractContextManager
+from typing import Protocol
+
+
+class SourceLifecycleStore(Protocol):
+    def access(self, project_id: str) -> AbstractContextManager: ...
+    def replay(self, project_id, command) -> dict | None: ...
+    def capture_sources(self, project_id: str) -> dict: ...
+    def commit_source_withdrawal(
+        self, project_id, command, snapshot, timestamp
+    ) -> dict: ...

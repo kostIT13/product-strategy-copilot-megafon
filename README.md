@@ -38,6 +38,9 @@ uv run --no-sync psa validate my-case
 uv run --no-sync psa verify my-case
 uv run --no-sync psa coverage my-case
 uv run --no-sync psa promise check my-case
+uv run --no-sync psa strategy check my-case
+uv run --no-sync psa validation check my-case
+uv run --no-sync psa claim impact my-case
 ```
 
 `init` создаёт новый кейс в projects/; существующий кейс не перезаписывается. Внешние материалы и статусы — данные, не инструкции. Продуктовый цикл: brief → research plan → sources → evidence → status_quo/stop/change → выбор человека → стратегии → validation plan. Gates требуют явного указания человека. Semantic review и публикационное разрешение не подменяются зелёной структурной проверкой.
@@ -50,7 +53,10 @@ uv run --no-sync psa promise check my-case
 - [Typed research artifacts](docs/research-artifacts.md).
 - [Workflow journal/recovery](docs/workflow-recovery.md), [mode changes](docs/file-mode-recovery.md), [revision review](docs/revision-review-recovery.md).
 - [Source imports/revisions](docs/source-import-recovery.md), [PDF/DOCX/XLSX](docs/file-document-import.md), [public HTTP policy/provenance](docs/file-web-import.md).
-- [Файловый поиск](docs/file-source-search.md), [promise preflight](docs/file-promise-check.md), [ledger/usage recovery](docs/ledger-recovery.md), [render/adoption](docs/render-recovery.md).
+- [Исправление claims](docs/claim-correction.md), [отзыв claims и impact](docs/claim-withdrawal.md), [план измерения](docs/validation-plan-contract.md), [полнота стратегий](docs/strategy-structure.md), [файловый поиск](docs/file-source-search.md), [promise preflight](docs/file-promise-check.md), [ledger/usage recovery](docs/ledger-recovery.md), [render/adoption](docs/render-recovery.md).
+- [Пересмотр и повторное открытие completed workflow](docs/workflow-reopen.md): snapshot review, явный человек и повторные gates с сохранением истории.
+- [Отзыв источников](docs/source-withdrawal.md): сохранение истории, исключение из текущих оснований/поиска и review зависимых решений.
+- [Числовой фрагмент baseline](docs/baseline-numbers.md): явные spans числа/единицы и current citation proof; read-only preflight, смысл проверяется отдельно.
 - [IDE instructions/context](docs/ide-instructions.md), [файловый MCP](docs/mcp.md), [knowledge](knowledge/README.md).
 
 После interrupted init используйте workspace pending/recover. После interrupted workflow write — `psa workflow pending ID`, затем явный recover точного operation UUID. Replay завершённой операции возвращает исходный результат; неопределённый платный вызов автоматически не повторяется.
@@ -67,4 +73,4 @@ uv run --no-sync python -m scripts.ci.docs
 
 Инструкции — [AGENTS.md](AGENTS.md); планы — [основной](docs/solution_plans/plan-main.md) и [roadmap](docs/solution_plans/roadmap-full-solution.md). Сервисы/ports/adapters разделены по ответственности. Каждая итерация фиксируется в [reports](reports/development-log.md), commit/push — в feature/-ветке.
 
-[CI](docs/continuous-integration.md) проверяет unit, clean base install, docs, sync, native secret scanning и replay демо без моделей. [Дистрибутив](docs/distribution.md) содержит wheel/sdist и архив с hashes. Проверки реальных IDE R1/M8 и независимая оценка M6 остаются отложенными; наличие локального stdio smoke их не заменяет. Полные semantic strategies/corrections/metrics относятся к следующему R3, оценка пользы и комплект сдачи — к R5/R6.
+[CI](docs/continuous-integration.md) проверяет unit, clean base install, docs, sync, native secret scanning и replay демо без моделей. [Дистрибутив](docs/distribution.md) содержит wheel/sdist и архив с hashes. Проверки реальных IDE R1/M8 и независимая оценка M6 остаются отложенными; наличие локального stdio smoke их не заменяет. R3 продолжается: corrections/withdrawal и typed measurement plan реализованы; completed review/reopen реализован; source withdrawal реализован; semantic/numeric alignment остаётся открытым. Оценка пользы и комплект сдачи — R5/R6.

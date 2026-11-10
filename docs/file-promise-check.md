@@ -18,13 +18,13 @@ psa verify CASE
 
 - Capability отсутствует или не `available`.
 - Claim отсутствует, не `active fact`, имеет замену через `supersedes`, не связан с capability или имеет неполные evidence arrays.
-- Нельзя восстановить immutable запись claim и версии источников на момент записи. Legacy claim без v4 journal binding блокируется как `claim_evidence_snapshot_missing`; согласие или binding ему автоматически не присваивается.
+- Нельзя восстановить immutable запись claim и версии источников на момент записи. Legacy claim без v4 creation/v5 correction journal binding блокируется как `claim_evidence_snapshot_missing`; согласие или binding ему автоматически не присваивается.
 - Current claim изменён относительно journal result; receipt/manifest/event не совпадают или повреждены.
 - Current source недоступен, имеет неканонический путь/status/format, неверный hash или невалидный UTF-8. Используется общий bounded current-source snapshot, включая проверку остальных источников корпуса.
 - Content hash или последний source revision event отличается от снимка при записи claim. Даже возврат текста A → B → A не восстанавливает прежнюю актуальность.
 - Quote отсутствует **точно внутри locator scope**. Поддержаны paragraph/p/line, lines range и native PDF page/XLSX cell. Неподдержанный locator блокируется без глобального поиска. Quote ограничена 500 символами; whitespace normalization прежнего verify не заменяет строгую preflight проверку.
 
-Ручной revision review не переписывает proof binding старого claim. После реального повторного анализа запишите новый claim штатной командой, при необходимости с `supersedes`, затем capability/support и авторский draft с актуальными refs. Не делайте это автоматически ради зелёной проверки. Полный correction/withdrawal lifecycle остаётся R3.
+Ручной revision review не переписывает proof binding старого claim. После реального повторного анализа и указания человека используйте [claim correct](claim-correction.md), затем обновите capability/support и авторский draft с актуальными refs. Новый v5 proof связывается с текущими источниками. Не делайте это автоматически ради зелёной проверки. Withdrawal/correction реализованы; [completed review/reopen](workflow-reopen.md) реализован; semantic consistency остаётся R3.
 
 ## Packet, gate и восстановление
 
@@ -39,3 +39,6 @@ Reader работает под общим case lock и ACTIVE guard; read-only p
 ## Отличия от legacy
 
 Старый `psa-main promise check --input JSON` использует UUID/DB snapshots и отдельные кандидаты. Файловый путь проверяет authored draft markers и строковые IDs, использует v4 claim snapshots и native locators; полная идентичность API не заявляется. Legacy import обязан сохранить старые evidence/approvals как историю, а не создать новое согласие или задним числом связать claim с нынешним источником. R2 runtime выведен после подтверждения отсутствия нужных PG-данных; [решение](legacy-retirement.md). Generalized importer не реализовывался.
+
+
+[Source withdrawal](source-withdrawal.md) даёт dependent claim blocker claim_source_withdrawn; citation snapshot не возвращает withdrawn source, исходные records/bodies сохраняются для аудита.
