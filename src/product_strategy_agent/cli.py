@@ -34,6 +34,9 @@ from product_strategy_agent.interfaces.cli.file_search_commands import add_file_
 from product_strategy_agent.interfaces.cli.file_promise_commands import add_file_promise_commands, handle_file_promise_command
 from product_strategy_agent.interfaces.cli.strategy_structure_commands import add_strategy_structure_commands, handle_strategy_structure_command
 from product_strategy_agent.interfaces.cli.validation_plan_commands import add_validation_plan_commands, handle_validation_plan_command
+from product_strategy_agent.interfaces.cli.claim_lifecycle_commands import add_claim_lifecycle_commands, handle_claim_lifecycle_command
+from product_strategy_agent.application.services.claim_lifecycle_service import ClaimLifecycleService
+from product_strategy_agent.adapters.persistence.files.workflow_repository import FileWorkflowStore
 
 STAGES = (
     "intake",
@@ -125,6 +128,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     claim = commands.add_parser("claim", help="record a typed claim in the project ledger")
     claim_commands = claim.add_subparsers(dest="claim_command", required=True)
+    add_claim_lifecycle_commands(claim_commands)
     claim_add = claim_commands.add_parser("add", help="append a claim")
     claim_add.add_argument("project_id")
     claim_add.add_argument("--text", required=True)
@@ -299,6 +303,9 @@ def main() -> None:
             return
         if args.command == "validation":
             handle_validation_plan_command(args)
+            return
+        if args.command == "claim" and args.claim_command in {"withdraw", "impact"}:
+            handle_claim_lifecycle_command(args)
             return
         if args.command == "source" and args.source_command == "search":
             handle_file_search_command(args)
@@ -512,6 +519,12 @@ def main() -> None:
 
         state = load_state(args.project_id, args.projects_dir)
         stage = state["status"]
+        if args.command in {"status", "resume"}:
+            impact = ClaimLifecycleService(FileWorkflowStore(args.projects_dir)).impact(args.project_id)
+            if impact["inactive_claim_ids"]:
+                print("Inactive claim history: " + ", ".join(impact["inactive_claim_ids"]))
+            if impact["current_decision_needs_review"]:
+                print("Current decision needs human review; inspect: psa claim impact " + args.project_id)
         if args.command == "status":
             mode_name = state.get("mode", "decision_grade")
             if not isinstance(mode_name, str) or mode_name not in MODE_PROFILES:

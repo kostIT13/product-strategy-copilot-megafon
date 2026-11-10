@@ -2,6 +2,8 @@
 
 Сохраняй trace: тезис → claim → source revision/locator/точная цитата. Разделяй fact, interpretation, hypothesis, forecast и synthetic. Используй [каталог knowledge](../knowledge/catalog.json) по задаче; методика не доказывает потребность или эффект. В drafts отмечай тезисы существующим `[C-ID]` либо `[HYPOTHESIS]`, `[COMMITMENT]`, `[OPEN QUESTION]` согласно [coverage](../docs/coverage.md). Метка не исправляет ложный смысл.
 
+Отзыв claim выполняй `psa claim withdraw ID C-ID --by PERSON --reason REASON` только по явному указанию человека. Затем читай `psa claim impact ID`: effective inactive claims не используются как актуальные основания, зависимые capabilities/options/decisions требуют review. Исходные записи и старые approvals не переписываются; текущий выбор человека не меняй автоматически. Новый render показывает effective evidence и audit history; replay старого render не является новой генерацией. [Контракт](../docs/claim-withdrawal.md).
+
 Минимум три разных варианта: status_quo, stop, change. Для каждого — польза, затраты, риски, сильное возражение, допущение и проверка. Если данных мало, вариант формулируй как ограниченную гипотезу с пробелами, не выдумывай доказательства.
 
 Продуктовая стратегия: аудитория/задача, альтернативы, выбранное направление и отказы, ценность, затраты/доходы как факты или явные допущения. Коммуникационная: аудитория/ситуация, барьер понимания/выбора, сообщение и подтверждение обещания продуктом, роль каналов. Проверяй смысл ограничений available/planned/unavailable, а не только ID capability.

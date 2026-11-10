@@ -7,6 +7,7 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 from product_strategy_agent.domain.projects.render_documents import render_documents_v1
 from product_strategy_agent.domain.projects.render_templates import DRAFTS
+from product_strategy_agent.domain.projects.render_claims import render_documents_v2
 
 GENERATED_ARTIFACTS = ("03_evidence.md", "04_options.md", "decision.md", "05_strategy.md", "06_validation-plan.md")
 MANIFEST_NAME = "render-manifest.json"
@@ -23,6 +24,7 @@ class RenderRequest(BaseModel):
     discard_by: Annotated[str, StringConstraints(strip_whitespace=True, max_length=200)] = ""
     reason: Annotated[str, StringConstraints(strip_whitespace=True, max_length=4000)] = ""
     expected_workflow_version: int | None = Field(default=None, strict=True, ge=0)
+    builder_version: int | None = Field(default=None, strict=True, ge=1, le=2)
 
 
 def text_hash(text):
@@ -86,10 +88,12 @@ def plan_render(command, state, inputs, before, events, timestamp):
                 raise ValueError("Cannot render until the manifest is repaired")
             if not command.discard_by or not command.reason:
                 raise ValueError("Generated files were edited; use --discard-generated-edits --by <person> --reason <reason> to restore them")
-        after = render_documents_v1(state, inputs)
+        after = render_documents_v2(state, inputs, events) if command.builder_version == 2 else render_documents_v1(state, inputs)
         after.update({"drafts/" + name: template for name, template in DRAFTS.items() if before["drafts/" + name] is None})
         hashes = {name: text_hash(after[name]) for name in GENERATED_ARTIFACTS}
         event = {**common, "event_type": "generated_artifacts_regenerated" if not report["ok"] else "render_completed"}
+        if command.builder_version == 2:
+            event["builder_version"] = 2
         if not report["ok"]:
             event.update(authorized_by=command.discard_by, discarded_edits=[{"path": name, "previous_hash": report["expected_hashes"].get(name),
                          "edited_hash": text_hash(before[name])} for name in report["changed_artifacts"]])

@@ -18,7 +18,7 @@ from product_strategy_agent.domain.projects.workspace import validate_workspace_
 from product_strategy_agent.adapters.persistence.files.revision_review_reader import review_inputs
 from product_strategy_agent.adapters.persistence.files.source_bundle import extra_payload
 from product_strategy_agent.domain.projects.source_import import MAX_TEXT_BYTES, source_id
-from product_strategy_agent.domain.projects.render_plan import INPUTS as RENDER_INPUTS, TARGETS as RENDER_TARGETS
+from product_strategy_agent.domain.projects.render_plan import RenderRequest, INPUTS as RENDER_INPUTS, TARGETS as RENDER_TARGETS
 from product_strategy_agent.adapters.persistence.files.render_bundle import extra_payload as render_payload
 from product_strategy_agent.domain.projects.ledger_append import INPUTS as LEDGER_INPUTS, PAYLOADS
 from product_strategy_agent.adapters.persistence.files.ledger_bundle import extra_payload as ledger_payload
@@ -30,6 +30,22 @@ class FileWorkflowStore:
 
     def access(self, project_id):
         return case_access(self.root, project_id)
+
+    @locked_store_method()
+    def inspect_claims(self, project_id):
+        case = self._case(project_id)
+        names = {"state": "state.json", "events": "events.jsonl", "claims": "claims.jsonl", "options": "options.jsonl", "decisions": "decision-log.jsonl", "capabilities": "capabilities.jsonl"}
+        result = {}
+        for key, name in names.items():
+            data = self._target(case, name)
+            if data is None and key != "capabilities":
+                raise ValueError("missing claim lifecycle input: " + name)
+            result[key] = data if data is not None else b""
+        return result
+
+    @locked_store_method()
+    def capture_claims(self, project_id):
+        return {**self.inspect_claims(project_id), "inputs": self.input_snapshot(self._case(project_id))}
 
     @locked_store_method()
     def capture(self, project_id):
@@ -155,7 +171,10 @@ class FileWorkflowStore:
         if not folder.exists():
             return None
         item = load(folder, project_id, command.operation_id)
-        if item["command"] != command:
+        matches = item["command"] == command
+        if isinstance(command, RenderRequest) and command.builder_version is None and isinstance(item["command"], RenderRequest):
+            matches = item["command"].model_dump(exclude={"builder_version"}) == command.model_dump(exclude={"builder_version"})
+        if not matches:
             raise ValueError("workflow operation ID belongs to a different request")
         if not self._completion(case, command.operation_id, item):
             raise ValueError("workflow preparation exists; inspect pending and explicitly recover its UUID")

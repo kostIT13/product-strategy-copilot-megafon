@@ -49,6 +49,8 @@ def create_server() -> Any:
     register_strategy_structure_tools(server)
     from product_strategy_agent.interfaces.mcp.validation_plan_tools import register_validation_plan_tools
     register_validation_plan_tools(server)
+    from product_strategy_agent.interfaces.mcp.claim_lifecycle_tools import register_claim_lifecycle_tools
+    register_claim_lifecycle_tools(server)
 
     def workspace(project_id: str, projects_dir: str = "projects") -> Path:
         path = project_path(project_id, Path(projects_dir))

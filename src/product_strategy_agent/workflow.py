@@ -22,6 +22,7 @@ from product_strategy_agent.application.services.strategy_structure_service impo
 from product_strategy_agent.adapters.persistence.files.strategy_structure_reader import FileStrategyStructureReader
 from product_strategy_agent.application.services.validation_plan_service import ValidationPlanService
 from product_strategy_agent.adapters.persistence.files.validation_plan_store import FileValidationPlanStore
+from product_strategy_agent.application.services.claim_lifecycle_service import ClaimLifecycleService
 
 WORK_STAGES = ("intake", "research_plan", "source_collection", "evidence_review", "options", "strategy", "validation")
 NEXT_ACTIONS = {
@@ -54,6 +55,9 @@ def _substantive_text(path: Path) -> bool:
 
 
 def _strategy_references(project_dir, coverage):
+    impact = ClaimLifecycleService(FileWorkflowStore(project_dir.parent)).impact(project_dir.name)
+    if impact["current_decision_needs_review"]:
+        raise ValueError("Current human decision evidence needs review after claim withdrawal/supersession; record a new explicit decision")
     structure = StrategyStructureService(FileStrategyStructureReader(project_dir.parent)).check(project_dir.name)
     if structure["structural_status"] != "complete":
         issues = [row["path"] + ": " + ", ".join(row["issues"]) for row in structure["documents"] if row["issues"]]
@@ -78,10 +82,13 @@ def _check_stage(project_dir: Path, stage: str, mode: str) -> dict | None:
             if not (profile["source_shortage_exception"] and source_count > 0 and high_priority_gaps):
                 raise ValueError(f"Mode '{mode}' requires at least {profile['minimum_sources']} sources before approving source_collection")
     elif stage == "evidence_review":
-        if not _load_records(project_dir / "claims.jsonl"):
-            raise ValueError("Record at least one claim before approving evidence_review")
+        effective = ClaimLifecycleService(FileWorkflowStore(project_dir.parent)).impact(project_dir.name)["statuses"]
+        if not any(status == "active" for status in effective.values()):
+            raise ValueError("Record at least one effective active claim before approving evidence_review")
     elif stage == "options":
         options = _load_records(project_dir / "options.jsonl")
+        affected = set(ClaimLifecycleService(FileWorkflowStore(project_dir.parent)).impact(project_dir.name)["affected_option_ids"])
+        options = [row for row in options if row["option_id"] not in affected]
         roles = {option.get("role") for option in options}
         if len(options) < 3 or not {"status_quo", "stop", "change"}.issubset(roles):
             raise ValueError("Record at least three options with roles status_quo, stop, and change")
@@ -107,6 +114,12 @@ def _check_stage(project_dir: Path, stage: str, mode: str) -> dict | None:
         integrity = render_integrity_report(project_dir)
         if not integrity["ok"]:
             raise ValueError("Resolve generated artifact integrity issues before approving validation: " + "; ".join(integrity["errors"]))
+        events = _load_records(project_dir / "events.jsonl")
+        withdrawal_versions = [row["workflow_version"] for row in events if row.get("event_type") == "claim_withdrawn"]
+        if withdrawal_versions:
+            renders = [row["workflow_version"] for row in events if row.get("event_type") in {"render_completed", "generated_artifacts_regenerated"} and row.get("builder_version") == 2]
+            if not renders or max(renders) <= max(withdrawal_versions):
+                raise ValueError("Run a new render v2 after claim withdrawal before approving validation")
         references = _strategy_references(project_dir, coverage)
         measurement = ValidationPlanService(FileValidationPlanStore(project_dir.parent)).check(project_dir.name)
         if measurement["structural_status"] != "complete":

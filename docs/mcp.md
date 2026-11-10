@@ -45,6 +45,7 @@ Use the Python executable from the environment where `product-strategy-agent[mcp
 - `psa_check_promises` — [file draft promise/evidence preflight](file-promise-check.md), read-only and never approval
 - `psa_check_strategy` — [required strategy sections](strategy-structure.md), read-only structural completeness and never semantic/publication approval
 - `psa_check_validation_plan` — [measurement plan contract](validation-plan-contract.md), read-only schema/current baseline proof and never observed effect or experiment permission
+- `psa_withdraw_claim`, `psa_claim_impact` — [human withdrawal/effective evidence](claim-withdrawal.md), immutable history and derived review without changing human decisions
 
 `psa_fetch_source` performs a network request only when explicitly called. Tools write only inside the selected project workspace, except for caller-supplied input/output paths. The server has no delete, shell, or arbitrary command tool.
 
