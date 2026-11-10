@@ -18,6 +18,8 @@ from product_strategy_agent.domain.projects.gate_approval import GateApproval
 from product_strategy_agent.domain.projects.mode_change import ModeChange
 from product_strategy_agent.application.services.mode_change_service import ModeChangeService
 from product_strategy_agent.domain.projects.research_modes import MODE_PROFILES
+from product_strategy_agent.application.services.strategy_structure_service import StrategyStructureService
+from product_strategy_agent.adapters.persistence.files.strategy_structure_reader import FileStrategyStructureReader
 
 WORK_STAGES = ("intake", "research_plan", "source_collection", "evidence_review", "options", "strategy", "validation")
 NEXT_ACTIONS = {
@@ -47,6 +49,15 @@ def _substantive_text(path: Path) -> bool:
     if any(word in body.lower() for word in placeholders):
         return False
     return len(body) >= 40
+
+
+def _strategy_references(project_dir, coverage):
+    structure = StrategyStructureService(FileStrategyStructureReader(project_dir.parent)).check(project_dir.name)
+    if structure["structural_status"] != "complete":
+        issues = [row["path"] + ": " + ", ".join(row["issues"]) for row in structure["documents"] if row["issues"]]
+        raise ValueError("Resolve strategy structure issues before approval: " + "; ".join(issues))
+    return {"promise_preflight": coverage.get("promise_preflight"), "strategy_structure": {
+        "format_version": structure["format_version"], "review_hash": structure["review_hash"], "structural_status": structure["structural_status"]}}
 
 
 def _check_stage(project_dir: Path, stage: str, mode: str) -> dict | None:
@@ -81,7 +92,7 @@ def _check_stage(project_dir: Path, stage: str, mode: str) -> dict | None:
         coverage = coverage_report(project_dir)
         if not coverage["ok"]:
             raise ValueError("Resolve strategy coverage issues before approving strategy: " + "; ".join(coverage["errors"]))
-        return coverage.get("promise_preflight")
+        return _strategy_references(project_dir, coverage)
     elif stage == "validation":
         if not _substantive_text(project_dir / "drafts" / "validation-plan.md"):
             raise ValueError("Complete drafts/validation-plan.md before approving validation")
@@ -94,7 +105,7 @@ def _check_stage(project_dir: Path, stage: str, mode: str) -> dict | None:
         integrity = render_integrity_report(project_dir)
         if not integrity["ok"]:
             raise ValueError("Resolve generated artifact integrity issues before approving validation: " + "; ".join(integrity["errors"]))
-        return coverage.get("promise_preflight")
+        return _strategy_references(project_dir, coverage)
 
 
 def approve_stage(project_dir: Path, stage: str, approved_by: str, reason: str = "", *,
@@ -146,9 +157,9 @@ def _approve_stage(project_dir, stage, approved_by, reason, research_plan_refere
     mode = state.get("mode", "decision_grade")
     if not isinstance(mode, str) or mode not in MODE_PROFILES:
         raise ValueError(f"Unknown project mode: {mode}")
-    promise_reference = None
+    stage_references = None
     if stage != "research_plan" or research_plan_reference is None:
-        promise_reference = _check_stage(project_dir, stage, mode)
+        stage_references = _check_stage(project_dir, stage, mode)
 
     sequence = WORK_STAGES.index(stage)
     next_stage = WORK_STAGES[sequence + 1] if sequence + 1 < len(WORK_STAGES) else "completed"
@@ -172,8 +183,11 @@ def _approve_stage(project_dir, stage, approved_by, reason, research_plan_refere
     }
     if research_plan_reference is not None:
         event["research_plan_artifact"] = research_plan_reference
-    if promise_reference and promise_reference["structural_status"] == "eligible_for_human_review":
-        event["promise_preflight"] = promise_reference
+    if stage_references:
+        promise_reference = stage_references.get("promise_preflight")
+        if promise_reference and promise_reference["structural_status"] == "eligible_for_human_review":
+            event["promise_preflight"] = promise_reference
+        event["strategy_structure"] = stage_references["strategy_structure"]
     approvals.append(event)
     return store.commit(project_dir.name, command, before_state, state, before_events, event, inputs)
 

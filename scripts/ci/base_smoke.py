@@ -29,6 +29,7 @@ from product_strategy_agent.application.services.file_source_search_service impo
 from product_strategy_agent.adapters.persistence.files.source_search_repository import (
     FileSourceSearchStore,
 )
+from scripts.ci.strategy_fixture import synthetic_strategies
 
 
 def run():
@@ -101,14 +102,8 @@ def run():
             rejected_alternatives=[row["name"] for row in options[:2]],
         )
         (case / "drafts").mkdir(exist_ok=True)
-        (case / "drafts/product-strategy.md").write_text(
-            f"# Fixture\n\nSynthetic CSV export is available in the generated test only [COMMITMENT: {cap['capability_id']}].\n",
-            encoding="utf-8",
-        )
-        (case / "drafts/communication-strategy.md").write_text(
-            "# Fixture\n\n[HYPOTHESIS] This generated communication requires a human semantic review before any real use.\n",
-            encoding="utf-8",
-        )
+        for name, text in synthetic_strategies(cap["capability_id"]).items():
+            (case / "drafts" / name).write_text(text, encoding="utf-8")
         if not coverage_report(case)["ok"]:
             raise ValueError("synthetic base coverage failed")
         if (

@@ -45,6 +45,8 @@ def create_server() -> Any:
     register_file_search_tools(server)
     from product_strategy_agent.interfaces.mcp.file_promise_tools import register_file_promise_tools
     register_file_promise_tools(server)
+    from product_strategy_agent.interfaces.mcp.strategy_structure_tools import register_strategy_structure_tools
+    register_strategy_structure_tools(server)
 
     def workspace(project_id: str, projects_dir: str = "projects") -> Path:
         path = project_path(project_id, Path(projects_dir))

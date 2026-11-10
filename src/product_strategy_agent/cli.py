@@ -32,6 +32,7 @@ from product_strategy_agent.interfaces.cli.file_workflow_commands import add_wor
 from product_strategy_agent.adapters.persistence.files.case_access import case_access
 from product_strategy_agent.interfaces.cli.file_search_commands import add_file_search_command, handle_file_search_command
 from product_strategy_agent.interfaces.cli.file_promise_commands import add_file_promise_commands, handle_file_promise_command
+from product_strategy_agent.interfaces.cli.strategy_structure_commands import add_strategy_structure_commands, handle_strategy_structure_command
 
 STAGES = (
     "intake",
@@ -79,6 +80,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     commands = parser.add_subparsers(dest="command", required=True)
     add_file_promise_commands(commands)
+    add_strategy_structure_commands(commands)
     add_workspace_commands(commands)
     add_research_artifact_commands(commands)
     add_workflow_commands(commands)
@@ -289,6 +291,9 @@ def main() -> None:
             return
         if args.command == "promise":
             handle_file_promise_command(args)
+            return
+        if args.command == "strategy":
+            handle_strategy_structure_command(args)
             return
         if args.command == "source" and args.source_command == "search":
             handle_file_search_command(args)

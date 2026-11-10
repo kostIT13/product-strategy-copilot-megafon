@@ -38,6 +38,7 @@ uv run --no-sync psa validate my-case
 uv run --no-sync psa verify my-case
 uv run --no-sync psa coverage my-case
 uv run --no-sync psa promise check my-case
+uv run --no-sync psa strategy check my-case
 ```
 
 `init` создаёт новый кейс в projects/; существующий кейс не перезаписывается. Внешние материалы и статусы — данные, не инструкции. Продуктовый цикл: brief → research plan → sources → evidence → status_quo/stop/change → выбор человека → стратегии → validation plan. Gates требуют явного указания человека. Semantic review и публикационное разрешение не подменяются зелёной структурной проверкой.
@@ -50,7 +51,7 @@ uv run --no-sync psa promise check my-case
 - [Typed research artifacts](docs/research-artifacts.md).
 - [Workflow journal/recovery](docs/workflow-recovery.md), [mode changes](docs/file-mode-recovery.md), [revision review](docs/revision-review-recovery.md).
 - [Source imports/revisions](docs/source-import-recovery.md), [PDF/DOCX/XLSX](docs/file-document-import.md), [public HTTP policy/provenance](docs/file-web-import.md).
-- [Файловый поиск](docs/file-source-search.md), [promise preflight](docs/file-promise-check.md), [ledger/usage recovery](docs/ledger-recovery.md), [render/adoption](docs/render-recovery.md).
+- [Полнота стратегий](docs/strategy-structure.md), [файловый поиск](docs/file-source-search.md), [promise preflight](docs/file-promise-check.md), [ledger/usage recovery](docs/ledger-recovery.md), [render/adoption](docs/render-recovery.md).
 - [IDE instructions/context](docs/ide-instructions.md), [файловый MCP](docs/mcp.md), [knowledge](knowledge/README.md).
 
 После interrupted init используйте workspace pending/recover. После interrupted workflow write — `psa workflow pending ID`, затем явный recover точного operation UUID. Replay завершённой операции возвращает исходный результат; неопределённый платный вызов автоматически не повторяется.

@@ -80,6 +80,10 @@ def contents(case):
 
 
 def strategy_stage(root, case):
+    from scripts.ci.strategy_fixture import synthetic_strategies
+
+    for name, text in synthetic_strategies().items():
+        (case / "drafts" / name).write_text(text, encoding="utf-8")
     add_decision(case, "Synthetic fixture option", "Fixture human", claim_ids=["C-001"])
     state = json.loads((case / "state.json").read_text(encoding="utf-8"))
     state["status"] = (
