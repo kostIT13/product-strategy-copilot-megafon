@@ -101,6 +101,11 @@ def claim_statuses(claims, events):
             raise ValueError("claim withdrawal lacks actor/reason")
         withdrawn.add(key)
         statuses[key] = "withdrawn"
+    from product_strategy_agent.domain.projects.source_lifecycle import withdrawals
+    inactive_sources = set(withdrawals(events))
+    for row in claims:
+        if statuses[row["claim_id"]] == "active" and inactive_sources.intersection(row.get("source_ids", [])):
+            statuses[row["claim_id"]] = "source_withdrawn"
     return statuses
 
 

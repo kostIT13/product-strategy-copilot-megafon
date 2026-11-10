@@ -3,6 +3,7 @@
 import json
 from product_strategy_agent.domain.projects.claim_lifecycle import claim_impact
 from product_strategy_agent.domain.projects.render_documents import render_documents_v1
+from product_strategy_agent.domain.projects.source_lifecycle import source_statuses
 
 
 def render_documents_v2(state, inputs, events):
@@ -35,7 +36,13 @@ def render_documents_v2(state, inputs, events):
         + "\n"
         for row in rows("capabilities.jsonl")
     )
+    statuses = source_statuses(rows("sources.jsonl"), events)
+    if "withdrawn" in statuses.values():
+        current["sources.jsonl"] = "".join(json.dumps({**row, "status": statuses[row["source_id"]]}, ensure_ascii=False) + "\n" for row in rows("sources.jsonl"))
     output = render_documents_v1(state, current)
+    if "withdrawn" in statuses.values():
+        note = "> Withdrawn sources are audit history, not current evidence: " + ", ".join(key for key, value in statuses.items() if value == "withdrawn") + ".\n\n"
+        output = {name: note + text for name, text in output.items()}
     if impact["inactive_claim_ids"]:
         note = (
             "> Lifecycle: inactive claims are historical, not current evidence: "

@@ -43,6 +43,10 @@ from product_strategy_agent.application.services.workflow_reopen_service import 
     WorkflowReopenService,
 )
 from product_strategy_agent.domain.projects.workflow_reopen import WorkflowReopen
+from product_strategy_agent.application.services.source_lifecycle_service import (
+    SourceLifecycleService,
+)
+from product_strategy_agent.domain.projects.source_lifecycle import SourceWithdrawal
 
 
 def run():
@@ -107,6 +111,20 @@ def run():
         )["claim"]
         cap = add_capability(
             case, "Synthetic CSV export", "available", [claim["claim_id"]]
+        )
+        retired_path = Path(folder) / "retired-note.txt"
+        retired_path.write_text(
+            "Synthetic unused source for withdrawal smoke.\n", encoding="utf-8"
+        )
+        retired = add_local_source(case, retired_path)
+        SourceLifecycleService(FileWorkflowStore(root)).withdraw(
+            "synthetic",
+            SourceWithdrawal(
+                operation_id=uuid4(),
+                source_id=retired["source_id"],
+                withdrawn_by="Synthetic test actor",
+                reason="Explicit synthetic withdrawal of unused fixture material",
+            ),
         )
         approve_stage(case, "evidence_review", "Synthetic test actor")
         options = [

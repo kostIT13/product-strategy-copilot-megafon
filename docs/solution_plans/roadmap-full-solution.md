@@ -1,10 +1,10 @@
 # Краткий roadmap основной разработки
 
-**Обновлён 10.11.2026 по полному [ТЗ](../../specs/case.md).** Рабочий план находится в [plan-main.md](plan-main.md). Ветка: `feature/main-solution-roadmap`.
+**Обновлён 11.11.2026 по полному [ТЗ](../../specs/case.md).** Рабочий план находится в [plan-main.md](plan-main.md). Ветка: `feature/main-solution-roadmap`.
 
 ## Принятое решение
 
-**Текущий этап: R3, продолжается реализация.** Восемь обязательных разделов product/communication drafts проверяются через psa strategy check / psa_check_strategy и новые strategy/validation gates; [контракт](../strategy-structure.md). Typed measurement plan с metrics/baseline/window/guardrails/owner/data source подключён к CLI/MCP и новым validation gates; [контракт](../validation-plan-contract.md). Claim withdrawal/effective projection и render v2 реализованы: [контракт](../claim-withdrawal.md). Audited correction с actor/reason, current citations и workflow v5 реализован: [контракт](../claim-correction.md). [Явный review/reopen completed workflow](../workflow-reopen.md) реализован. Далее source withdrawal и semantic/numeric alignment; возврат незавершённого workflow назад остаётся открытым. R2 runtime выведен, чистая base/wheel/sdist установка проверена. Нужных PG-данных нет по ответу пользователя; generalized import не выполнялся. Отложенные live R1/M8 и оценка M6 остаются открытыми.
+**Текущий этап: R3, продолжается реализация.** Восемь обязательных разделов product/communication drafts проверяются через psa strategy check / psa_check_strategy и новые strategy/validation gates; [контракт](../strategy-structure.md). Typed measurement plan с metrics/baseline/window/guardrails/owner/data source подключён к CLI/MCP и новым validation gates; [контракт](../validation-plan-contract.md). Claim withdrawal/effective projection и render v2 реализованы: [контракт](../claim-withdrawal.md). Audited correction с actor/reason, current citations и workflow v5 реализован: [контракт](../claim-correction.md). [Явный review/reopen completed workflow](../workflow-reopen.md) реализован. [Отзыв источников](../source-withdrawal.md) реализован. Далее semantic/numeric alignment; возврат незавершённого workflow назад остаётся открытым. R2 runtime выведен, чистая base/wheel/sdist установка проверена. Нужных PG-данных нет по ответу пользователя; generalized import не выполнялся. Отложенные live R1/M8 и оценка M6 остаются открытыми.
 
 Основной продукт — проект-папка для IDE-агента: инструкции, skills, knowledge/, материалы кейса и версионированные файловые реестры. IDE ведёт агентный цикл; Python core сохраняет данные, проверяет доказательства и gates. CLI `psa` и FastMCP stdio — тонкие интерфейсы над одним файловым ядром.
 
@@ -17,7 +17,7 @@
 - Файловый MVP `psa`: источники/claims/options/решения, validate/verify/coverage/render, gates, usage, resume/revisit; два синтетических демо. Отложенные проверки не считаются пройденными.
 - Knowledge/ 1.0.0: methods/checklists с provenance/версиями; фактическое подключение к IDE-агенту ещё открыто.
 - Ранее созданный отдельный PG-контур `psa-main`: domain/application services и adapters, импортеры, FTS, API runs/pipelines/critic, human selection, internal strategy approval/export и read-only promise preflight; schema 0017, 19 MCP tools. Это инвентарь для переноса, не подтверждение file-only parity.
-- CI/demo/release, проверки секретов/документации, упаковка и PG/Docker smoke ранее работали локально. Полный набор 360 тестов после workflow review/reopen среза R3 завершился OK (1 skipped: Windows symlink privilege unavailable); это не оценка качества стратегии и не remote Actions result.
+- CI/demo/release, проверки секретов/документации, упаковка и PG/Docker smoke ранее работали локально. Полный набор 367 тестов после source withdrawal среза R3 завершился OK (1 skipped: Windows symlink privilege unavailable); это не оценка качества стратегии и не remote Actions result.
 - R1 начат 09.11.2026: AGENTS.md, workflow/quality/safety, четыре skills в .agents/skills, generated host adapters, sync-check в CI и read-only psa context с полными выбранными knowledge/skills/версиями/hashes. [Runbook](../ide-instructions.md). Все 200 unit-тестов прошли; живой кейс и фактическая загрузка в hosts пока не подтверждены и отложены пользователем 09.11.2026.
 
 ## Новый порядок R1–R6

@@ -11,6 +11,7 @@ from product_strategy_agent.domain.projects.claim_correction import (
     require_correction_citations,
 )
 from product_strategy_agent.domain.projects.workspace import validate_workspace_id
+from product_strategy_agent.domain.projects.source_lifecycle import require_current_sources
 
 
 class ClaimCorrectionService:
@@ -61,6 +62,8 @@ class ClaimCorrectionService:
                 now,
             )
             if result["claim"]["source_ids"]:
+                require_current_sources(result["claim"], [json.loads(line) for line in snapshot["ledger_inputs"]["sources.jsonl"].splitlines() if line.strip()],
+                                        [json.loads(line) for line in snapshot["events"].splitlines() if line.strip()])
                 require_correction_citations(
                     result["claim"], self.store.correction_evidence(project_id)
                 )

@@ -24,6 +24,7 @@ from product_strategy_agent.application.services.validation_plan_service import 
 from product_strategy_agent.adapters.persistence.files.validation_plan_store import FileValidationPlanStore
 from product_strategy_agent.application.services.claim_lifecycle_service import ClaimLifecycleService
 from product_strategy_agent.adapters.persistence.files.decision_review_reader import decision_recorded_after
+from product_strategy_agent.domain.projects.source_lifecycle import source_statuses
 
 WORK_STAGES = ("intake", "research_plan", "source_collection", "evidence_review", "options", "strategy", "validation")
 NEXT_ACTIONS = {
@@ -82,7 +83,7 @@ def _check_stage(project_dir: Path, stage: str, mode: str) -> dict | None:
         if not _substantive_text(project_dir / "02_research-plan.md"):
             raise ValueError("Create a substantive 02_research-plan.md before approving research_plan")
     elif stage == "source_collection":
-        source_count = len(_load_records(project_dir / "sources.jsonl"))
+        source_count = sum(status == "extracted" for status in source_statuses(_load_records(project_dir / "sources.jsonl"), _load_records(project_dir / "events.jsonl")).values())
         profile = MODE_PROFILES[mode]
         if source_count < profile["minimum_sources"]:
             high_priority_gaps = [gap for gap in _load_records(project_dir / "gaps.jsonl") if gap.get("status") == "open" and gap.get("priority") == "high"]
@@ -122,7 +123,7 @@ def _check_stage(project_dir: Path, stage: str, mode: str) -> dict | None:
         if not integrity["ok"]:
             raise ValueError("Resolve generated artifact integrity issues before approving validation: " + "; ".join(integrity["errors"]))
         events = _load_records(project_dir / "events.jsonl")
-        withdrawal_versions = [row["workflow_version"] for row in events if row.get("event_type") in {"claim_withdrawn", "claim_corrected", "workflow_reopened"}]
+        withdrawal_versions = [row["workflow_version"] for row in events if row.get("event_type") in {"claim_withdrawn", "claim_corrected", "workflow_reopened", "source_withdrawn"}]
         if withdrawal_versions:
             renders = [row["workflow_version"] for row in events if row.get("event_type") in {"render_completed", "generated_artifacts_regenerated"} and row.get("builder_version") == 2]
             if not renders or max(renders) <= max(withdrawal_versions):

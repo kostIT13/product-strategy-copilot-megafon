@@ -99,6 +99,8 @@ def check_claim(claim_id, snapshot):
     status = claim_statuses(list(snapshot.claims.values()), snapshot.events).get(claim_id)
     if status == "withdrawn":
         errors.append("claim_withdrawn")
+    if status == "source_withdrawn":
+        errors.append("claim_source_withdrawn")
     if any(row.get("supersedes") == claim_id for row in snapshot.claims.values()):
         errors.append("claim_superseded")
     binding = snapshot.bindings.get(claim_id)

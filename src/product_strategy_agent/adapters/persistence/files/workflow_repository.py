@@ -23,6 +23,7 @@ from product_strategy_agent.adapters.persistence.files.render_bundle import extr
 from product_strategy_agent.domain.projects.ledger_append import INPUTS as LEDGER_INPUTS, PAYLOADS
 from product_strategy_agent.adapters.persistence.files.ledger_bundle import extra_payload as ledger_payload
 from product_strategy_agent.adapters.persistence.files.correction_bundle import extra_payload as correction_payload
+from product_strategy_agent.adapters.persistence.files.source_withdrawal_bundle import extra_payload as source_withdrawal_payload
 
 
 class FileWorkflowStore:
@@ -35,7 +36,7 @@ class FileWorkflowStore:
     @locked_store_method()
     def inspect_claims(self, project_id):
         case = self._case(project_id)
-        names = {"state": "state.json", "events": "events.jsonl", "claims": "claims.jsonl", "options": "options.jsonl", "decisions": "decision-log.jsonl", "capabilities": "capabilities.jsonl"}
+        names = {"state": "state.json", "events": "events.jsonl", "sources": "sources.jsonl", "claims": "claims.jsonl", "options": "options.jsonl", "decisions": "decision-log.jsonl", "capabilities": "capabilities.jsonl"}
         result = {}
         for key, name in names.items():
             data = self._target(case, name)
@@ -50,6 +51,10 @@ class FileWorkflowStore:
 
     @locked_store_method()
     def capture_correction(self, project_id):
+        return self.capture_ledger(project_id, "claims")
+
+    @locked_store_method()
+    def capture_sources(self, project_id):
         return self.capture_ledger(project_id, "claims")
 
     @locked_store_method()
@@ -207,6 +212,13 @@ class FileWorkflowStore:
         state.update(updated_at=timestamp, workflow_version=state.get("workflow_version", 0) + 1)
         inputs = {name: value for name, value in snapshot["inputs"].items() if name not in targets}
         files, manifest = payload(project_id, command, snapshot["state"], state, snapshot["events"], event, inputs, extras)
+        return self._publish(case, command, files, manifest)
+
+    @locked_store_method()
+    def commit_source_withdrawal(self, project_id, command, snapshot, timestamp):
+        case = self._case(project_id)
+        extras, state, event = source_withdrawal_payload(command, snapshot, timestamp)
+        files, manifest = payload(project_id, command, snapshot["state"], state, snapshot["events"], event, snapshot["inputs"], extras)
         return self._publish(case, command, files, manifest)
 
     @locked_store_method()

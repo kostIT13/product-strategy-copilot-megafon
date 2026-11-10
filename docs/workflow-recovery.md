@@ -55,3 +55,6 @@ Mode change и revision review перенесены на тот же bundle/reco
 
 
 [Явный reopen completed workflow](workflow-reopen.md) использует общий v1 bundle с полным воспроизведением state/event и snapshot review hash; исторические approvals сохраняются. Новые gates проверяют текущие основания и выбранный этап.
+
+
+[Source withdrawal](source-withdrawal.md) использует workflow v6 с captured canonical ledger inputs и полной реконструкцией impact/event/after-state. Публикуются только state/events; старые форматы v1–v5 сохранены.

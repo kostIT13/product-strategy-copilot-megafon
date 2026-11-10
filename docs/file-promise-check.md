@@ -39,3 +39,6 @@ Reader работает под общим case lock и ACTIVE guard; read-only p
 ## Отличия от legacy
 
 Старый `psa-main promise check --input JSON` использует UUID/DB snapshots и отдельные кандидаты. Файловый путь проверяет authored draft markers и строковые IDs, использует v4 claim snapshots и native locators; полная идентичность API не заявляется. Legacy import обязан сохранить старые evidence/approvals как историю, а не создать новое согласие или задним числом связать claim с нынешним источником. R2 runtime выведен после подтверждения отсутствия нужных PG-данных; [решение](legacy-retirement.md). Generalized importer не реализовывался.
+
+
+[Source withdrawal](source-withdrawal.md) даёт dependent claim blocker claim_source_withdrawn; citation snapshot не возвращает withdrawn source, исходные records/bodies сохраняются для аудита.

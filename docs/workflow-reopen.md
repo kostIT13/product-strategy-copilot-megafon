@@ -23,4 +23,4 @@ Reopen выполняется только по явному указанию ч
 
 Одинаковый завершённый UUID/request возвращает прежний event до повторного review и не сбрасывает последующие writes/gates. Другой request под тем же UUID — conflict. ACTIVE блокирует участвующие entrypoints; `psa workflow pending CASE` и `psa workflow recover CASE --operation UUID` завершают точную сохранённую операцию. Проверены реальные остановки на preparation/ACTIVE/state/events/receipt/completion, перенос case directory и сохранение позднейших записей. Общие byte/file limits и ограничения power loss/NAS — в [recovery contract](workflow-recovery.md).
 
-Этот срез не отзывает источники, не оценивает semantic/numeric alignment и не заменяет независимую оценку. Live R1/M8 и M6 остаются отложенными.
+Отзыв источников реализован отдельной [операцией](source-withdrawal.md). Этот срез не оценивает semantic/numeric alignment и не заменяет независимую оценку. Live R1/M8 и M6 остаются отложенными.

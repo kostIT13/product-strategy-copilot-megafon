@@ -31,6 +31,8 @@ from product_strategy_agent.interfaces.cli.research_artifact_commands import add
 from product_strategy_agent.interfaces.cli.file_workflow_commands import add_workflow_commands, handle_workflow_command
 from product_strategy_agent.adapters.persistence.files.case_access import case_access
 from product_strategy_agent.interfaces.cli.file_search_commands import add_file_search_command, handle_file_search_command
+from product_strategy_agent.interfaces.cli.source_lifecycle_commands import add_source_lifecycle_commands, handle_source_lifecycle_command
+from product_strategy_agent.domain.projects.source_lifecycle import source_statuses
 from product_strategy_agent.interfaces.cli.file_promise_commands import add_file_promise_commands, handle_file_promise_command
 from product_strategy_agent.interfaces.cli.strategy_structure_commands import add_strategy_structure_commands, handle_strategy_structure_command
 from product_strategy_agent.interfaces.cli.validation_plan_commands import add_validation_plan_commands, handle_validation_plan_command
@@ -115,6 +117,7 @@ def build_parser() -> argparse.ArgumentParser:
     source = commands.add_parser("source", help="manage project sources")
     source_commands = source.add_subparsers(dest="source_command", required=True)
     add_file_search_command(source_commands)
+    add_source_lifecycle_commands(source_commands)
     for action, help_text in (("add", "import local text/HTML or optional PDF/DOCX/XLSX"), ("fetch", "fetch a web page and extract its text")):
         sub = source_commands.add_parser(action, help=help_text)
         sub.add_argument("project_id")
@@ -315,6 +318,9 @@ def main() -> None:
         if args.command == "source" and args.source_command == "search":
             handle_file_search_command(args)
             return
+        if args.command == "source" and args.source_command in {"withdraw", "impact"}:
+            handle_source_lifecycle_command(args)
+            return
         if args.command == "workspace":
             handle_workspace_command(args)
             return
@@ -359,10 +365,12 @@ def main() -> None:
                 registry = project_dir / "sources.jsonl"
                 if not registry.is_file():
                     raise FileNotFoundError(f"Project '{args.project_id}' was not found at {project_dir}")
+                records = [json.loads(line) for line in registry.read_text(encoding="utf-8").splitlines() if line.strip()]
+                statuses = source_statuses(records, [json.loads(line) for line in (project_dir / "events.jsonl").read_text(encoding="utf-8").splitlines() if line.strip()])
                 for line in registry.read_text(encoding="utf-8").splitlines():
                     if line.strip():
                         record = json.loads(line)
-                        print(f"{record['source_id']} [{record['status']}] {record['title']} — {record['uri_or_path']}")
+                        print(f"{record['source_id']} [{statuses[record['source_id']]}] {record['title']} — {record['uri_or_path']}")
             return
 
         if args.command in {"claim", "gap", "decision"}:

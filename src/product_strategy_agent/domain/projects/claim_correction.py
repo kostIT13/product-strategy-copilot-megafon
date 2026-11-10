@@ -72,7 +72,7 @@ def plan_correction(command, state, inputs, before, events, timestamp):
         raise ValueError("invalid correction input layout")
     claims = records(inputs, "claims.jsonl")
     statuses = claim_statuses(claims, events)
-    if statuses.get(command.claim_id) not in {"active", "withdrawn"} or any(
+    if statuses.get(command.claim_id) not in {"active", "withdrawn", "source_withdrawn"} or any(
         row.get("supersedes") == command.claim_id for row in claims
     ):
         raise ValueError(

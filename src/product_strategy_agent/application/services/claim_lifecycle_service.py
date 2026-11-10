@@ -11,6 +11,7 @@ from product_strategy_agent.domain.projects.claim_lifecycle import (
     withdrawal_event,
 )
 from product_strategy_agent.domain.projects.workspace import validate_workspace_id
+from product_strategy_agent.domain.projects.source_lifecycle import source_statuses
 
 
 def rows(snapshot, name):
@@ -42,6 +43,7 @@ def impact_from_snapshot(project_id, snapshot):
     return {
         "project_id": project_id,
         "workflow_version": state.get("workflow_version", 0),
+        "source_statuses": source_statuses(rows(snapshot, "sources"), rows(snapshot, "events")),
         **report,
     }
 

@@ -31,3 +31,6 @@ Quote/locator можно передать штатной записи claim, з�
 - Не создаются derived indexes, events, usage или другие файлы внутри кейса. Общий lock использует существующий служебный каталог вне кейса.
 
 Это ограниченный файловый retrieval, не полная parity старого [PG FTS](source-search.md): нет title weighting, word-form search, relevance score, revision UUID или индекса первых 100000 символов. Corpus не обрезается молча. Старые receipts/источники не переписываются. Масштабирование и RAG допустимы только после измеренной необходимости; текущий [retire план](legacy-retirement.md) не требует переносить SQL индекс.
+
+
+[Source withdrawal](source-withdrawal.md) исключает источник из текущих hits/citation snapshots; physical current text по-прежнему проверяется на целостность и учитывается в corpus limits.
