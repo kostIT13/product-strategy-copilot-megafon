@@ -37,6 +37,7 @@ from product_strategy_agent.interfaces.cli.validation_plan_commands import add_v
 from product_strategy_agent.interfaces.cli.claim_lifecycle_commands import add_claim_lifecycle_commands, handle_claim_lifecycle_command
 from product_strategy_agent.application.services.claim_lifecycle_service import ClaimLifecycleService
 from product_strategy_agent.adapters.persistence.files.workflow_repository import FileWorkflowStore
+from product_strategy_agent.interfaces.cli.claim_correction_commands import add_claim_correction_command, handle_claim_correction_command
 
 STAGES = (
     "intake",
@@ -129,6 +130,7 @@ def build_parser() -> argparse.ArgumentParser:
     claim = commands.add_parser("claim", help="record a typed claim in the project ledger")
     claim_commands = claim.add_subparsers(dest="claim_command", required=True)
     add_claim_lifecycle_commands(claim_commands)
+    add_claim_correction_command(claim_commands)
     claim_add = claim_commands.add_parser("add", help="append a claim")
     claim_add.add_argument("project_id")
     claim_add.add_argument("--text", required=True)
@@ -306,6 +308,9 @@ def main() -> None:
             return
         if args.command == "claim" and args.claim_command in {"withdraw", "impact"}:
             handle_claim_lifecycle_command(args)
+            return
+        if args.command == "claim" and args.claim_command == "correct":
+            handle_claim_correction_command(args)
             return
         if args.command == "source" and args.source_command == "search":
             handle_file_search_command(args)

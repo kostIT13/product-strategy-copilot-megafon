@@ -31,6 +31,14 @@ from product_strategy_agent.adapters.persistence.files.source_search_repository 
 )
 from scripts.ci.strategy_fixture import synthetic_strategies
 from scripts.ci.validation_fixture import validation_markdown
+from uuid import uuid4
+from product_strategy_agent.domain.projects.claim_correction import ClaimCorrection
+from product_strategy_agent.application.services.claim_correction_service import (
+    ClaimCorrectionService,
+)
+from product_strategy_agent.adapters.persistence.files.workflow_repository import (
+    FileWorkflowStore,
+)
 
 
 def run():
@@ -77,6 +85,22 @@ def run():
             ["paragraph:1"],
             ["Synthetic fixture CSV export is available."],
         )
+        claim = ClaimCorrectionService(FileWorkflowStore(root)).correct(
+            "synthetic",
+            ClaimCorrection(
+                operation_id=uuid4(),
+                claim_id=claim["claim_id"],
+                corrected_by="Synthetic test actor",
+                reason="Explicit fixture correction; not a real product decision",
+                replacement={
+                    "text": "Reviewed synthetic fixture supports CSV export",
+                    "claim_type": "fact",
+                    "source_ids": [record["source_id"]],
+                    "source_locators": ["paragraph:1"],
+                    "quotes": ["Synthetic fixture CSV export is available."],
+                },
+            ),
+        )["claim"]
         cap = add_capability(
             case, "Synthetic CSV export", "available", [claim["claim_id"]]
         )

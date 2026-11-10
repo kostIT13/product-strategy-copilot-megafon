@@ -115,11 +115,11 @@ def _check_stage(project_dir: Path, stage: str, mode: str) -> dict | None:
         if not integrity["ok"]:
             raise ValueError("Resolve generated artifact integrity issues before approving validation: " + "; ".join(integrity["errors"]))
         events = _load_records(project_dir / "events.jsonl")
-        withdrawal_versions = [row["workflow_version"] for row in events if row.get("event_type") == "claim_withdrawn"]
+        withdrawal_versions = [row["workflow_version"] for row in events if row.get("event_type") in {"claim_withdrawn", "claim_corrected"}]
         if withdrawal_versions:
             renders = [row["workflow_version"] for row in events if row.get("event_type") in {"render_completed", "generated_artifacts_regenerated"} and row.get("builder_version") == 2]
             if not renders or max(renders) <= max(withdrawal_versions):
-                raise ValueError("Run a new render v2 after claim withdrawal before approving validation")
+                raise ValueError("Run a new render v2 after claim withdrawal/correction before approving validation")
         references = _strategy_references(project_dir, coverage)
         measurement = ValidationPlanService(FileValidationPlanStore(project_dir.parent)).check(project_dir.name)
         if measurement["structural_status"] != "complete":

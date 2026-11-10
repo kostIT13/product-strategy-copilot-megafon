@@ -22,6 +22,7 @@ from product_strategy_agent.domain.projects.render_plan import RenderRequest, IN
 from product_strategy_agent.adapters.persistence.files.render_bundle import extra_payload as render_payload
 from product_strategy_agent.domain.projects.ledger_append import INPUTS as LEDGER_INPUTS, PAYLOADS
 from product_strategy_agent.adapters.persistence.files.ledger_bundle import extra_payload as ledger_payload
+from product_strategy_agent.adapters.persistence.files.correction_bundle import extra_payload as correction_payload
 
 
 class FileWorkflowStore:
@@ -46,6 +47,15 @@ class FileWorkflowStore:
     @locked_store_method()
     def capture_claims(self, project_id):
         return {**self.inspect_claims(project_id), "inputs": self.input_snapshot(self._case(project_id))}
+
+    @locked_store_method()
+    def capture_correction(self, project_id):
+        return self.capture_ledger(project_id, "claims")
+
+    @locked_store_method()
+    def correction_evidence(self, project_id):
+        from product_strategy_agent.adapters.persistence.files.source_search_repository import FileSourceSearchStore
+        return FileSourceSearchStore(self.root).snapshot(project_id)
 
     @locked_store_method()
     def capture(self, project_id):
@@ -187,6 +197,16 @@ class FileWorkflowStore:
         require_workflow_ready(case)
         folder = self._folder(case, command.operation_id)
         files, manifest = payload(project_id, command, before_state, after_state, before_events, event, inputs)
+        return self._publish(case, command, files, manifest)
+
+    @locked_store_method()
+    def commit_correction(self, project_id, command, snapshot, timestamp):
+        case = self._case(project_id)
+        extras, targets, event, _ = correction_payload(command, snapshot, timestamp)
+        state = json.loads(snapshot["state"])
+        state.update(updated_at=timestamp, workflow_version=state.get("workflow_version", 0) + 1)
+        inputs = {name: value for name, value in snapshot["inputs"].items() if name not in targets}
+        files, manifest = payload(project_id, command, snapshot["state"], state, snapshot["events"], event, inputs, extras)
         return self._publish(case, command, files, manifest)
 
     @locked_store_method()

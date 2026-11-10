@@ -33,12 +33,12 @@ CLI status/resume показывает inactive history и необходимо�
 
 Новые render generations: active claims в основном evidence view, inactive IDs/statuses в audit, предупреждения о dependent options/decision и needs_review для affected capabilities в generated view. Raw capability records и authored drafts не меняются.
 
-Frozen render_documents_v1 сохранён. Старые v3 receipts без builder_version реконструируются прежним builder; новые сохраняют builder_version: 2. CLI/MCP auto intent при replay сравнивает business request без внутреннего выбора builder, поэтому старые и новые UUID работают. Явный новый render v1 запрещён; новым receipts нужен обновлённый runtime. Workflow journal остаётся v1–v4, target files не добавлялись.
+Frozen render_documents_v1 сохранён. Старые v3 receipts без builder_version реконструируются прежним builder; новые сохраняют builder_version: 2. CLI/MCP auto intent при replay сравнивает business request без внутреннего выбора builder, поэтому старые и новые UUID работают. Явный новый render v1 запрещён; новым receipts нужен обновлённый runtime. Withdrawal использует workflow v1; отдельная correction-команда добавляет v5.
 
-Replay старого render не является новой генерацией. После withdrawal новый validation gate требует render v2 с version позже последнего отзыва; adoption этого не заменяет. Integrity/discard/manual-edit правила остаются. Это не общая гарантия semantic freshness произвольных изменений drafts.
+Replay старого render не является новой генерацией. После withdrawal/correction новый validation gate требует render v2 с version позже последнего такого события; adoption этого не заменяет. Integrity/discard/manual-edit правила остаются. Это не общая гарантия semantic freshness произвольных изменений drafts.
 
 ## Recovery и границы
 
 При сбое: psa workflow pending CASE, затем recover точного UUID. Recovery проверяет before/after state/events и остальные inputs. Partial preparation/conflict/tampering не ремонтируются молча. Проверены реальные остановки до ACTIVE, после ACTIVE/state/events/receipt и завершения, перенос каталога и сохранение позднейших writes.
 
-Первый lifecycle срез: withdrawal и общая effective projection. Исторический claim add --supersedes поддержан; отдельная audited correction/supersede команда с actor/reason, source withdrawal, review/reopen lifecycle и semantic/numeric consistency остаются следующими задачами R3. Production readiness, live IDE и независимая оценка не подтверждаются этой механической проверкой.
+Withdrawal и общая effective projection реализованы. Исторический claim add --supersedes поддержан; отдельная [audited correction](claim-correction.md) с actor/reason и current evidence binding реализована через workflow v5. Source withdrawal, review/reopen lifecycle и semantic/numeric consistency остаются следующими задачами R3. Production readiness, live IDE и независимая оценка не подтверждаются этой механической проверкой.

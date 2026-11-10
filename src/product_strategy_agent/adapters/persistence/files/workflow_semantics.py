@@ -7,6 +7,7 @@ from product_strategy_agent.domain.projects.source_import import SourceImport
 from product_strategy_agent.domain.projects.render_plan import RenderRequest
 from product_strategy_agent.domain.projects.ledger_append import LedgerAppend
 from product_strategy_agent.domain.projects.claim_lifecycle import ClaimWithdrawal, fingerprint
+from product_strategy_agent.domain.projects.claim_correction import ClaimCorrection
 
 
 def parse_command(data):
@@ -24,6 +25,8 @@ def parse_command(data):
         return LedgerAppend.model_validate(data)
     if data["kind"] == "claim_withdrawal":
         return ClaimWithdrawal.model_validate(data)
+    if data["kind"] == "claim_correction":
+        return ClaimCorrection.model_validate(data)
     raise ValueError("unsupported workflow request kind")
 
 

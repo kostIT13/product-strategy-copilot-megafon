@@ -64,7 +64,24 @@ def claim_statuses(claims, events):
                 raise ValueError("invalid supersedes link")
             statuses[target] = "superseded"
     withdrawn = set()
+    corrected = set()
     for event in events:
+        if event.get("event_type") == "claim_corrected":
+            key, replacement = event.get("claim_id"), event.get("replacement_id")
+            if (
+                key not in by_id
+                or replacement not in by_id
+                or key in corrected
+                or event.get("claim_snapshot") != by_id[key]
+                or event.get("claim_hash") != fingerprint(by_id[key])
+                or event.get("replacement_snapshot") != by_id[replacement]
+                or event.get("replacement_hash") != fingerprint(by_id[replacement])
+                or by_id[replacement].get("supersedes") != key
+                or not event.get("corrected_by")
+                or not event.get("reason")
+            ):
+                raise ValueError("claim correction does not match immutable history")
+            corrected.add(key)
         if event.get("event_type") != "claim_withdrawn":
             continue
         key = event.get("claim_id")
