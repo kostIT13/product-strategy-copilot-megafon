@@ -31,7 +31,15 @@ from product_strategy_agent.interfaces.cli.research_artifact_commands import add
 from product_strategy_agent.interfaces.cli.file_workflow_commands import add_workflow_commands, handle_workflow_command
 from product_strategy_agent.adapters.persistence.files.case_access import case_access
 from product_strategy_agent.interfaces.cli.file_search_commands import add_file_search_command, handle_file_search_command
+from product_strategy_agent.interfaces.cli.source_lifecycle_commands import add_source_lifecycle_commands, handle_source_lifecycle_command
+from product_strategy_agent.domain.projects.source_lifecycle import source_statuses
 from product_strategy_agent.interfaces.cli.file_promise_commands import add_file_promise_commands, handle_file_promise_command
+from product_strategy_agent.interfaces.cli.strategy_structure_commands import add_strategy_structure_commands, handle_strategy_structure_command
+from product_strategy_agent.interfaces.cli.validation_plan_commands import add_validation_plan_commands, handle_validation_plan_command
+from product_strategy_agent.interfaces.cli.claim_lifecycle_commands import add_claim_lifecycle_commands, handle_claim_lifecycle_command
+from product_strategy_agent.application.services.claim_lifecycle_service import ClaimLifecycleService
+from product_strategy_agent.adapters.persistence.files.workflow_repository import FileWorkflowStore
+from product_strategy_agent.interfaces.cli.claim_correction_commands import add_claim_correction_command, handle_claim_correction_command
 
 STAGES = (
     "intake",
@@ -79,6 +87,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     commands = parser.add_subparsers(dest="command", required=True)
     add_file_promise_commands(commands)
+    add_strategy_structure_commands(commands)
+    add_validation_plan_commands(commands)
     add_workspace_commands(commands)
     add_research_artifact_commands(commands)
     add_workflow_commands(commands)
@@ -107,6 +117,7 @@ def build_parser() -> argparse.ArgumentParser:
     source = commands.add_parser("source", help="manage project sources")
     source_commands = source.add_subparsers(dest="source_command", required=True)
     add_file_search_command(source_commands)
+    add_source_lifecycle_commands(source_commands)
     for action, help_text in (("add", "import local text/HTML or optional PDF/DOCX/XLSX"), ("fetch", "fetch a web page and extract its text")):
         sub = source_commands.add_parser(action, help=help_text)
         sub.add_argument("project_id")
@@ -121,6 +132,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     claim = commands.add_parser("claim", help="record a typed claim in the project ledger")
     claim_commands = claim.add_subparsers(dest="claim_command", required=True)
+    add_claim_lifecycle_commands(claim_commands)
+    add_claim_correction_command(claim_commands)
     claim_add = claim_commands.add_parser("add", help="append a claim")
     claim_add.add_argument("project_id")
     claim_add.add_argument("--text", required=True)
@@ -290,8 +303,23 @@ def main() -> None:
         if args.command == "promise":
             handle_file_promise_command(args)
             return
+        if args.command == "strategy":
+            handle_strategy_structure_command(args)
+            return
+        if args.command == "validation":
+            handle_validation_plan_command(args)
+            return
+        if args.command == "claim" and args.claim_command in {"withdraw", "impact"}:
+            handle_claim_lifecycle_command(args)
+            return
+        if args.command == "claim" and args.claim_command == "correct":
+            handle_claim_correction_command(args)
+            return
         if args.command == "source" and args.source_command == "search":
             handle_file_search_command(args)
+            return
+        if args.command == "source" and args.source_command in {"withdraw", "impact"}:
+            handle_source_lifecycle_command(args)
             return
         if args.command == "workspace":
             handle_workspace_command(args)
@@ -337,10 +365,12 @@ def main() -> None:
                 registry = project_dir / "sources.jsonl"
                 if not registry.is_file():
                     raise FileNotFoundError(f"Project '{args.project_id}' was not found at {project_dir}")
+                records = [json.loads(line) for line in registry.read_text(encoding="utf-8").splitlines() if line.strip()]
+                statuses = source_statuses(records, [json.loads(line) for line in (project_dir / "events.jsonl").read_text(encoding="utf-8").splitlines() if line.strip()])
                 for line in registry.read_text(encoding="utf-8").splitlines():
                     if line.strip():
                         record = json.loads(line)
-                        print(f"{record['source_id']} [{record['status']}] {record['title']} — {record['uri_or_path']}")
+                        print(f"{record['source_id']} [{statuses[record['source_id']]}] {record['title']} — {record['uri_or_path']}")
             return
 
         if args.command in {"claim", "gap", "decision"}:
@@ -502,6 +532,12 @@ def main() -> None:
 
         state = load_state(args.project_id, args.projects_dir)
         stage = state["status"]
+        if args.command in {"status", "resume"}:
+            impact = ClaimLifecycleService(FileWorkflowStore(args.projects_dir)).impact(args.project_id)
+            if impact["inactive_claim_ids"]:
+                print("Inactive claim history: " + ", ".join(impact["inactive_claim_ids"]))
+            if impact["current_decision_needs_review"]:
+                print("Current decision needs human review; inspect: psa claim impact " + args.project_id)
         if args.command == "status":
             mode_name = state.get("mode", "decision_grade")
             if not isinstance(mode_name, str) or mode_name not in MODE_PROFILES:
@@ -526,6 +562,9 @@ def main() -> None:
             print(f"Next action: {state['next_action']}")
             print(f"Brief: {project_path(args.project_id, args.projects_dir) / '01_brief.md'}")
             approvals = state.get("approvals", [])
+            if state.get("reopen_history"):
+                latest_reopen = state["reopen_history"][-1]
+                print(f"Reopened at {latest_reopen['target_stage']} by {latest_reopen['reopened_by']}; earlier approvals remain history, follow the current stage.")
             if approvals:
                 latest = approvals[-1]
                 print(f"Last approved: {latest['stage']} by {latest['approved_by']} at {latest['approved_at']}")

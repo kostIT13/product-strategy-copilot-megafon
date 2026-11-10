@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from product_strategy_agent.workflow import MODE_PROFILES
+from product_strategy_agent.domain.projects.claim_lifecycle import claim_impact
 
 
 def _read_records(project_dir: Path, filename: str) -> list[dict[str, Any]]:
@@ -39,6 +40,8 @@ def build_critic_pack(project_dir: Path) -> str:
     gaps = _read_records(project_dir, "gaps.jsonl")
     options = _read_records(project_dir, "options.jsonl")
     decisions = _read_records(project_dir, "decision-log.jsonl")
+    impact = claim_impact(claims, _read_records(project_dir, "events.jsonl"), options, decisions, _read_records(project_dir, "capabilities.jsonl"))
+    claims = [row for row in claims if impact["statuses"][row["claim_id"]] == "active"]
     latest = decisions[-1] if decisions else None
     state = json.loads((project_dir / "state.json").read_text(encoding="utf-8"))
     mode = state.get("mode", "decision_grade")
@@ -59,6 +62,10 @@ def build_critic_pack(project_dir: Path) -> str:
         f"Режим анализа: `{mode}` — {MODE_PROFILES[mode]['description']}",
         "",
     ]
+    if impact["inactive_claim_ids"]:
+        lines.extend(["## Lifecycle audit — не актуальные основания", "",
+                      "Неактивные claims: " + ", ".join(impact["inactive_claim_ids"]),
+                      "Текущее решение требует review: " + str(impact["current_decision_needs_review"]).lower(), ""])
     if latest:
         lines.extend([f"- Вариант: {latest.get('chosen_option')}",
                       f"- Связанный option ID: {latest.get('option_id') or 'нет'}",

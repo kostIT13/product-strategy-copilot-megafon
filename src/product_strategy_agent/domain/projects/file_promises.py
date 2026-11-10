@@ -5,6 +5,7 @@ import hashlib
 import json
 import re
 from product_strategy_agent.domain.projects.file_documents import document_excerpt
+from product_strategy_agent.domain.projects.claim_lifecycle import claim_statuses
 from product_strategy_agent.domain.projects.strategy_paragraphs import (
     paragraphs,
     CLAIM_MARKER,
@@ -95,6 +96,11 @@ def check_claim(claim_id, snapshot):
         return {"claim_id": claim_id, "blockers": ["claim_missing"], "evidence": []}
     if claim.get("type") != "fact" or claim.get("status") != "active":
         errors.append("claim_not_active_fact")
+    status = claim_statuses(list(snapshot.claims.values()), snapshot.events).get(claim_id)
+    if status == "withdrawn":
+        errors.append("claim_withdrawn")
+    if status == "source_withdrawn":
+        errors.append("claim_source_withdrawn")
     if any(row.get("supersedes") == claim_id for row in snapshot.claims.values()):
         errors.append("claim_superseded")
     binding = snapshot.bindings.get(claim_id)

@@ -4,6 +4,8 @@ import json
 from product_strategy_agent.application.ports.source_import_store import SourceImportStore, SourceReader
 from product_strategy_agent.domain.projects.source_import import SourceImport
 from product_strategy_agent.domain.projects.workspace import validate_workspace_id
+from product_strategy_agent.domain.projects.source_lifecycle import source_statuses
+from product_strategy_agent.domain.projects.source_import import source_id
 
 
 class SourceImportService:
@@ -24,7 +26,16 @@ class SourceImportService:
                 raise ValueError("invalid source-import workflow state")
             if command.expected_workflow_version is not None and command.expected_workflow_version != version:
                 raise ValueError("expected_workflow_version conflict; inspect current state before source read/fetch")
+            sources = [json.loads(line) for line in snapshot["sources"].splitlines() if line.strip()]
+            events = [json.loads(line) for line in snapshot["events"].splitlines() if line.strip()]
+            statuses = source_statuses(sources, events)
+            if statuses.get(source_id(command.locator)) == "withdrawn" or any(
+                statuses[row["source_id"]] == "withdrawn" and row.get("provenance", {}).get("requested_url") == command.locator for row in sources
+            ):
+                raise ValueError("source is withdrawn; reimport/revision cannot reactivate it")
             material, text = self.reader.read(command)
+            if statuses.get(source_id(material["uri"])) == "withdrawn":
+                raise ValueError("captured source is withdrawn; publication refused")
             snapshot = self.store.capture_source(project_id, snapshot, material, text)
             now = datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
             return self.store.commit_source(project_id, command, snapshot, material, text, now)

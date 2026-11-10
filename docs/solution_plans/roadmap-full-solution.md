@@ -1,10 +1,10 @@
 # Краткий roadmap основной разработки
 
-**Обновлён 10.11.2026 по полному [ТЗ](../../specs/case.md).** Рабочий план находится в [plan-main.md](plan-main.md). Ветка: `feature/main-solution-roadmap`.
+**Обновлён 11.11.2026 по полному [ТЗ](../../specs/case.md).** Рабочий план находится в [plan-main.md](plan-main.md). Ветка: `feature/main-solution-roadmap`.
 
 ## Принятое решение
 
-**Текущий этап: R3.** R2 runtime выведен, чистая base/wheel/sdist установка проверена. Нужных PG-данных нет по ответу пользователя; generalized import не выполнялся. Отложенные live R1/M8 и оценка M6 остаются открытыми.
+**Текущий этап: R3, продолжается реализация.** Восемь обязательных разделов product/communication drafts проверяются через psa strategy check / psa_check_strategy и новые strategy/validation gates; [контракт](../strategy-structure.md). Typed measurement plan с metrics/baseline/window/guardrails/owner/data source подключён к CLI/MCP и новым validation gates; [контракт](../validation-plan-contract.md). Claim withdrawal/effective projection и render v2 реализованы: [контракт](../claim-withdrawal.md). Audited correction с actor/reason, current citations и workflow v5 реализован: [контракт](../claim-correction.md). [Явный review/reopen completed workflow](../workflow-reopen.md) реализован. [Отзыв источников](../source-withdrawal.md) реализован. Первый [numeric literal preflight](../baseline-numbers.md) реализован через CLI/MCP. Далее human semantic review, более широкий numeric alignment и gate integration; возврат незавершённого workflow назад остаётся открытым. R2 runtime выведен, чистая base/wheel/sdist установка проверена. Нужных PG-данных нет по ответу пользователя; generalized import не выполнялся. Отложенные live R1/M8 и оценка M6 остаются открытыми.
 
 Основной продукт — проект-папка для IDE-агента: инструкции, skills, knowledge/, материалы кейса и версионированные файловые реестры. IDE ведёт агентный цикл; Python core сохраняет данные, проверяет доказательства и gates. CLI `psa` и FastMCP stdio — тонкие интерфейсы над одним файловым ядром.
 
@@ -17,7 +17,7 @@
 - Файловый MVP `psa`: источники/claims/options/решения, validate/verify/coverage/render, gates, usage, resume/revisit; два синтетических демо. Отложенные проверки не считаются пройденными.
 - Knowledge/ 1.0.0: methods/checklists с provenance/версиями; фактическое подключение к IDE-агенту ещё открыто.
 - Ранее созданный отдельный PG-контур `psa-main`: domain/application services и adapters, импортеры, FTS, API runs/pipelines/critic, human selection, internal strategy approval/export и read-only promise preflight; schema 0017, 19 MCP tools. Это инвентарь для переноса, не подтверждение file-only parity.
-- CI/demo/release, проверки секретов/документации, упаковка и PG/Docker smoke ранее работали локально. Полный набор 318 тестов после retire завершился OK (1 skipped: Windows symlink privilege unavailable); это не оценка качества стратегии и не remote Actions result.
+- CI/demo/release, проверки секретов/документации, упаковка и PG/Docker smoke ранее работали локально. Полный набор 367 тестов после source withdrawal среза R3 завершился OK (1 skipped: Windows symlink privilege unavailable); это не оценка качества стратегии и не remote Actions result.
 - R1 начат 09.11.2026: AGENTS.md, workflow/quality/safety, четыре skills в .agents/skills, generated host adapters, sync-check в CI и read-only psa context с полными выбранными knowledge/skills/версиями/hashes. [Runbook](../ide-instructions.md). Все 200 unit-тестов прошли; живой кейс и фактическая загрузка в hosts пока не подтверждены и отложены пользователем 09.11.2026.
 
 ## Новый порядок R1–R6
@@ -43,7 +43,7 @@
 
 ## GitHub и выпуск
 
-Сохранить три workflow: ci/demo/release. Целевые required checks — frozen install, Ruff/unittest, file integrity/recovery/concurrency, CLI/FastMCP stdio parity, instruction-sync, Markdown/secret checks и deterministic demo, без LLM-вызовов, БД и Docker daemon. Вместо Docker-based Gitleaks использовать закреплённый native scanner с проверенным checksum и теми же отрицательными пробами. Текущие workflows пока требуют переработки в R2; no-Docker матрица ещё не считается реализованной.
+Сохранить три workflow: ci/demo/release. Целевые required checks — frozen install, Ruff/unittest, file integrity/recovery/concurrency, CLI/FastMCP stdio parity, instruction-sync, Markdown/secret checks и deterministic demo, без LLM-вызовов, БД и Docker daemon. Вместо Docker-based Gitleaks использовать закреплённый native scanner с проверенным checksum и теми же отрицательными пробами. Workflows переведены на no-Docker путь в R2; локальные проверки выполнены, remote Actions result отдельно не подтверждён.
 
 Release собирает allowlisted ZIP/wheel/sdist с manifest/SHA-256, проверяет установку вне src и создаёт только draft по проверенному тегу. Секреты, локальные кейсы/дампы и .env не входят в архив. Финальная публикация и отправка материалов — явные действия владельца. Remote Actions, independent review и фактические IDE-host проверки требуют отдельного подтверждения.
 
@@ -56,3 +56,7 @@ Release собирает allowlisted ZIP/wheel/sdist с manifest/SHA-256, про
 - Hooks/subagents выбираются по реальной пользе и возможностям хоста; последовательный рабочий путь обязателен. Число технологий не является результатом.
 - Время/расходы записывать фактически или как явную оценку; неизвестное usage/cost не подменять нулём.
 - Каждая законченная итерация: meaningful checks, ограничения, timestamp в reports/, отдельный commit/push в feature/-ветку.
+
+## Будущий полный production-ready план
+
+Запрос пользователя зафиксирован 10.11.2026: после R3, до расширений переработать план в milestones с проверяемой готовностью. Включить CLI/FastMCP/host parity, полезные opt-in subagents/hooks, research/retrieval/knowledge tools, безопасность и recovery, наблюдаемость/cost, release/upgrade/rollback и сильный demo/eval комплект для хакатона. Подробный checklist — в заключительном разделе основного плана. Это будущий пересмотр, а не заявление о готовности или гарантия победы; базовый последовательный путь и ограничения AGENTS сохраняются.

@@ -45,6 +45,18 @@ def create_server() -> Any:
     register_file_search_tools(server)
     from product_strategy_agent.interfaces.mcp.file_promise_tools import register_file_promise_tools
     register_file_promise_tools(server)
+    from product_strategy_agent.interfaces.mcp.strategy_structure_tools import register_strategy_structure_tools
+    register_strategy_structure_tools(server)
+    from product_strategy_agent.interfaces.mcp.validation_plan_tools import register_validation_plan_tools
+    register_validation_plan_tools(server)
+    from product_strategy_agent.interfaces.mcp.baseline_numbers_tools import register_baseline_numbers_tools
+    register_baseline_numbers_tools(server)
+    from product_strategy_agent.interfaces.mcp.claim_lifecycle_tools import register_claim_lifecycle_tools
+    register_claim_lifecycle_tools(server)
+    from product_strategy_agent.interfaces.mcp.source_lifecycle_tools import register_source_lifecycle_tools
+    register_source_lifecycle_tools(server)
+    from product_strategy_agent.interfaces.mcp.claim_correction_tools import register_claim_correction_tools
+    register_claim_correction_tools(server)
 
     def workspace(project_id: str, projects_dir: str = "projects") -> Path:
         path = project_path(project_id, Path(projects_dir))
@@ -77,7 +89,8 @@ def create_server() -> Any:
         return {"project_id": project_id, "status": state["status"], "mode": mode,
                 "workflow_version": state.get("workflow_version", 0),
                 "mode_guidance": MODE_PROFILES[mode]["guidance"], "next_action": state["next_action"],
-                "open_questions": state.get("open_questions", []), "approvals": state.get("approvals", [])}
+                "open_questions": state.get("open_questions", []), "approvals": state.get("approvals", []),
+                "reopen_history": state.get("reopen_history", [])}
 
     @server.tool()
     def psa_next(project_id: str, projects_dir: str = "projects") -> dict[str, str]:

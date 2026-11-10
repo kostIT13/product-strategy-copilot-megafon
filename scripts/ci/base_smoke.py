@@ -29,6 +29,24 @@ from product_strategy_agent.application.services.file_source_search_service impo
 from product_strategy_agent.adapters.persistence.files.source_search_repository import (
     FileSourceSearchStore,
 )
+from scripts.ci.strategy_fixture import synthetic_strategies
+from scripts.ci.validation_fixture import validation_markdown
+from uuid import uuid4
+from product_strategy_agent.domain.projects.claim_correction import ClaimCorrection
+from product_strategy_agent.application.services.claim_correction_service import (
+    ClaimCorrectionService,
+)
+from product_strategy_agent.adapters.persistence.files.workflow_repository import (
+    FileWorkflowStore,
+)
+from product_strategy_agent.application.services.workflow_reopen_service import (
+    WorkflowReopenService,
+)
+from product_strategy_agent.domain.projects.workflow_reopen import WorkflowReopen
+from product_strategy_agent.application.services.source_lifecycle_service import (
+    SourceLifecycleService,
+)
+from product_strategy_agent.domain.projects.source_lifecycle import SourceWithdrawal
 
 
 def run():
@@ -75,8 +93,38 @@ def run():
             ["paragraph:1"],
             ["Synthetic fixture CSV export is available."],
         )
+        claim = ClaimCorrectionService(FileWorkflowStore(root)).correct(
+            "synthetic",
+            ClaimCorrection(
+                operation_id=uuid4(),
+                claim_id=claim["claim_id"],
+                corrected_by="Synthetic test actor",
+                reason="Explicit fixture correction; not a real product decision",
+                replacement={
+                    "text": "Reviewed synthetic fixture supports CSV export",
+                    "claim_type": "fact",
+                    "source_ids": [record["source_id"]],
+                    "source_locators": ["paragraph:1"],
+                    "quotes": ["Synthetic fixture CSV export is available."],
+                },
+            ),
+        )["claim"]
         cap = add_capability(
             case, "Synthetic CSV export", "available", [claim["claim_id"]]
+        )
+        retired_path = Path(folder) / "retired-note.txt"
+        retired_path.write_text(
+            "Synthetic unused source for withdrawal smoke.\n", encoding="utf-8"
+        )
+        retired = add_local_source(case, retired_path)
+        SourceLifecycleService(FileWorkflowStore(root)).withdraw(
+            "synthetic",
+            SourceWithdrawal(
+                operation_id=uuid4(),
+                source_id=retired["source_id"],
+                withdrawn_by="Synthetic test actor",
+                reason="Explicit synthetic withdrawal of unused fixture material",
+            ),
         )
         approve_stage(case, "evidence_review", "Synthetic test actor")
         options = [
@@ -101,14 +149,8 @@ def run():
             rejected_alternatives=[row["name"] for row in options[:2]],
         )
         (case / "drafts").mkdir(exist_ok=True)
-        (case / "drafts/product-strategy.md").write_text(
-            f"# Fixture\n\nSynthetic CSV export is available in the generated test only [COMMITMENT: {cap['capability_id']}].\n",
-            encoding="utf-8",
-        )
-        (case / "drafts/communication-strategy.md").write_text(
-            "# Fixture\n\n[HYPOTHESIS] This generated communication requires a human semantic review before any real use.\n",
-            encoding="utf-8",
-        )
+        for name, text in synthetic_strategies(cap["capability_id"]).items():
+            (case / "drafts" / name).write_text(text, encoding="utf-8")
         if not coverage_report(case)["ok"]:
             raise ValueError("synthetic base coverage failed")
         if (
@@ -120,9 +162,33 @@ def run():
             raise ValueError("synthetic preflight failed")
         approve_stage(case, "strategy", "Synthetic test actor")
         (case / "drafts/validation-plan.md").write_text(
-            "# Fixture\n\n[HYPOTHESIS] Measure the generated local trial and review guardrails before drawing a real conclusion.\n",
-            encoding="utf-8",
+            validation_markdown(), encoding="utf-8"
         )
+        render_project(case)
+        approve_stage(case, "validation", "Synthetic test actor")
+        reopen = WorkflowReopenService(FileWorkflowStore(root))
+        packet = reopen.review("synthetic")
+        reopen.reopen(
+            "synthetic",
+            WorkflowReopen(
+                operation_id=uuid4(),
+                target_stage="strategy",
+                reopened_by="Synthetic test actor",
+                reason="Explicit synthetic reconsideration",
+                review_hash=packet["review_hash"],
+                expected_workflow_version=packet["workflow_version"],
+            ),
+        )
+        add_decision(
+            case,
+            "change",
+            "Synthetic test actor",
+            "Synthetic reaffirmation after review",
+            claim_ids=[claim["claim_id"]],
+            option_id=options[2]["option_id"],
+            rejected_alternatives=[row["name"] for row in options[:2]],
+        )
+        approve_stage(case, "strategy", "Synthetic test actor")
         render_project(case)
         approve_stage(case, "validation", "Synthetic test actor")
         if validate_project(case) or any(verify_project(case)):
@@ -139,6 +205,7 @@ def run():
         "ok": True,
         "workflow": "completed",
         "copied_resume": True,
+        "reopened_and_reapproved": True,
         "sql_dependencies": False,
         "model_calls": 0,
     }

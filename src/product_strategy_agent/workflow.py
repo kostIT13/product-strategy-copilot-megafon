@@ -18,6 +18,13 @@ from product_strategy_agent.domain.projects.gate_approval import GateApproval
 from product_strategy_agent.domain.projects.mode_change import ModeChange
 from product_strategy_agent.application.services.mode_change_service import ModeChangeService
 from product_strategy_agent.domain.projects.research_modes import MODE_PROFILES
+from product_strategy_agent.application.services.strategy_structure_service import StrategyStructureService
+from product_strategy_agent.adapters.persistence.files.strategy_structure_reader import FileStrategyStructureReader
+from product_strategy_agent.application.services.validation_plan_service import ValidationPlanService
+from product_strategy_agent.adapters.persistence.files.validation_plan_store import FileValidationPlanStore
+from product_strategy_agent.application.services.claim_lifecycle_service import ClaimLifecycleService
+from product_strategy_agent.adapters.persistence.files.decision_review_reader import decision_recorded_after
+from product_strategy_agent.domain.projects.source_lifecycle import source_statuses
 
 WORK_STAGES = ("intake", "research_plan", "source_collection", "evidence_review", "options", "strategy", "validation")
 NEXT_ACTIONS = {
@@ -49,6 +56,24 @@ def _substantive_text(path: Path) -> bool:
     return len(body) >= 40
 
 
+def _strategy_references(project_dir, coverage):
+    state = json.loads((project_dir / "state.json").read_text(encoding="utf-8"))
+    history = state.get("reopen_history", [])
+    if history and history[-1]["target_stage"] in WORK_STAGES[:WORK_STAGES.index("strategy") + 1]:
+        decisions = _load_records(project_dir / "decision-log.jsonl")
+        if not decisions or not decision_recorded_after(project_dir, decisions[-1], history[-1]["workflow_version"]):
+            raise ValueError("Record a new explicit human decision after reopening strategy or an earlier stage")
+    impact = ClaimLifecycleService(FileWorkflowStore(project_dir.parent)).impact(project_dir.name)
+    if impact["current_decision_needs_review"]:
+        raise ValueError("Current human decision evidence needs review after claim withdrawal/supersession; record a new explicit decision")
+    structure = StrategyStructureService(FileStrategyStructureReader(project_dir.parent)).check(project_dir.name)
+    if structure["structural_status"] != "complete":
+        issues = [row["path"] + ": " + ", ".join(row["issues"]) for row in structure["documents"] if row["issues"]]
+        raise ValueError("Resolve strategy structure issues before approval: " + "; ".join(issues))
+    return {"promise_preflight": coverage.get("promise_preflight"), "strategy_structure": {
+        "format_version": structure["format_version"], "review_hash": structure["review_hash"], "structural_status": structure["structural_status"]}}
+
+
 def _check_stage(project_dir: Path, stage: str, mode: str) -> dict | None:
     if stage == "intake":
         required = project_dir / "01_brief.md"
@@ -58,17 +83,20 @@ def _check_stage(project_dir: Path, stage: str, mode: str) -> dict | None:
         if not _substantive_text(project_dir / "02_research-plan.md"):
             raise ValueError("Create a substantive 02_research-plan.md before approving research_plan")
     elif stage == "source_collection":
-        source_count = len(_load_records(project_dir / "sources.jsonl"))
+        source_count = sum(status == "extracted" for status in source_statuses(_load_records(project_dir / "sources.jsonl"), _load_records(project_dir / "events.jsonl")).values())
         profile = MODE_PROFILES[mode]
         if source_count < profile["minimum_sources"]:
             high_priority_gaps = [gap for gap in _load_records(project_dir / "gaps.jsonl") if gap.get("status") == "open" and gap.get("priority") == "high"]
             if not (profile["source_shortage_exception"] and source_count > 0 and high_priority_gaps):
                 raise ValueError(f"Mode '{mode}' requires at least {profile['minimum_sources']} sources before approving source_collection")
     elif stage == "evidence_review":
-        if not _load_records(project_dir / "claims.jsonl"):
-            raise ValueError("Record at least one claim before approving evidence_review")
+        effective = ClaimLifecycleService(FileWorkflowStore(project_dir.parent)).impact(project_dir.name)["statuses"]
+        if not any(status == "active" for status in effective.values()):
+            raise ValueError("Record at least one effective active claim before approving evidence_review")
     elif stage == "options":
         options = _load_records(project_dir / "options.jsonl")
+        affected = set(ClaimLifecycleService(FileWorkflowStore(project_dir.parent)).impact(project_dir.name)["affected_option_ids"])
+        options = [row for row in options if row["option_id"] not in affected]
         roles = {option.get("role") for option in options}
         if len(options) < 3 or not {"status_quo", "stop", "change"}.issubset(roles):
             raise ValueError("Record at least three options with roles status_quo, stop, and change")
@@ -81,7 +109,7 @@ def _check_stage(project_dir: Path, stage: str, mode: str) -> dict | None:
         coverage = coverage_report(project_dir)
         if not coverage["ok"]:
             raise ValueError("Resolve strategy coverage issues before approving strategy: " + "; ".join(coverage["errors"]))
-        return coverage.get("promise_preflight")
+        return _strategy_references(project_dir, coverage)
     elif stage == "validation":
         if not _substantive_text(project_dir / "drafts" / "validation-plan.md"):
             raise ValueError("Complete drafts/validation-plan.md before approving validation")
@@ -94,7 +122,18 @@ def _check_stage(project_dir: Path, stage: str, mode: str) -> dict | None:
         integrity = render_integrity_report(project_dir)
         if not integrity["ok"]:
             raise ValueError("Resolve generated artifact integrity issues before approving validation: " + "; ".join(integrity["errors"]))
-        return coverage.get("promise_preflight")
+        events = _load_records(project_dir / "events.jsonl")
+        withdrawal_versions = [row["workflow_version"] for row in events if row.get("event_type") in {"claim_withdrawn", "claim_corrected", "workflow_reopened", "source_withdrawn"}]
+        if withdrawal_versions:
+            renders = [row["workflow_version"] for row in events if row.get("event_type") in {"render_completed", "generated_artifacts_regenerated"} and row.get("builder_version") == 2]
+            if not renders or max(renders) <= max(withdrawal_versions):
+                raise ValueError("Run a new render v2 after claim withdrawal/correction or workflow reopen before approving validation")
+        references = _strategy_references(project_dir, coverage)
+        measurement = ValidationPlanService(FileValidationPlanStore(project_dir.parent)).check(project_dir.name)
+        if measurement["structural_status"] != "complete":
+            raise ValueError("Resolve validation plan issues before approval: " + "; ".join(measurement["issues"]))
+        references["validation_plan"] = {key: measurement[key] for key in ("format_version", "review_hash", "structural_status")}
+        return references
 
 
 def approve_stage(project_dir: Path, stage: str, approved_by: str, reason: str = "", *,
@@ -146,9 +185,9 @@ def _approve_stage(project_dir, stage, approved_by, reason, research_plan_refere
     mode = state.get("mode", "decision_grade")
     if not isinstance(mode, str) or mode not in MODE_PROFILES:
         raise ValueError(f"Unknown project mode: {mode}")
-    promise_reference = None
+    stage_references = None
     if stage != "research_plan" or research_plan_reference is None:
-        promise_reference = _check_stage(project_dir, stage, mode)
+        stage_references = _check_stage(project_dir, stage, mode)
 
     sequence = WORK_STAGES.index(stage)
     next_stage = WORK_STAGES[sequence + 1] if sequence + 1 < len(WORK_STAGES) else "completed"
@@ -172,8 +211,13 @@ def _approve_stage(project_dir, stage, approved_by, reason, research_plan_refere
     }
     if research_plan_reference is not None:
         event["research_plan_artifact"] = research_plan_reference
-    if promise_reference and promise_reference["structural_status"] == "eligible_for_human_review":
-        event["promise_preflight"] = promise_reference
+    if stage_references:
+        promise_reference = stage_references.get("promise_preflight")
+        if promise_reference and promise_reference["structural_status"] == "eligible_for_human_review":
+            event["promise_preflight"] = promise_reference
+        event["strategy_structure"] = stage_references["strategy_structure"]
+        if "validation_plan" in stage_references:
+            event["validation_plan"] = stage_references["validation_plan"]
     approvals.append(event)
     return store.commit(project_dir.name, command, before_state, state, before_events, event, inputs)
 

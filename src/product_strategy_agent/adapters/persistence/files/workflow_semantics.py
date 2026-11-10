@@ -6,6 +6,10 @@ from product_strategy_agent.domain.projects.revision_review import RevisionRevie
 from product_strategy_agent.domain.projects.source_import import SourceImport
 from product_strategy_agent.domain.projects.render_plan import RenderRequest
 from product_strategy_agent.domain.projects.ledger_append import LedgerAppend
+from product_strategy_agent.domain.projects.claim_lifecycle import ClaimWithdrawal, fingerprint
+from product_strategy_agent.domain.projects.claim_correction import ClaimCorrection
+from product_strategy_agent.domain.projects.workflow_reopen import WorkflowReopen
+from product_strategy_agent.domain.projects.source_lifecycle import SourceWithdrawal
 
 
 def parse_command(data):
@@ -21,6 +25,14 @@ def parse_command(data):
         return RenderRequest.model_validate(data)
     if data["kind"] == "ledger_append":
         return LedgerAppend.model_validate(data)
+    if data["kind"] == "claim_withdrawal":
+        return ClaimWithdrawal.model_validate(data)
+    if data["kind"] == "claim_correction":
+        return ClaimCorrection.model_validate(data)
+    if data["kind"] == "workflow_reopen":
+        return WorkflowReopen.model_validate(data)
+    if data["kind"] == "source_withdrawal":
+        return SourceWithdrawal.model_validate(data)
     raise ValueError("unsupported workflow request kind")
 
 
@@ -45,6 +57,22 @@ def validate_transition(command, before, after, event, before_events):
                  and not any(row.get("event_type") == "source_revision_reviewed" and row.get("revision_event_id") == command.revision_event_id for row in events)
                  and event["reviewed_by"] == command.reviewed_by and event["reviewed_claim_ids"] == command.reviewed_claim_ids
                  and event["reviewed_decision_ids"] == command.reviewed_decision_ids
+                 and {k: v for k, v in before.items() if k not in allowed} == {k: v for k, v in after.items() if k not in allowed})
+    elif isinstance(command, ClaimWithdrawal):
+        allowed = {"updated_at", "workflow_version"}
+        events = [json.loads(line) for line in before_events.splitlines() if line.strip()]
+        valid = (event["event_type"] == "claim_withdrawn" and event["claim_id"] == command.claim_id
+                 and event["withdrawn_by"] == command.withdrawn_by and event["claim_snapshot"]["claim_id"] == command.claim_id
+                 and event["claim_snapshot"].get("status") == "active" and event["claim_hash"] == fingerprint(event["claim_snapshot"])
+                 and event["withdrawn_at"] == after["updated_at"]
+                 and event["event_id"] == f"CLAIM-WITHDRAW-{1 + sum(row.get('event_type') == 'claim_withdrawn' for row in events):04d}"
+                 and not any(row.get("event_type") == "claim_withdrawn" and row.get("claim_id") == command.claim_id for row in events)
+                 and event["impact"]["statuses"][command.claim_id] == "withdrawn" and event["impact"]["decisions_changed"] is False
+                 and {k: v for k, v in before.items() if k not in allowed} == {k: v for k, v in after.items() if k not in allowed})
+    elif isinstance(command, WorkflowReopen):
+        # Full deterministic reconstruction including captured inputs is checked by load().
+        allowed = {"status", "stages", "next_action", "reopen_history", "updated_at", "workflow_version"}
+        valid = (before["status"] == "completed" and after["status"] == command.target_stage
                  and {k: v for k, v in before.items() if k not in allowed} == {k: v for k, v in after.items() if k not in allowed})
     else:
         allowed = {"updated_at", "workflow_version"}

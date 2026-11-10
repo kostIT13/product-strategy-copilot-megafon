@@ -5,6 +5,8 @@ import json
 from product_strategy_agent.application.ports.ledger_store import LedgerStore
 from product_strategy_agent.domain.projects.ledger_append import LedgerAppend
 from product_strategy_agent.domain.projects.workspace import validate_workspace_id
+from product_strategy_agent.domain.projects.claim_lifecycle import require_active_support
+from product_strategy_agent.domain.projects.source_lifecycle import require_current_sources
 
 
 class LedgerService:
@@ -35,6 +37,11 @@ class LedgerService:
                 raise ValueError(
                     "expected_workflow_version conflict; review the current ledgers"
                 )
+            require_active_support(command.ledger, command.payload, snapshot["ledger_inputs"],
+                                   [json.loads(line) for line in snapshot["events"].splitlines() if line.strip()])
+            if command.ledger == "claims":
+                require_current_sources(command.payload, [json.loads(line) for line in snapshot["ledger_inputs"]["sources.jsonl"].splitlines() if line.strip()],
+                                        [json.loads(line) for line in snapshot["events"].splitlines() if line.strip()])
             now = (
                 datetime.now(timezone.utc)
                 .isoformat(timespec="seconds")

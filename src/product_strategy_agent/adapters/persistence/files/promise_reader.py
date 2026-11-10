@@ -17,6 +17,7 @@ from product_strategy_agent.domain.projects.file_promises import (
     last_revision,
 )
 from product_strategy_agent.domain.projects.ledger_append import LedgerAppend
+from product_strategy_agent.domain.projects.claim_correction import ClaimCorrection
 
 MAX_FILE = 512000
 MAX_JOURNALS = 32 * 1024 * 1024
@@ -45,12 +46,15 @@ class FilePromiseReader:
         self.root = Path(root).resolve()
 
     def read(self, project_id):
+        return self.read_for_claims(project_id, ())
+
+    def read_for_claims(self, project_id, claim_ids):
         try:
-            return self._read(project_id)
+            return self._read(project_id, claim_ids)
         except (KeyError, TypeError, AttributeError):
             raise ValueError("invalid promise evidence snapshot") from None
 
-    def _read(self, project_id):
+    def _read(self, project_id, claim_ids):
         with case_access(self.root, project_id) as case:
             hashes = {}
 
@@ -82,7 +86,7 @@ class FilePromiseReader:
             )
             events = tuple(records(read("events.jsonl")))
             found = candidates(drafts)
-            wanted = set()
+            wanted = set(claim_ids)
             for candidate in found:
                 for cap in candidate["capability_ids"]:
                     links = capabilities.get(cap, {}).get("claim_ids", [])
@@ -94,7 +98,7 @@ class FilePromiseReader:
             if len(wanted) > 50:
                 raise ValueError("promise check supports at most 50 distinct claims")
             sources = {}
-            if found:
+            if found or wanted:
                 snapshot = FileSourceSearchStore(self.root).snapshot(project_id)
                 sources = {row.record["source_id"]: row for row in snapshot.sources}
                 read("sources.jsonl")
@@ -109,9 +113,8 @@ class FilePromiseReader:
                 matches = [
                     row
                     for row in events
-                    if row.get("event_type") == "ledger_recorded"
-                    and row.get("ledger") == "claims.jsonl"
-                    and row.get("record_id") == claim_id
+                    if (row.get("event_type") == "ledger_recorded" and row.get("ledger") == "claims.jsonl" and row.get("record_id") == claim_id)
+                    or (row.get("event_type") == "claim_corrected" and row.get("replacement_id") == claim_id)
                 ]
                 if not matches:
                     continue  # Legacy claim has no provable source-version binding.
@@ -126,22 +129,26 @@ class FilePromiseReader:
                     read_bounded(confined(folder, "COMMITTED.json"), MAX_FILE)
                 )
                 command = item["command"]
+                if isinstance(command, ClaimCorrection):
+                    record, input_name = item["result"]["claim"], "correction-inputs.json"
+                elif isinstance(command, LedgerAppend) and command.ledger == "claims":
+                    record, input_name = item["result"], "ledger-inputs.json"
+                else:
+                    raise ValueError("claim recording command is not supported")
                 if (
                     receipt != {"manifest_hash": item["manifest_hash"]}
-                    or not isinstance(command, LedgerAppend)
-                    or command.ledger != "claims"
                     or item["event"] != event
-                    or item["result"].get("claim_id") != claim_id
+                    or record.get("claim_id") != claim_id
                 ):
                     raise ValueError("claim recording receipt mismatch")
                 journal_bytes += sum(len(value) for value in item["files"].values())
                 if journal_bytes > MAX_JOURNALS:
                     raise ValueError("promise journal inputs exceed the 32 MiB limit")
-                inputs = json.loads(item["files"]["ledger-inputs.json"])
+                inputs = json.loads(item["files"][input_name])
                 baseline = index(records(inputs["sources.jsonl"]), "source_id")
                 before_events = records(item["files"]["events.before.jsonl"])
                 bindings[claim_id] = {
-                    "record": item["result"],
+                    "record": record,
                     "sources": {
                         key: {
                             "content_hash": value["content_hash"],
