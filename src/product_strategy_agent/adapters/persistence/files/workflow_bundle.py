@@ -11,6 +11,7 @@ from product_strategy_agent.domain.projects.ledger_append import LedgerAppend
 from product_strategy_agent.adapters.persistence.files import ledger_bundle
 from product_strategy_agent.adapters.persistence.files import correction_bundle
 from product_strategy_agent.domain.projects.claim_correction import ClaimCorrection
+from product_strategy_agent.domain.projects.workflow_reopen import WorkflowReopen, plan_reopen
 
 FILES = {"request.json", "event.json", "state.before.json", "state.after.json", "events.before.jsonl", "events.after.jsonl", "inputs.json"}
 
@@ -79,6 +80,10 @@ def load(folder, project_id, operation_id, manifest_hash=None):
         inputs = json.loads(files["inputs.json"])
         if not isinstance(inputs, dict):
             raise ValueError("invalid workflow inputs")
+        if isinstance(command, WorkflowReopen):
+            expected_after, expected_event = plan_reopen(command, files["state.before.json"], files["events.before.jsonl"], inputs, after["updated_at"])
+            if after != expected_after or event != expected_event:
+                raise ValueError("workflow reopen payload semantics mismatch")
         targets = {"state.json": (files["state.before.json"], files["state.after.json"]),
                    "events.jsonl": (files["events.before.jsonl"], files["events.after.jsonl"])}
         result = event

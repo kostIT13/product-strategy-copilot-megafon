@@ -39,6 +39,10 @@ from product_strategy_agent.application.services.claim_correction_service import
 from product_strategy_agent.adapters.persistence.files.workflow_repository import (
     FileWorkflowStore,
 )
+from product_strategy_agent.application.services.workflow_reopen_service import (
+    WorkflowReopenService,
+)
+from product_strategy_agent.domain.projects.workflow_reopen import WorkflowReopen
 
 
 def run():
@@ -144,6 +148,31 @@ def run():
         )
         render_project(case)
         approve_stage(case, "validation", "Synthetic test actor")
+        reopen = WorkflowReopenService(FileWorkflowStore(root))
+        packet = reopen.review("synthetic")
+        reopen.reopen(
+            "synthetic",
+            WorkflowReopen(
+                operation_id=uuid4(),
+                target_stage="strategy",
+                reopened_by="Synthetic test actor",
+                reason="Explicit synthetic reconsideration",
+                review_hash=packet["review_hash"],
+                expected_workflow_version=packet["workflow_version"],
+            ),
+        )
+        add_decision(
+            case,
+            "change",
+            "Synthetic test actor",
+            "Synthetic reaffirmation after review",
+            claim_ids=[claim["claim_id"]],
+            option_id=options[2]["option_id"],
+            rejected_alternatives=[row["name"] for row in options[:2]],
+        )
+        approve_stage(case, "strategy", "Synthetic test actor")
+        render_project(case)
+        approve_stage(case, "validation", "Synthetic test actor")
         if validate_project(case) or any(verify_project(case)):
             raise ValueError("synthetic base evidence failed")
         copied = Path(folder) / "copied"
@@ -158,6 +187,7 @@ def run():
         "ok": True,
         "workflow": "completed",
         "copied_resume": True,
+        "reopened_and_reapproved": True,
         "sql_dependencies": False,
         "model_calls": 0,
     }

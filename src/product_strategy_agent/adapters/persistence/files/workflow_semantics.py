@@ -8,6 +8,7 @@ from product_strategy_agent.domain.projects.render_plan import RenderRequest
 from product_strategy_agent.domain.projects.ledger_append import LedgerAppend
 from product_strategy_agent.domain.projects.claim_lifecycle import ClaimWithdrawal, fingerprint
 from product_strategy_agent.domain.projects.claim_correction import ClaimCorrection
+from product_strategy_agent.domain.projects.workflow_reopen import WorkflowReopen
 
 
 def parse_command(data):
@@ -27,6 +28,8 @@ def parse_command(data):
         return ClaimWithdrawal.model_validate(data)
     if data["kind"] == "claim_correction":
         return ClaimCorrection.model_validate(data)
+    if data["kind"] == "workflow_reopen":
+        return WorkflowReopen.model_validate(data)
     raise ValueError("unsupported workflow request kind")
 
 
@@ -62,6 +65,11 @@ def validate_transition(command, before, after, event, before_events):
                  and event["event_id"] == f"CLAIM-WITHDRAW-{1 + sum(row.get('event_type') == 'claim_withdrawn' for row in events):04d}"
                  and not any(row.get("event_type") == "claim_withdrawn" and row.get("claim_id") == command.claim_id for row in events)
                  and event["impact"]["statuses"][command.claim_id] == "withdrawn" and event["impact"]["decisions_changed"] is False
+                 and {k: v for k, v in before.items() if k not in allowed} == {k: v for k, v in after.items() if k not in allowed})
+    elif isinstance(command, WorkflowReopen):
+        # Full deterministic reconstruction including captured inputs is checked by load().
+        allowed = {"status", "stages", "next_action", "reopen_history", "updated_at", "workflow_version"}
+        valid = (before["status"] == "completed" and after["status"] == command.target_stage
                  and {k: v for k, v in before.items() if k not in allowed} == {k: v for k, v in after.items() if k not in allowed})
     else:
         allowed = {"updated_at", "workflow_version"}

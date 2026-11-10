@@ -24,7 +24,7 @@ psa verify CASE
 - Content hash или последний source revision event отличается от снимка при записи claim. Даже возврат текста A → B → A не восстанавливает прежнюю актуальность.
 - Quote отсутствует **точно внутри locator scope**. Поддержаны paragraph/p/line, lines range и native PDF page/XLSX cell. Неподдержанный locator блокируется без глобального поиска. Quote ограничена 500 символами; whitespace normalization прежнего verify не заменяет строгую preflight проверку.
 
-Ручной revision review не переписывает proof binding старого claim. После реального повторного анализа и указания человека используйте [claim correct](claim-correction.md), затем обновите capability/support и авторский draft с актуальными refs. Новый v5 proof связывается с текущими источниками. Не делайте это автоматически ради зелёной проверки. Withdrawal/correction реализованы; review/reopen и semantic consistency остаются R3.
+Ручной revision review не переписывает proof binding старого claim. После реального повторного анализа и указания человека используйте [claim correct](claim-correction.md), затем обновите capability/support и авторский draft с актуальными refs. Новый v5 proof связывается с текущими источниками. Не делайте это автоматически ради зелёной проверки. Withdrawal/correction реализованы; [completed review/reopen](workflow-reopen.md) реализован; semantic consistency остаётся R3.
 
 ## Packet, gate и восстановление
 

@@ -85,7 +85,8 @@ def create_server() -> Any:
         return {"project_id": project_id, "status": state["status"], "mode": mode,
                 "workflow_version": state.get("workflow_version", 0),
                 "mode_guidance": MODE_PROFILES[mode]["guidance"], "next_action": state["next_action"],
-                "open_questions": state.get("open_questions", []), "approvals": state.get("approvals", [])}
+                "open_questions": state.get("open_questions", []), "approvals": state.get("approvals", []),
+                "reopen_history": state.get("reopen_history", [])}
 
     @server.tool()
     def psa_next(project_id: str, projects_dir: str = "projects") -> dict[str, str]:

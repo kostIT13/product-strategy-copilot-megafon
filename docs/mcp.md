@@ -47,6 +47,7 @@ Use the Python executable from the environment where `product-strategy-agent[mcp
 - `psa_check_validation_plan` — [measurement plan contract](validation-plan-contract.md), read-only schema/current baseline proof and never observed effect or experiment permission
 - `psa_withdraw_claim`, `psa_claim_impact` — [human withdrawal/effective evidence](claim-withdrawal.md), immutable history and derived review without changing human decisions
 - `psa_correct_claim` — [attributed correction](claim-correction.md), append replacement with current citations and workflow v5 recovery; preserves original claims and human decisions
+- `psa_review_workflow`, `psa_reopen_workflow` — [review/reopen](workflow-reopen.md): reviewed snapshot, explicit human instruction, selected stage reset, preserved history and fresh gates
 
 `psa_fetch_source` performs a network request only when explicitly called. Tools write only inside the selected project workspace, except for caller-supplied input/output paths. The server has no delete, shell, or arbitrary command tool.
 

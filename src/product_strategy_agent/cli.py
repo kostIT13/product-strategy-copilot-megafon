@@ -554,6 +554,9 @@ def main() -> None:
             print(f"Next action: {state['next_action']}")
             print(f"Brief: {project_path(args.project_id, args.projects_dir) / '01_brief.md'}")
             approvals = state.get("approvals", [])
+            if state.get("reopen_history"):
+                latest_reopen = state["reopen_history"][-1]
+                print(f"Reopened at {latest_reopen['target_stage']} by {latest_reopen['reopened_by']}; earlier approvals remain history, follow the current stage.")
             if approvals:
                 latest = approvals[-1]
                 print(f"Last approved: {latest['stage']} by {latest['approved_by']} at {latest['approved_at']}")
