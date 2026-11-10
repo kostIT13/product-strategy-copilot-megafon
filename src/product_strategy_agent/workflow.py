@@ -20,6 +20,8 @@ from product_strategy_agent.application.services.mode_change_service import Mode
 from product_strategy_agent.domain.projects.research_modes import MODE_PROFILES
 from product_strategy_agent.application.services.strategy_structure_service import StrategyStructureService
 from product_strategy_agent.adapters.persistence.files.strategy_structure_reader import FileStrategyStructureReader
+from product_strategy_agent.application.services.validation_plan_service import ValidationPlanService
+from product_strategy_agent.adapters.persistence.files.validation_plan_store import FileValidationPlanStore
 
 WORK_STAGES = ("intake", "research_plan", "source_collection", "evidence_review", "options", "strategy", "validation")
 NEXT_ACTIONS = {
@@ -105,7 +107,12 @@ def _check_stage(project_dir: Path, stage: str, mode: str) -> dict | None:
         integrity = render_integrity_report(project_dir)
         if not integrity["ok"]:
             raise ValueError("Resolve generated artifact integrity issues before approving validation: " + "; ".join(integrity["errors"]))
-        return _strategy_references(project_dir, coverage)
+        references = _strategy_references(project_dir, coverage)
+        measurement = ValidationPlanService(FileValidationPlanStore(project_dir.parent)).check(project_dir.name)
+        if measurement["structural_status"] != "complete":
+            raise ValueError("Resolve validation plan issues before approval: " + "; ".join(measurement["issues"]))
+        references["validation_plan"] = {key: measurement[key] for key in ("format_version", "review_hash", "structural_status")}
+        return references
 
 
 def approve_stage(project_dir: Path, stage: str, approved_by: str, reason: str = "", *,
@@ -188,6 +195,8 @@ def _approve_stage(project_dir, stage, approved_by, reason, research_plan_refere
         if promise_reference and promise_reference["structural_status"] == "eligible_for_human_review":
             event["promise_preflight"] = promise_reference
         event["strategy_structure"] = stage_references["strategy_structure"]
+        if "validation_plan" in stage_references:
+            event["validation_plan"] = stage_references["validation_plan"]
     approvals.append(event)
     return store.commit(project_dir.name, command, before_state, state, before_events, event, inputs)
 

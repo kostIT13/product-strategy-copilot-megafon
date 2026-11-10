@@ -4,7 +4,7 @@
 
 ## Принятое решение
 
-**Текущий этап: R3, начат первый срез.** Восемь обязательных разделов product/communication drafts проверяются через psa strategy check / psa_check_strategy и новые strategy/validation gates; [контракт](../strategy-structure.md). Следующий срез — metrics/baseline/window/guardrails/owner/data source. R2 runtime выведен, чистая base/wheel/sdist установка проверена. Нужных PG-данных нет по ответу пользователя; generalized import не выполнялся. Отложенные live R1/M8 и оценка M6 остаются открытыми.
+**Текущий этап: R3, начат первый срез.** Восемь обязательных разделов product/communication drafts проверяются через psa strategy check / psa_check_strategy и новые strategy/validation gates; [контракт](../strategy-structure.md). Typed measurement plan с metrics/baseline/window/guardrails/owner/data source подключён к CLI/MCP и новым validation gates; [контракт](../validation-plan-contract.md). Далее semantic/numeric alignment и corrections. R2 runtime выведен, чистая base/wheel/sdist установка проверена. Нужных PG-данных нет по ответу пользователя; generalized import не выполнялся. Отложенные live R1/M8 и оценка M6 остаются открытыми.
 
 Основной продукт — проект-папка для IDE-агента: инструкции, skills, knowledge/, материалы кейса и версионированные файловые реестры. IDE ведёт агентный цикл; Python core сохраняет данные, проверяет доказательства и gates. CLI `psa` и FastMCP stdio — тонкие интерфейсы над одним файловым ядром.
 
@@ -17,7 +17,7 @@
 - Файловый MVP `psa`: источники/claims/options/решения, validate/verify/coverage/render, gates, usage, resume/revisit; два синтетических демо. Отложенные проверки не считаются пройденными.
 - Knowledge/ 1.0.0: methods/checklists с provenance/версиями; фактическое подключение к IDE-агенту ещё открыто.
 - Ранее созданный отдельный PG-контур `psa-main`: domain/application services и adapters, импортеры, FTS, API runs/pipelines/critic, human selection, internal strategy approval/export и read-only promise preflight; schema 0017, 19 MCP tools. Это инвентарь для переноса, не подтверждение file-only parity.
-- CI/demo/release, проверки секретов/документации, упаковка и PG/Docker smoke ранее работали локально. Полный набор 326 тестов после первого среза R3 завершился OK (1 skipped: Windows symlink privilege unavailable); это не оценка качества стратегии и не remote Actions result.
+- CI/demo/release, проверки секретов/документации, упаковка и PG/Docker smoke ранее работали локально. Полный набор 336 тестов после measurement среза R3 завершился OK (1 skipped: Windows symlink privilege unavailable); это не оценка качества стратегии и не remote Actions result.
 - R1 начат 09.11.2026: AGENTS.md, workflow/quality/safety, четыре skills в .agents/skills, generated host adapters, sync-check в CI и read-only psa context с полными выбранными knowledge/skills/версиями/hashes. [Runbook](../ide-instructions.md). Все 200 unit-тестов прошли; живой кейс и фактическая загрузка в hosts пока не подтверждены и отложены пользователем 09.11.2026.
 
 ## Новый порядок R1–R6
@@ -56,3 +56,7 @@ Release собирает allowlisted ZIP/wheel/sdist с manifest/SHA-256, про
 - Hooks/subagents выбираются по реальной пользе и возможностям хоста; последовательный рабочий путь обязателен. Число технологий не является результатом.
 - Время/расходы записывать фактически или как явную оценку; неизвестное usage/cost не подменять нулём.
 - Каждая законченная итерация: meaningful checks, ограничения, timestamp в reports/, отдельный commit/push в feature/-ветку.
+
+## Будущий полный production-ready план
+
+Запрос пользователя зафиксирован 10.11.2026: после R3, до расширений переработать план в milestones с проверяемой готовностью. Включить CLI/FastMCP/host parity, полезные opt-in subagents/hooks, research/retrieval/knowledge tools, безопасность и recovery, наблюдаемость/cost, release/upgrade/rollback и сильный demo/eval комплект для хакатона. Подробный checklist — в заключительном разделе основного плана. Это будущий пересмотр, а не заявление о готовности или гарантия победы; базовый последовательный путь и ограничения AGENTS сохраняются.

@@ -26,6 +26,7 @@ from product_strategy_agent.sources import add_local_source
 from product_strategy_agent.workflow import approve_stage
 from product_strategy_agent.validation import verify_project
 from product_strategy_agent.rendering import render_project
+from scripts.ci.validation_fixture import validation_markdown
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -299,8 +300,7 @@ class FilePromiseTests(unittest.TestCase):
                 event["promise_preflight"]["review_hash"], preflight["review_hash"]
             )
             (case / "drafts/validation-plan.md").write_text(
-                "# Fixture validation\n\n[HYPOTHESIS] Measure a synthetic trial and review all guardrails before a real decision.\n",
-                encoding="utf-8",
+                validation_markdown(), encoding="utf-8"
             )
             render_project(case)
             validation_hash = check(root)["review_hash"]

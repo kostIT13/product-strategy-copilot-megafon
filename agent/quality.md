@@ -10,4 +10,6 @@
 
 Перед новым strategy/validation gate выполни `psa strategy check ID`: обязательные разделы обеих стратегий должны быть заполнены. Это структурная проверка, не подтверждение смысла, согласованности или истинности; coverage/verify/promise preflight остаются отдельными проверками.
 
+Перед новым validation gate выполни `psa validation check ID`. В authored drafts/validation-plan.md нужен один psa-validation-v1 JSON block: metric definition/unit/population/data source, baseline reported с current factual claim либо unknown/null с reason/measurement owner/deadline, comparison, success criterion, observation window, guardrails/stop rules и owner/decision rule. Это план, не результат эксперимента; numeric alignment и разрешение эксперимента не выводятся из успешного check. Формат и пример — [контракт](../docs/validation-plan-contract.md).
+
 Явное решение человека и его смысл важнее положительного critic verdict. Перед окончанием сообщи сильнейшее возражение, неопределённости, условие пересмотра, время/расходы и ошибки/помощь человека. Автотесты схем/цитат не являются независимой оценкой стратегии.

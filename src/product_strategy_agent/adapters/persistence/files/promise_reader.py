@@ -45,12 +45,15 @@ class FilePromiseReader:
         self.root = Path(root).resolve()
 
     def read(self, project_id):
+        return self.read_for_claims(project_id, ())
+
+    def read_for_claims(self, project_id, claim_ids):
         try:
-            return self._read(project_id)
+            return self._read(project_id, claim_ids)
         except (KeyError, TypeError, AttributeError):
             raise ValueError("invalid promise evidence snapshot") from None
 
-    def _read(self, project_id):
+    def _read(self, project_id, claim_ids):
         with case_access(self.root, project_id) as case:
             hashes = {}
 
@@ -82,7 +85,7 @@ class FilePromiseReader:
             )
             events = tuple(records(read("events.jsonl")))
             found = candidates(drafts)
-            wanted = set()
+            wanted = set(claim_ids)
             for candidate in found:
                 for cap in candidate["capability_ids"]:
                     links = capabilities.get(cap, {}).get("claim_ids", [])
@@ -94,7 +97,7 @@ class FilePromiseReader:
             if len(wanted) > 50:
                 raise ValueError("promise check supports at most 50 distinct claims")
             sources = {}
-            if found:
+            if found or wanted:
                 snapshot = FileSourceSearchStore(self.root).snapshot(project_id)
                 sources = {row.record["source_id"]: row for row in snapshot.sources}
                 read("sources.jsonl")

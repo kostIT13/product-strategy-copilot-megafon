@@ -30,6 +30,7 @@ from product_strategy_agent.adapters.persistence.files.source_search_repository 
     FileSourceSearchStore,
 )
 from scripts.ci.strategy_fixture import synthetic_strategies
+from scripts.ci.validation_fixture import validation_markdown
 
 
 def run():
@@ -115,8 +116,7 @@ def run():
             raise ValueError("synthetic preflight failed")
         approve_stage(case, "strategy", "Synthetic test actor")
         (case / "drafts/validation-plan.md").write_text(
-            "# Fixture\n\n[HYPOTHESIS] Measure the generated local trial and review guardrails before drawing a real conclusion.\n",
-            encoding="utf-8",
+            validation_markdown(), encoding="utf-8"
         )
         render_project(case)
         approve_stage(case, "validation", "Synthetic test actor")

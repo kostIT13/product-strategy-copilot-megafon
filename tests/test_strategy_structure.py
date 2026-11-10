@@ -12,6 +12,7 @@ from unittest.mock import patch
 from uuid import uuid4
 
 from scripts.ci.strategy_fixture import synthetic_strategies
+from scripts.ci.validation_fixture import validation_markdown
 from product_strategy_agent.adapters.persistence.files.project_lock import project_lock
 from product_strategy_agent.adapters.persistence.files.strategy_structure_reader import (
     FileStrategyStructureReader,
@@ -218,8 +219,7 @@ class StrategyStructureTests(unittest.TestCase):
             strategy_stage(root, case)
             approve_stage(case, "strategy", "Synthetic fixture human")
             (case / "drafts/validation-plan.md").write_text(
-                "# Trial\n\n[HYPOTHESIS] Measure the synthetic trial and review guardrails before making any real decision.\n",
-                encoding="utf-8",
+                validation_markdown(), encoding="utf-8"
             )
             path = case / "drafts/product-strategy.md"
             path.write_text(
