@@ -43,10 +43,10 @@ def draft(case, cap="CAP-001", claim=""):
     )
 
 
-def fixture(folder, quote="Synthetic CSV export is available.", locator="paragraph:1"):
+def fixture(folder, quote="Synthetic CSV export is available.", locator="paragraph:1", *, legacy=True):
     from legacy_fixture import init_legacy_project
     root = Path(folder) / "projects"
-    case = init_legacy_project("case", root)
+    case = init_legacy_project("case", root) if legacy else init_project("case", root)
     path = Path(folder) / "source.txt"
     path.write_text(
         "Synthetic CSV export is available.\nFixture-only scope.\n", encoding="utf-8"

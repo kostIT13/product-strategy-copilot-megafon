@@ -84,20 +84,20 @@ def content_hash(scope, state, events, inputs):
         if scope == "validation"
         else []
     )
+    policy_names = [
+        "schema_version",
+        "project_id",
+        "mode",
+        "mode_history",
+        "reopen_history",
+    ]
+    if "quality_policy" in state:
+        policy_names.append("quality_policy")
     return fingerprint(
         {
             "format_version": "psa-semantic-content-v1",
             "scope": scope,
-            "policy": {
-                name: state.get(name)
-                for name in (
-                    "schema_version",
-                    "project_id",
-                    "mode",
-                    "mode_history",
-                    "reopen_history",
-                )
-            },
+            "policy": {name: state.get(name) for name in policy_names},
             "events": [
                 row for row in events if row.get("event_type") in RELEVANT_EVENTS
             ],

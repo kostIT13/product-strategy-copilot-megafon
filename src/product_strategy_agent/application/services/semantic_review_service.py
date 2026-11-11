@@ -11,6 +11,7 @@ from product_strategy_agent.domain.projects.semantic_review import (
     finish_packet,
 )
 from product_strategy_agent.domain.projects.workspace import validate_workspace_id
+from product_strategy_agent.domain.projects.quality_policy import policy_required
 
 
 class SemanticReviewService:
@@ -83,7 +84,8 @@ class SemanticReviewService:
                 for line in snapshot["events"].splitlines()
                 if line.strip()
             ]
-            if operation_id is None and not any(
+            required = policy_required(json.loads(snapshot["state"]), events)
+            if not required and operation_id is None and not any(
                 row.get("event_type") == "semantic_review_recorded"
                 and row.get("scope")
                 in ({"strategy", "validation"} if scope == "validation" else {scope})

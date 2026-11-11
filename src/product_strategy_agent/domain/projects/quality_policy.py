@@ -24,6 +24,8 @@ def validate_policy(value):
 
 
 def policy_required(state, events=(), initially_required=False):
+    if not isinstance(state, dict) or any(not isinstance(row, dict) for row in events):
+        raise ValueError("invalid quality policy state/history")
     enabled = [
         row for row in events if row.get("event_type") == "quality_policy_enabled"
     ]

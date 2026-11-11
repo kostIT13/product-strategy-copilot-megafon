@@ -17,6 +17,7 @@ from product_strategy_agent.adapters.persistence.files import source_withdrawal_
 from product_strategy_agent.domain.projects.semantic_review import SemanticReview
 from product_strategy_agent.domain.projects.gate_approval import GateApproval
 from product_strategy_agent.adapters.persistence.files import semantic_review_bundle
+from product_strategy_agent.domain.projects.quality_policy import EnableQualityPolicy, plan_enable
 
 FILES = {"request.json", "event.json", "state.before.json", "state.after.json", "events.before.jsonl", "events.after.jsonl", "inputs.json"}
 
@@ -98,10 +99,16 @@ def load(folder, project_id, operation_id, manifest_hash=None):
         result = event
         if isinstance(command, SemanticReview):
             semantic_review_bundle.validate_extra(command, files, inputs, after, event)
+        if isinstance(command, EnableQualityPolicy):
+            expected_after, expected_event = plan_enable(command, files["state.before.json"], files["events.before.jsonl"], inputs, after["updated_at"])
+            if after != expected_after or event != expected_event:
+                raise ValueError("quality policy bundle reconstruction mismatch")
         if isinstance(command, GateApproval):
             history = [json.loads(line) for line in files["events.before.jsonl"].splitlines() if line.strip()]
             adopted = any(row.get("event_type") == "semantic_review_recorded" and row.get("scope") in ({"strategy", "validation"} if command.stage == "validation" else {command.stage}) for row in history)
-            if command.semantic_review_operation is not None or adopted:
+            from product_strategy_agent.adapters.persistence.files.quality_policy_store import required_for_case
+            required = required_for_case(folder.parents[3], before, history)
+            if command.semantic_review_operation is not None or adopted or (required and command.stage in {"strategy", "validation"}):
                 if command.stage not in {"strategy", "validation"}:
                     raise ValueError("semantic review selection applies only to strategy/validation")
                 from product_strategy_agent.adapters.persistence.files.semantic_gate_proof import selected_review

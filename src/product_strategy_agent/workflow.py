@@ -188,12 +188,14 @@ def _approve_stage(project_dir, stage, approved_by, reason, research_plan_refere
     if not isinstance(mode, str) or mode not in MODE_PROFILES:
         raise ValueError(f"Unknown project mode: {mode}")
     stage_references = None
+    history = [json.loads(line) for line in before_events.splitlines() if line.strip()]
+    from product_strategy_agent.adapters.persistence.files.quality_policy_store import required_for_case
+    required_policy = required_for_case(project_dir, state, history)
     if stage != "research_plan" or research_plan_reference is None:
         stage_references = _check_stage(project_dir, stage, mode)
 
     semantic_reference = None
-    history = [json.loads(line) for line in before_events.splitlines() if line.strip()]
-    if stage in {"strategy", "validation"} and (command.semantic_review_operation is not None or any(row.get("event_type") == "semantic_review_recorded" and row.get("scope") in ({"strategy", "validation"} if stage == "validation" else {stage}) for row in history)):
+    if stage in {"strategy", "validation"} and (required_policy or command.semantic_review_operation is not None or any(row.get("event_type") == "semantic_review_recorded" and row.get("scope") in ({"strategy", "validation"} if stage == "validation" else {stage}) for row in history)):
         from product_strategy_agent.application.services.semantic_review_service import SemanticReviewService
         from product_strategy_agent.adapters.persistence.files.semantic_review_store import FileSemanticReviewStore
         semantic_reference = SemanticReviewService(FileSemanticReviewStore(project_dir.parent)).for_gate(project_dir.name, stage, command.semantic_review_operation)

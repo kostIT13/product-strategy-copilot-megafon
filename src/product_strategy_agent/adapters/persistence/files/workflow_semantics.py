@@ -11,6 +11,7 @@ from product_strategy_agent.domain.projects.claim_correction import ClaimCorrect
 from product_strategy_agent.domain.projects.workflow_reopen import WorkflowReopen
 from product_strategy_agent.domain.projects.source_lifecycle import SourceWithdrawal
 from product_strategy_agent.domain.projects.semantic_review import SemanticReview
+from product_strategy_agent.domain.projects.quality_policy import EnableQualityPolicy
 
 
 def parse_command(data):
@@ -36,6 +37,8 @@ def parse_command(data):
         return SourceWithdrawal.model_validate(data)
     if data["kind"] == "semantic_review":
         return SemanticReview.model_validate(data)
+    if data["kind"] == "quality_policy_enable":
+        return EnableQualityPolicy.model_validate(data)
     raise ValueError("unsupported workflow request kind")
 
 
@@ -72,6 +75,9 @@ def validate_transition(command, before, after, event, before_events):
                  and not any(row.get("event_type") == "claim_withdrawn" and row.get("claim_id") == command.claim_id for row in events)
                  and event["impact"]["statuses"][command.claim_id] == "withdrawn" and event["impact"]["decisions_changed"] is False
                  and {k: v for k, v in before.items() if k not in allowed} == {k: v for k, v in after.items() if k not in allowed})
+    elif isinstance(command, EnableQualityPolicy):
+        allowed = {"quality_policy", "updated_at", "workflow_version"}
+        valid = {k: v for k, v in before.items() if k not in allowed} == {k: v for k, v in after.items() if k not in allowed}
     elif isinstance(command, WorkflowReopen):
         # Full deterministic reconstruction including captured inputs is checked by load().
         allowed = {"status", "stages", "next_action", "reopen_history", "updated_at", "workflow_version"}
