@@ -7,6 +7,7 @@ from product_strategy_agent.adapters.persistence.files.paths import confined
 from product_strategy_agent.adapters.persistence.files.project_lock import project_lock
 from product_strategy_agent.adapters.persistence.files.workspace_manifest import RECEIPT, digest, load_receipt, validate_prepared
 from product_strategy_agent.domain.projects.workspace import INITIAL_FILES, validate_workspace_id
+from product_strategy_agent.domain.projects.quality_policy import validate_policy
 
 
 def durable_write(path, data):
@@ -60,6 +61,9 @@ class FileWorkspaceStore:
                 hashes[name] = digest(data)
             receipt = {"format_version": 1, "kind": "workspace_init", "project_id": seed.project_id,
                 "operation_id": str(operation_id), "created_at": seed.created_at, "files": hashes}
+            state = json.loads(seed.files["state.json"])
+            if "quality_policy" in state:
+                receipt.update(format_version=2, quality_policy=validate_policy(state["quality_policy"]))
             durable_write(stage / RECEIPT, (json.dumps(receipt, ensure_ascii=False, sort_keys=True, indent=2) + "\n").encode())
             for folder in (stage / "sources", stage / ".psa", stage, stage.parent):
                 sync_directory(folder)

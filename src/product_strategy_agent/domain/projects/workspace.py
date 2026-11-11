@@ -34,3 +34,12 @@ def workspace_seed(project_id: str, created_at: str) -> WorkspaceSeed:
             "## Кто принимает решение и к какому сроку\n\n## Ограничения и разрешённые данные\n\n## Доступные материалы\n",
         "02_research-plan.md": "# План исследования\n\n## Вопросы исследования\n\n## Методы и источники\n\n## Критерии достаточности\n"})
     return WorkspaceSeed(project_id, created_at, files)
+
+
+def current_workspace_seed(project_id: str, created_at: str) -> WorkspaceSeed:
+    """New cases require semantic review; keep the v1 seed frozen for legacy fixtures."""
+    from product_strategy_agent.domain.projects.quality_policy import REQUIRED_POLICY
+    seed = workspace_seed(project_id, created_at)
+    state = json.loads(seed.files["state.json"])
+    state["quality_policy"] = dict(REQUIRED_POLICY)
+    return WorkspaceSeed(project_id, created_at, {**seed.files, "state.json": json.dumps(state, ensure_ascii=False, indent=2) + "\n"})

@@ -12,4 +12,5 @@ class GateApproval(BaseModel):
     reason: Annotated[str, StringConstraints(strip_whitespace=True, max_length=4000)] = ""
     artifact_operation: UUID | None = None
     artifact_version: int | None = Field(default=None, strict=True, ge=1)
+    semantic_review_operation: UUID | None = None
     expected_workflow_version: int | None = Field(default=None, strict=True, ge=0)
