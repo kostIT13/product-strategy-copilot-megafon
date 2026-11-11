@@ -10,6 +10,7 @@ from product_strategy_agent.domain.projects.claim_lifecycle import ClaimWithdraw
 from product_strategy_agent.domain.projects.claim_correction import ClaimCorrection
 from product_strategy_agent.domain.projects.workflow_reopen import WorkflowReopen
 from product_strategy_agent.domain.projects.source_lifecycle import SourceWithdrawal
+from product_strategy_agent.domain.projects.semantic_review import SemanticReview
 
 
 def parse_command(data):
@@ -33,6 +34,8 @@ def parse_command(data):
         return WorkflowReopen.model_validate(data)
     if data["kind"] == "source_withdrawal":
         return SourceWithdrawal.model_validate(data)
+    if data["kind"] == "semantic_review":
+        return SemanticReview.model_validate(data)
     raise ValueError("unsupported workflow request kind")
 
 
