@@ -29,6 +29,8 @@ from product_strategy_agent.adapters.persistence.files.workspace_repository impo
 from product_strategy_agent.interfaces.cli.workspace_commands import add_workspace_commands, handle_workspace_command
 from product_strategy_agent.interfaces.cli.research_artifact_commands import add_research_artifact_commands, handle_research_artifact_command
 from product_strategy_agent.interfaces.cli.file_workflow_commands import add_workflow_commands, handle_workflow_command
+from product_strategy_agent.interfaces.cli.semantic_review_commands import add_semantic_review_commands, handle_semantic_review_command
+from product_strategy_agent.interfaces.cli.quality_policy_commands import add_quality_policy_commands, handle_quality_policy_command
 from product_strategy_agent.adapters.persistence.files.case_access import case_access
 from product_strategy_agent.interfaces.cli.file_search_commands import add_file_search_command, handle_file_search_command
 from product_strategy_agent.interfaces.cli.source_lifecycle_commands import add_source_lifecycle_commands, handle_source_lifecycle_command
@@ -92,6 +94,8 @@ def build_parser() -> argparse.ArgumentParser:
     add_workspace_commands(commands)
     add_research_artifact_commands(commands)
     add_workflow_commands(commands)
+    add_semantic_review_commands(commands)
+    add_quality_policy_commands(commands)
 
     doctor = commands.add_parser("doctor", help="check Python, templates, and optional local configuration")
     doctor.add_argument("--json", action="store_true", help="print a JSON diagnostic report")
@@ -247,6 +251,7 @@ def build_parser() -> argparse.ArgumentParser:
     approve.add_argument("--by", required=True, help="person or role making the approval")
     approve.add_argument("--reason", default="")
     approve.add_argument("--artifact-operation", type=UUID, help="reviewed structured research plan operation UUID")
+    approve.add_argument("--semantic-review", type=UUID, help="explicitly selected current human semantic review UUID")
     approve.add_argument("--artifact-version", type=int, help="reviewed artifact journal version")
     approve.add_argument("--operation", type=UUID, help="caller-chosen UUID for exact gate replay")
     approve.add_argument("--expected-workflow-version", type=int, help="expected shared workflow journal version")
@@ -292,6 +297,12 @@ def main() -> None:
     args = build_parser().parse_args()
     access = ExitStack()
     try:
+        if args.command == "review":
+            handle_semantic_review_command(args)
+            return
+        if args.command == "policy":
+            handle_quality_policy_command(args)
+            return
         if args.command == "workflow":
             handle_workflow_command(args)
             return
@@ -497,7 +508,8 @@ def main() -> None:
             project_dir = project_path(args.project_id, args.projects_dir)
             event = approve_stage(project_dir, args.stage, args.by, args.reason,
                                   artifact_operation=args.artifact_operation, artifact_version=args.artifact_version,
-                                  operation_id=args.operation, expected_workflow_version=args.expected_workflow_version)
+                                  operation_id=args.operation, expected_workflow_version=args.expected_workflow_version,
+                                  semantic_review_operation=args.semantic_review)
             print(f"Approved {event['stage']} by {event['approved_by']}; next stage: {event['next_stage']}")
             print(f"Next action: {NEXT_ACTIONS[event['next_stage']]}")
             return

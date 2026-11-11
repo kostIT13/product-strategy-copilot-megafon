@@ -75,6 +75,12 @@ def validate_project(project_dir: Path) -> list[str]:
         return ["state.json: top-level value must be an object"]
     if state.get("schema_version") != 1:
         errors.append("state.json: schema_version must be 1")
+    try:
+        from product_strategy_agent.adapters.persistence.files.quality_policy_store import required_for_case
+        history = _read_jsonl(project_dir / "events.jsonl", errors)
+        required_for_case(project_dir, state, history)
+    except (ValueError, OSError) as error:
+        errors.append("quality_policy: " + str(error))
     mode = state.get("mode", "decision_grade")
     if not isinstance(mode, str) or mode not in MODE_PROFILES:
         errors.append("state.json: mode must be quick_scan, decision_grade, or deep_research")

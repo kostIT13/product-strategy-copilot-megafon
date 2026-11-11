@@ -2,7 +2,7 @@
 from datetime import datetime, timezone
 from uuid import UUID, uuid4
 from product_strategy_agent.application.ports.workspace_store import WorkspaceStore
-from product_strategy_agent.domain.projects.workspace import validate_workspace_id, workspace_seed
+from product_strategy_agent.domain.projects.workspace import validate_workspace_id, current_workspace_seed
 
 
 class WorkspaceService:
@@ -12,7 +12,7 @@ class WorkspaceService:
     def initialize(self, project_id):
         validate_workspace_id(project_id)
         now = datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
-        return self.store.create(workspace_seed(project_id, now), uuid4())
+        return self.store.create(current_workspace_seed(project_id, now), uuid4())
 
     def pending(self, project_id):
         return self.store.pending(validate_workspace_id(project_id))

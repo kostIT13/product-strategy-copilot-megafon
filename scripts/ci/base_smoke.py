@@ -47,6 +47,37 @@ from product_strategy_agent.application.services.source_lifecycle_service import
     SourceLifecycleService,
 )
 from product_strategy_agent.domain.projects.source_lifecycle import SourceWithdrawal
+from product_strategy_agent.adapters.persistence.files.semantic_review_store import (
+    FileSemanticReviewStore,
+)
+from product_strategy_agent.application.services.semantic_review_service import (
+    SemanticReviewService,
+)
+from product_strategy_agent.domain.projects.semantic_review import (
+    SemanticReview,
+    CHECKS,
+)
+
+
+def synthetic_review(root, scope):
+    """Isolated CI fixture attribution only; never a real product assessment."""
+    service = SemanticReviewService(FileSemanticReviewStore(root))
+    packet = service.prepare("synthetic", scope)
+    operation = uuid4()
+    service.record(
+        "synthetic",
+        SemanticReview(
+            operation_id=operation,
+            scope=scope,
+            reviewed_by="Synthetic test actor",
+            reason="Explicit synthetic CI assessment only",
+            verdict="accepted",
+            checks=dict.fromkeys(CHECKS, True),
+            review_hash=packet["review_hash"],
+            expected_workflow_version=packet["workflow_version"],
+        ),
+    )
+    return operation
 
 
 def run():
@@ -160,12 +191,22 @@ def run():
             != "eligible_for_human_review"
         ):
             raise ValueError("synthetic preflight failed")
-        approve_stage(case, "strategy", "Synthetic test actor")
+        approve_stage(
+            case,
+            "strategy",
+            "Synthetic test actor",
+            semantic_review_operation=synthetic_review(root, "strategy"),
+        )
         (case / "drafts/validation-plan.md").write_text(
             validation_markdown(), encoding="utf-8"
         )
         render_project(case)
-        approve_stage(case, "validation", "Synthetic test actor")
+        approve_stage(
+            case,
+            "validation",
+            "Synthetic test actor",
+            semantic_review_operation=synthetic_review(root, "validation"),
+        )
         reopen = WorkflowReopenService(FileWorkflowStore(root))
         packet = reopen.review("synthetic")
         reopen.reopen(
@@ -188,9 +229,19 @@ def run():
             option_id=options[2]["option_id"],
             rejected_alternatives=[row["name"] for row in options[:2]],
         )
-        approve_stage(case, "strategy", "Synthetic test actor")
+        approve_stage(
+            case,
+            "strategy",
+            "Synthetic test actor",
+            semantic_review_operation=synthetic_review(root, "strategy"),
+        )
         render_project(case)
-        approve_stage(case, "validation", "Synthetic test actor")
+        approve_stage(
+            case,
+            "validation",
+            "Synthetic test actor",
+            semantic_review_operation=synthetic_review(root, "validation"),
+        )
         if validate_project(case) or any(verify_project(case)):
             raise ValueError("synthetic base evidence failed")
         copied = Path(folder) / "copied"

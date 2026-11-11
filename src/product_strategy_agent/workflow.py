@@ -138,15 +138,17 @@ def _check_stage(project_dir: Path, stage: str, mode: str) -> dict | None:
 
 def approve_stage(project_dir: Path, stage: str, approved_by: str, reason: str = "", *,
                   artifact_operation=None, artifact_version=None, operation_id=None,
-                  expected_workflow_version=None) -> dict[str, Any]:
+                  expected_workflow_version=None, semantic_review_operation=None) -> dict[str, Any]:
     """Explicit human gate with write-ahead state/events publication and recovery."""
     if not approved_by.strip():
         raise ValueError("Approval requires a person or role in --by")
     command = GateApproval(operation_id=operation_id or uuid4(), stage=stage, approved_by=approved_by, reason=reason,
         artifact_operation=artifact_operation, artifact_version=artifact_version,
-        expected_workflow_version=expected_workflow_version)
+        expected_workflow_version=expected_workflow_version, semantic_review_operation=semantic_review_operation)
     if stage != "research_plan" and (artifact_operation is not None or artifact_version is not None):
         raise ValueError("artifact selection is only supported for the research_plan gate")
+    if stage not in {"strategy", "validation"} and semantic_review_operation is not None:
+        raise ValueError("semantic review selection applies only to strategy/validation")
     project_dir = Path(project_dir).absolute()
     with case_access(project_dir.parent, project_dir.name):
         store = FileWorkflowStore(project_dir.parent)
@@ -186,8 +188,17 @@ def _approve_stage(project_dir, stage, approved_by, reason, research_plan_refere
     if not isinstance(mode, str) or mode not in MODE_PROFILES:
         raise ValueError(f"Unknown project mode: {mode}")
     stage_references = None
+    history = [json.loads(line) for line in before_events.splitlines() if line.strip()]
+    from product_strategy_agent.adapters.persistence.files.quality_policy_store import required_for_case
+    required_policy = required_for_case(project_dir, state, history)
     if stage != "research_plan" or research_plan_reference is None:
         stage_references = _check_stage(project_dir, stage, mode)
+
+    semantic_reference = None
+    if stage in {"strategy", "validation"} and (required_policy or command.semantic_review_operation is not None or any(row.get("event_type") == "semantic_review_recorded" and row.get("scope") in ({"strategy", "validation"} if stage == "validation" else {stage}) for row in history)):
+        from product_strategy_agent.application.services.semantic_review_service import SemanticReviewService
+        from product_strategy_agent.adapters.persistence.files.semantic_review_store import FileSemanticReviewStore
+        semantic_reference = SemanticReviewService(FileSemanticReviewStore(project_dir.parent)).for_gate(project_dir.name, stage, command.semantic_review_operation)
 
     sequence = WORK_STAGES.index(stage)
     next_stage = WORK_STAGES[sequence + 1] if sequence + 1 < len(WORK_STAGES) else "completed"
@@ -211,6 +222,8 @@ def _approve_stage(project_dir, stage, approved_by, reason, research_plan_refere
     }
     if research_plan_reference is not None:
         event["research_plan_artifact"] = research_plan_reference
+    if semantic_reference is not None:
+        event["semantic_review"] = semantic_reference
     if stage_references:
         promise_reference = stage_references.get("promise_preflight")
         if promise_reference and promise_reference["structural_status"] == "eligible_for_human_review":
