@@ -17,7 +17,7 @@ from product_strategy_agent.adapters.persistence.files import source_withdrawal_
 from product_strategy_agent.domain.projects.semantic_review import SemanticReview
 from product_strategy_agent.domain.projects.gate_approval import GateApproval
 from product_strategy_agent.adapters.persistence.files import semantic_review_bundle
-from product_strategy_agent.domain.projects.quality_policy import EnableQualityPolicy, plan_enable
+from product_strategy_agent.domain.projects.quality_policy import EnableQualityPolicy, plan_enable, validate_policy
 
 FILES = {"request.json", "event.json", "state.before.json", "state.after.json", "events.before.jsonl", "events.after.jsonl", "inputs.json"}
 
@@ -77,6 +77,11 @@ def load(folder, project_id, operation_id, manifest_hash=None):
                 or type(version) is not int or version < 0 or after["workflow_version"] != version + 1
                 or event["operation_id"] != str(operation_id) or event["workflow_version"] != version + 1):
             raise ValueError("workflow before/after semantics mismatch")
+        if not isinstance(command, EnableQualityPolicy) and ("quality_policy" in before or "quality_policy" in after):
+            if "quality_policy" not in before or "quality_policy" not in after:
+                raise ValueError("workflow cannot add/remove quality_policy outside explicit enablement")
+            if validate_policy(before["quality_policy"]) != validate_policy(after["quality_policy"]):
+                raise ValueError("workflow cannot change quality_policy outside explicit enablement")
         validate_transition(command, before, after, event, files["events.before.jsonl"])
         if command.expected_workflow_version is not None and version != command.expected_workflow_version:
             raise ValueError("workflow version mismatch")

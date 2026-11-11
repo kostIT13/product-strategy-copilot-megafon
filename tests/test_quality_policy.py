@@ -104,6 +104,37 @@ def review(root, scope):
 
 
 class QualityPolicyTests(unittest.TestCase):
+    def test_rehashed_gate_after_state_cannot_remove_required_policy(self):
+        with TemporaryDirectory() as folder:
+            root, case = ready(folder)
+            selected = review(root, "strategy")
+            operation = uuid4()
+            approve_stage(
+                case,
+                "strategy",
+                "Fixture human",
+                semantic_review_operation=selected,
+                operation_id=operation,
+            )
+            bundle = case / f".psa/workflow/operations/{operation.hex}"
+            after = json.loads((bundle / "state.after.json").read_bytes())
+            after.pop("quality_policy")
+            (bundle / "state.after.json").write_bytes(encode(after))
+            manifest = json.loads((bundle / "manifest.json").read_bytes())
+            manifest["files"]["state.after.json"] = digest(encode(after))
+            (bundle / "manifest.json").write_bytes(encode(manifest))
+            (bundle / "COMMITTED.json").write_bytes(
+                encode({"manifest_hash": digest(encode(manifest))})
+            )
+            with self.assertRaisesRegex(ValueError, "cannot add/remove quality_policy"):
+                approve_stage(
+                    case,
+                    "strategy",
+                    "Fixture human",
+                    semantic_review_operation=selected,
+                    operation_id=operation,
+                )
+
     def test_public_new_case_requires_review_before_first_strategy_and_validation_gate(
         self,
     ):
