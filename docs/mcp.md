@@ -50,6 +50,7 @@ Use the Python executable from the environment where `product-strategy-agent[mcp
 - `psa_review_workflow`, `psa_reopen_workflow` — [review/reopen](workflow-reopen.md): reviewed snapshot, explicit human instruction, selected stage reset, preserved history and fresh gates
 - `psa_withdraw_source`, `psa_source_impact` — [source withdrawal](source-withdrawal.md): attributed v6 journal operation, dependent evidence review and no automatic reactivation
 - `psa_check_baseline_numbers` — [numeric baseline literal](baseline-numbers.md): selected numeric/unit spans against current recorded citation; read-only, no inferred semantic alignment or approval
+- `psa_prepare_semantic_review`, `psa_record_semantic_review` — [human semantic audit](semantic-review.md); `psa_approve_stage` selects it with semantic_review_operation after adoption
 
 `psa_fetch_source` performs a network request only when explicitly called. Tools write only inside the selected project workspace, except for caller-supplied input/output paths. The server has no delete, shell, or arbitrary command tool.
 

@@ -58,3 +58,6 @@ Mode change и revision review перенесены на тот же bundle/reco
 
 
 [Source withdrawal](source-withdrawal.md) использует workflow v6 с captured canonical ledger inputs и полной реконструкцией impact/event/after-state. Публикуются только state/events; старые форматы v1–v5 сохранены.
+
+
+[Semantic audit](semantic-review.md) использует workflow v7 с immutable packet и полной реконструкцией state/event. Gate после adoption выбирает current accepted review UUID; recovery проверяет его bundle/receipt и captured content binding. Старые v1–v6 и requests без semantic selector сохранены.
