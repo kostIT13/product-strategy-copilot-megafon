@@ -5,6 +5,7 @@ import re
 from uuid import UUID
 from product_strategy_agent.adapters.persistence.files.paths import confined
 from product_strategy_agent.domain.projects.workspace import INITIAL_FILES
+from product_strategy_agent.domain.projects.quality_policy import validate_policy
 
 RECEIPT = ".psa/initialization.json"
 
@@ -18,13 +19,15 @@ def load_receipt(folder, project_id, operation_id):
     if len(raw) > 64000:
         raise ValueError("initialization receipt exceeds its limit")
     receipt = json.loads(raw)
-    if (not isinstance(receipt, dict) or receipt.get("format_version") != 1
+    if (not isinstance(receipt, dict) or type(receipt.get("format_version")) is not int or receipt.get("format_version") not in {1, 2}
             or receipt.get("kind") != "workspace_init" or receipt.get("project_id") != project_id
             or receipt.get("operation_id") != str(operation_id) or not isinstance(receipt.get("files"), dict)
             or set(receipt["files"]) != INITIAL_FILES or not isinstance(receipt.get("created_at"), str)
             or any(not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{64}", value) for value in receipt["files"].values())):
         raise ValueError("initialization receipt does not match this project/operation")
     UUID(receipt["operation_id"])
+    if receipt["format_version"] == 2:
+        validate_policy(receipt.get("quality_policy"))
     return receipt
 
 
@@ -53,4 +56,8 @@ def validate_prepared(folder, project_id, operation_id):
     state = json.loads(confined(folder, "state.json").read_bytes())
     if not isinstance(state, dict) or state.get("schema_version") != 1 or state.get("project_id") != project_id or state.get("status") != "intake":
         raise ValueError("prepared workspace state is invalid")
+    if receipt["format_version"] == 2 and state.get("quality_policy") != receipt["quality_policy"]:
+        raise ValueError("prepared state must preserve required initialization quality policy")
+    if "quality_policy" in state:
+        validate_policy(state["quality_policy"])
     return receipt
