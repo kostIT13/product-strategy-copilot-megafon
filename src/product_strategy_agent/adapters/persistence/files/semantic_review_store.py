@@ -108,6 +108,30 @@ class FileSemanticReviewStore:
         )
         measurement = numbers = None
         if scope == "validation":
+            events = [
+                json.loads(line)
+                for line in snapshot["events"].splitlines()
+                if line.strip()
+            ]
+            strategy_reviews = [
+                row
+                for row in events
+                if row.get("event_type") == "semantic_review_recorded"
+                and row.get("scope") == "strategy"
+            ]
+            if strategy_reviews:
+                try:
+                    selected_review(
+                        confined(case, ".psa/workflow/operations"),
+                        project_id,
+                        "strategy",
+                        strategy_reviews[-1]["operation_id"],
+                        json.loads(snapshot["state"]),
+                        events,
+                        snapshot["inputs"],
+                    )
+                except (ValueError, OSError):
+                    issues.append("strategy semantic assessment needs fresh acceptance")
             store = FileValidationPlanStore(self.root)
             measurement = ValidationPlanService(store).check(project_id)
             numbers = BaselineNumbersService(store).check(project_id)

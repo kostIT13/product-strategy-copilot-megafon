@@ -85,7 +85,8 @@ class SemanticReviewService:
             ]
             if operation_id is None and not any(
                 row.get("event_type") == "semantic_review_recorded"
-                and row.get("scope") == scope
+                and row.get("scope")
+                in ({"strategy", "validation"} if scope == "validation" else {scope})
                 for row in events
             ):
                 return None  # Compatibility for cases not yet adopting semantic audit.

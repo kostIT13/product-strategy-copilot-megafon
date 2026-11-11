@@ -100,7 +100,7 @@ def load(folder, project_id, operation_id, manifest_hash=None):
             semantic_review_bundle.validate_extra(command, files, inputs, after, event)
         if isinstance(command, GateApproval):
             history = [json.loads(line) for line in files["events.before.jsonl"].splitlines() if line.strip()]
-            adopted = any(row.get("event_type") == "semantic_review_recorded" and row.get("scope") == command.stage for row in history)
+            adopted = any(row.get("event_type") == "semantic_review_recorded" and row.get("scope") in ({"strategy", "validation"} if command.stage == "validation" else {command.stage}) for row in history)
             if command.semantic_review_operation is not None or adopted:
                 if command.stage not in {"strategy", "validation"}:
                     raise ValueError("semantic review selection applies only to strategy/validation")

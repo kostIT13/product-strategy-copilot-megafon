@@ -51,6 +51,8 @@ def create_server() -> Any:
     register_validation_plan_tools(server)
     from product_strategy_agent.interfaces.mcp.baseline_numbers_tools import register_baseline_numbers_tools
     register_baseline_numbers_tools(server)
+    from product_strategy_agent.interfaces.mcp.semantic_review_tools import register_semantic_review_tools
+    register_semantic_review_tools(server)
     from product_strategy_agent.interfaces.mcp.claim_lifecycle_tools import register_claim_lifecycle_tools
     register_claim_lifecycle_tools(server)
     from product_strategy_agent.interfaces.mcp.source_lifecycle_tools import register_source_lifecycle_tools
@@ -216,11 +218,12 @@ def create_server() -> Any:
     def psa_approve_stage(project_id: str, stage: str, approved_by: str, reason: str = "",
                           projects_dir: str = "projects", artifact_operation: str | None = None,
                           artifact_version: int | None = None, operation_id: str | None = None,
-                          expected_workflow_version: int | None = None) -> dict[str, Any]:
+                          expected_workflow_version: int | None = None, semantic_review_operation: str | None = None) -> dict[str, Any]:
         """Human-authorized gate. Structured plans require the reviewed current operation/version."""
         return approve_stage(workspace(project_id, projects_dir), stage, approved_by, reason,
                              artifact_operation=artifact_operation, artifact_version=artifact_version,
-                             operation_id=operation_id, expected_workflow_version=expected_workflow_version)
+                             operation_id=operation_id, expected_workflow_version=expected_workflow_version,
+                             semantic_review_operation=semantic_review_operation)
 
     @server.tool()
     def psa_validate(project_id: str, projects_dir: str = "projects") -> dict[str, Any]:

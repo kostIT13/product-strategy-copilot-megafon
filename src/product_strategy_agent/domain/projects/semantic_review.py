@@ -74,6 +74,16 @@ def content_hash(scope, state, events, inputs):
     selected = {name: value for name, value in inputs.items() if name not in GENERATED}
     if scope == "strategy":
         selected.pop("drafts/validation-plan.md", None)
+    strategy_assessments = (
+        [
+            row
+            for row in events
+            if row.get("event_type") == "semantic_review_recorded"
+            and row.get("scope") == "strategy"
+        ]
+        if scope == "validation"
+        else []
+    )
     return fingerprint(
         {
             "format_version": "psa-semantic-content-v1",
@@ -92,6 +102,7 @@ def content_hash(scope, state, events, inputs):
                 row for row in events if row.get("event_type") in RELEVANT_EVENTS
             ],
             "inputs": selected,
+            "strategy_assessments": strategy_assessments,
         }
     )
 
