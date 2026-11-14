@@ -55,6 +55,9 @@ class HandoffCLITests(unittest.TestCase):
                     '"schema_version":1', '"schema_version":1,"schema_version":1'
                 ),
                 " " * 64001,
+                json.dumps(
+                    {**json.loads(raw), "api_key": "DO-NOT-ECHO-THIS-TEST-SENTINEL"}
+                ),
             ):
                 path.write_text(body, encoding="utf-8")
                 output = StringIO()
@@ -76,10 +79,11 @@ class HandoffCLITests(unittest.TestCase):
                         ],
                     ),
                     redirect_stdout(output),
-                    self.assertRaises(SystemExit),
+                    self.assertRaises(SystemExit) as failure,
                 ):
                     main()
                 self.assertEqual(output.getvalue(), "")
+                self.assertNotIn("DO-NOT-ECHO", str(failure.exception))
                 self.assertEqual(contents(case), before)
 
 

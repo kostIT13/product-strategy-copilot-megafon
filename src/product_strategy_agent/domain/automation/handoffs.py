@@ -6,7 +6,13 @@ import json
 import re
 from typing import Annotated, Literal
 from uuid import UUID
-from pydantic import Field, StringConstraints, field_validator, model_validator
+from pydantic import (
+    Field,
+    StringConstraints,
+    ValidationError,
+    field_validator,
+    model_validator,
+)
 from product_strategy_agent.domain.automation.contracts import (
     Budget,
     CaseTarget,
@@ -108,8 +114,24 @@ class PrepareHandoff(Packet):
 
 
 def parse_request(raw):
-    return PrepareHandoff.model_validate_json(
-        json.dumps(strict_json(raw), ensure_ascii=False, allow_nan=False)
+    try:
+        return PrepareHandoff.model_validate_json(
+            json.dumps(strict_json(raw), ensure_ascii=False, allow_nan=False)
+        )
+    except ValidationError as error:
+        raise ValueError(validation_message(error)) from None
+
+
+def validation_message(error):
+    return "; ".join(
+        sorted(
+            {
+                row["msg"]
+                for row in error.errors(
+                    include_input=False, include_context=False, include_url=False
+                )
+            }
+        )
     )
 
 
