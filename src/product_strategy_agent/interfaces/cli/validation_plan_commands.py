@@ -11,6 +11,9 @@ from product_strategy_agent.application.services.validation_plan_service import 
 from product_strategy_agent.application.services.baseline_numbers_service import (
     BaselineNumbersService,
 )
+from product_strategy_agent.application.services.calculation_check_service import (
+    CalculationCheckService,
+)
 
 
 def add_validation_plan_commands(commands):
@@ -18,13 +21,21 @@ def add_validation_plan_commands(commands):
         "validation", help="check metrics baseline window and guardrails"
     )
     actions = parser.add_subparsers(dest="validation_action", required=True)
-    for name in ("check", "numbers"):
+    for name in ("check", "numbers", "calculations"):
         check = actions.add_parser(name)
         check.add_argument("project_id")
         check.add_argument("--projects-dir", type=Path, default=Path("projects"))
 
 
 def handle_validation_plan_command(args):
+    if args.validation_action == "calculations":
+        report = CalculationCheckService(
+            FileValidationPlanStore(args.projects_dir)
+        ).check(args.project_id)
+        print(json.dumps(report, ensure_ascii=True, indent=2))
+        if report["status"] == "blocked":
+            raise SystemExit(3)
+        return
     if args.validation_action == "numbers":
         report = BaselineNumbersService(
             FileValidationPlanStore(args.projects_dir)
