@@ -58,7 +58,7 @@ def _substantive_text(path: Path) -> bool:
 
 def _strategy_references(project_dir, coverage):
     state = json.loads((project_dir / "state.json").read_text(encoding="utf-8"))
-    history = state.get("reopen_history", [])
+    history = sorted([*state.get("reopen_history", []), *state.get("rollback_history", [])], key=lambda row: row["workflow_version"])
     if history and history[-1]["target_stage"] in WORK_STAGES[:WORK_STAGES.index("strategy") + 1]:
         decisions = _load_records(project_dir / "decision-log.jsonl")
         if not decisions or not decision_recorded_after(project_dir, decisions[-1], history[-1]["workflow_version"]):
@@ -123,7 +123,7 @@ def _check_stage(project_dir: Path, stage: str, mode: str) -> dict | None:
         if not integrity["ok"]:
             raise ValueError("Resolve generated artifact integrity issues before approving validation: " + "; ".join(integrity["errors"]))
         events = _load_records(project_dir / "events.jsonl")
-        withdrawal_versions = [row["workflow_version"] for row in events if row.get("event_type") in {"claim_withdrawn", "claim_corrected", "workflow_reopened", "source_withdrawn"}]
+        withdrawal_versions = [row["workflow_version"] for row in events if row.get("event_type") in {"claim_withdrawn", "claim_corrected", "workflow_reopened", "workflow_rolled_back", "source_withdrawn"}]
         if withdrawal_versions:
             renders = [row["workflow_version"] for row in events if row.get("event_type") in {"render_completed", "generated_artifacts_regenerated"} and row.get("builder_version") == 2]
             if not renders or max(renders) <= max(withdrawal_versions):

@@ -12,6 +12,7 @@ from product_strategy_agent.adapters.persistence.files import ledger_bundle
 from product_strategy_agent.adapters.persistence.files import correction_bundle
 from product_strategy_agent.domain.projects.claim_correction import ClaimCorrection
 from product_strategy_agent.domain.projects.workflow_reopen import WorkflowReopen, plan_reopen
+from product_strategy_agent.domain.projects.workflow_rollback import WorkflowRollback, plan_rollback
 from product_strategy_agent.domain.projects.source_lifecycle import SourceWithdrawal
 from product_strategy_agent.adapters.persistence.files import source_withdrawal_bundle
 from product_strategy_agent.domain.projects.semantic_review import SemanticReview
@@ -99,6 +100,10 @@ def load(folder, project_id, operation_id, manifest_hash=None):
             expected_after, expected_event = plan_reopen(command, files["state.before.json"], files["events.before.jsonl"], inputs, after["updated_at"])
             if after != expected_after or event != expected_event:
                 raise ValueError("workflow reopen payload semantics mismatch")
+        if isinstance(command, WorkflowRollback):
+            expected_after, expected_event = plan_rollback(command, files["state.before.json"], files["events.before.jsonl"], inputs, after["updated_at"])
+            if after != expected_after or event != expected_event:
+                raise ValueError("workflow rollback payload semantics mismatch")
         targets = {"state.json": (files["state.before.json"], files["state.after.json"]),
                    "events.jsonl": (files["events.before.jsonl"], files["events.after.jsonl"])}
         result = event
