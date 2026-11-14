@@ -228,6 +228,10 @@ class SubagentContractTests(unittest.TestCase):
         ):
             with self.assertRaises(ValidationError):
                 SubagentTask.model_validate({**request.model_dump(), **change})
+            with self.assertRaises(ValidationError):
+                SubagentTask.model_validate_json(
+                    json.dumps({**request.model_dump(mode="json"), **change})
+                )
         forged = request.model_copy(
             update={
                 "budget": request.budget.model_copy(update={"timeout_seconds": True})
