@@ -77,3 +77,6 @@ R3 остаётся открытым: semantic consistency, согласован
 
 
 Дополнительный read-only [psa validation numbers](baseline-numbers.md) проверяет author-selected numeric/unit literals reported baseline по текущей recorded citation. Исходный plan_report и gates не менялись; literal_match не является semantic/numeric approval.
+
+
+Optional [psa-calculations-v1](calculation-check.md) проверяется командой validation calculations и semantic validation review: exact arithmetic с current citations, буквальные единицы/контекст/периоды и explicit rounding. Ошибки block блокируют новое accepted review; отсутствие block не проверяет prose автоматически.

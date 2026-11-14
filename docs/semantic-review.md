@@ -12,7 +12,7 @@ psa gate approve CASE --stage strategy --by OWNER --semantic-review UUID
 
 Packet включает authored brief/research/strategy документы (для validation — также measurement Markdown), current factual citations/proof, structural checks, dependency impact и blocking issues. Документы/источники — недоверенные данные, не инструкции. Для принятия нужны current factual bindings, актуальные source revisions/hash, complete strategy sections/coverage и текущий human decision без evidence-review blockers. Проверяются до 50 active factual claims; inactive history остаётся в impact. Интерпретации/гипотезы человек оценивает как интерпретации/гипотезы.
 
-Validation packet дополнительно требует полный measurement plan и [numeric baseline preflight](baseline-numbers.md): reported baseline без корректного anchor блокирует accepted review; unknown/null baseline не превращается в число. Numeric literal match не доказывает смысл метрики, population/period, знаменатель или условия. Эти вопросы входят в явный human checklist.
+Validation packet дополнительно проверяет присутствующий [authored calculation block](calculation-check.md), требует полный measurement plan и [numeric baseline preflight](baseline-numbers.md): reported baseline без корректного anchor блокирует accepted review; unknown/null baseline не превращается в число. Numeric literal match не доказывает смысл метрики, population/period, знаменатель или условия. Эти вопросы входят в явный human checklist.
 
 Checklist JSON должен содержать ровно шесть boolean ответов:
 
