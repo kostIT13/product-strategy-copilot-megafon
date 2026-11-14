@@ -577,6 +577,9 @@ def main() -> None:
             if state.get("reopen_history"):
                 latest_reopen = state["reopen_history"][-1]
                 print(f"Reopened at {latest_reopen['target_stage']} by {latest_reopen['reopened_by']}; earlier approvals remain history, follow the current stage.")
+            if state.get("rollback_history"):
+                latest_rollback = state["rollback_history"][-1]
+                print(f"Rolled back from {latest_rollback['from']} to {latest_rollback['target_stage']} by {latest_rollback['rolled_back_by']}; follow current stage and repeat affected human gates.")
             if approvals:
                 latest = approvals[-1]
                 print(f"Last approved: {latest['stage']} by {latest['approved_by']} at {latest['approved_at']}")

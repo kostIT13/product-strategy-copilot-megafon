@@ -55,6 +55,8 @@ def create_server() -> Any:
     register_calculation_check_tools(server)
     from product_strategy_agent.interfaces.mcp.numeric_inventory_tools import register_numeric_inventory_tools
     register_numeric_inventory_tools(server)
+    from product_strategy_agent.interfaces.mcp.workflow_rollback_tools import register_workflow_rollback_tools
+    register_workflow_rollback_tools(server)
     from product_strategy_agent.interfaces.mcp.semantic_review_tools import register_semantic_review_tools
     register_semantic_review_tools(server)
     from product_strategy_agent.interfaces.mcp.quality_policy_tools import register_quality_policy_tools
@@ -98,7 +100,7 @@ def create_server() -> Any:
                 "workflow_version": state.get("workflow_version", 0),
                 "mode_guidance": MODE_PROFILES[mode]["guidance"], "next_action": state["next_action"],
                 "open_questions": state.get("open_questions", []), "approvals": state.get("approvals", []),
-                "reopen_history": state.get("reopen_history", [])}
+                "reopen_history": state.get("reopen_history", []), "rollback_history": state.get("rollback_history", [])}
 
     @server.tool()
     def psa_next(project_id: str, projects_dir: str = "projects") -> dict[str, str]:
