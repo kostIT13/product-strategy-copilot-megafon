@@ -1,0 +1,48 @@
+# Полный рабочий план готовности к эксплуатации
+
+Обновлён 14.11.2026 после функциональной приёмки R3 на синтетическом «Слот». Это план разработки и проверки, не заявление production-ready. Основной продукт остаётся IDE-native проектом: IDE ведёт цикл, CLI/FastMCP используют общее файловое ядро. PostgreSQL/Docker/SQLite/LangGraph и собственный обязательный LLM loop не добавляются.
+
+## Исходное состояние
+
+R2 runtime выведен; R3 функционально пройден с явными human gates/reviews; технический rollback R4 реализован. Эти результаты не доказывают реальный спрос/эффект, независимую пользу, native host support или remote Actions success. R1/M6/M8 остаются открытыми. Следующий приоритет по указанию пользователя — **R3.1: субагенты и хуки**. Их разработка разрешена; автоматический запуск/активация не включены этой правкой.
+
+## Milestones и зависимости
+
+| Milestone | Зависит от | Конкретный результат | Definition of Done |
+|---|---|---|---|
+| P0 — контракты R3.1 | Принятый R3 | Versioned task/result и hook request/result, роли, snapshot binding, бюджеты, ошибки и trust boundary | Строгие модели/limits и negative tests: лишние permissions/commands, stale result, неверные refs/hash, неверный trigger/target; никакого dispatch |
+| P1 — подготовка субагентных задач | P0 | Отдельные research/evidence/critic инструкции, bounded read-only handoff пакеты разрешённых материалов, CLI/FastMCP parity | Hash/version одного snapshot, opt-in создание; нет shared mutable state, секретов, автозапуска модели или записи в канон; последовательный runbook |
+| P2 — результаты и provenance | P1 | Проверка binding/schema/budgets, изолированные results и review основным агентом | Недоверенные outputs не становятся instructions/facts/decisions; invalid/partial/stale results не принимаются. Claims и corrections только штатными сервисами по действующим правилам; human gates не обходятся |
+| P3 — локальные хуки | P0 | Фиксированный dispatcher для validation/evidence, source-revision→revisit notification и release checks; тонкие CLI/MCP adapters | Allowlisted checks без произвольного shell; canonical gates сами сохраняют проверки. Required failure блокирует действие, notification failure не откатывает уже committed import. Проверены replay, recursion, timeout и diagnostics |
+| P4 — реальные host adapters и fallback | P2, P3 | Явно включаемые native adapters, versioned capability matrix, включение/отключение и миграция configs | Каждый заявленный host реально проверен; неподтверждённые помечены not_verified и используют CLI/manual fallback. Нет автоматической отправки источников внешнему провайдеру. Это часть оставшегося R4/R1/M8, не закрывается unit tests |
+| P5 — hardening и lifecycle | P2, P3; P4 для host paths | Privacy/injection/path/resource boundaries, backups/restore, upgrade/migration/rollback, crash/concurrency и dependency integrity | Корпус негативных сценариев и восстановление копии; несовместимый формат не читается как пустой. Нет скрытых paid retries, orphan task принятия или изменения human choice; old receipts поддержаны либо описана явная миграция |
+| P6 — наблюдаемость и операционный UX | P1, P3 | Диагностика case/task/operation/version, время/tokens/cost с measured/estimated/unknown, cancel и resume | Logs без секретов/полных текстов, unknown не заменён нулём. Есть понятный outcome для failed/cancelled/budget_exceeded; retry — явный и с новым/совпадающим корректным identity по контракту |
+| P7 — research/knowledge/retrieval | P1; отдельный eval до расширений | Registry permissions/provenance/version/cost/limits, bounded public-source tools и деградация offline | Каждый инструмент имеет сценарий, measured benefit и критерий исключения. RAG/index/provider добавляется только после retrieval eval; это условное расширение, не блокирует базовый путь |
+| P8 — оценка пользы R5 | P4–P6 и согласованный протокол | Сопоставимый sequential baseline, opt-in subagent/hook run, независимый review, human help/time/cost | Те же входы/бюджет, blind review где возможно, measured/unknown отдельно, ошибки/вред включены. Синтетика маркируется; M6 не считается пройденной без независимого результата |
+| P9 — комплект сдачи R6 | P5, P6, P8; подтверждённый support matrix | Clean checkout/wheel/sdist/allowlisted ZIP, README/runbooks, synthetic demo, видео до 10 минут, PDF/скриншоты/расходы и evidence map §11 ТЗ | Артефакты/hash/license/permissions проверены, свежая демонстрация воспроизведена. CI/demo/release без внешних моделей/БД/Docker; remote Actions result зафиксирован отдельно. Теги/публикация/отправка — явные действия владельца |
+
+Текущий результат P0: строгие domain models и binding/budget guards реализованы, 12 unit tests прошли также в clean base. Dispatcher, handoff services и native adapters ещё не реализованы; activation выключена. Следующий срез — P1: подготовка bounded задач research/evidence/critic.
+
+P1 и P3 логически независимы после P0; реализация в текущем рабочем процессе последовательная. После выполненного P0 продолжить P1 → P2 → P3 → P4; P5/P6 уточнять по мере появления runtime. Не откладывать базовый evidence/human-choice path ради расширений. Завершённые R4 срезы не выполняются повторно только из-за новой нумерации.
+
+## Границы ролей и хуков
+
+Research предлагает summary/questions по разрешённым материалам; evidence отмечает цитаты/противоречия; critic проверяет reasoning и ограничения. Ни одна роль не выбирает вариант за человека, не принимает semantic assessment и не пишет напрямую в state/реестры. Основной агент оценивает результат и использует штатные команды. Синтетический critic не объявляется независимой оценкой.
+
+Before-approval hook лишь запускает поддержанные проверки, а не gate approve. Source notification сообщает о revisit, а не разрешает revision review. Release hook проверяет артефакт, а не публикует его. Activation хранится в доверенной настройке, не выводится из source/task fields. Каждый adapter требует review конкретных действий/permissions и совместимости host.
+
+## Capability matrix: состояние знаний
+
+| Поверхность | Подтверждено сейчас | Не подтверждено | Fallback |
+|---|---|---|---|
+| Файловый CLI | Локальные команды, journal/recovery и synthetic human-approved workflow | Все поддерживаемые ОС/clean environments будущего релиза | Terminal + authored инструкции |
+| FastMCP stdio | Локальные real-client parity tests существующих tools | Native подключение/permissions во всех IDE; будущие automation tools | Те же CLI services |
+| Codex / Cursor / Claude / Qwen / SourceCraft | Есть generated инструкции и context; это не native automation acceptance | Нативные subagents/hooks, sandbox/budget/cancel и фактическая загрузка в заявленных версиях | Последовательный агент + CLI |
+
+Матрица не утверждает наличие/отсутствие конкретной возможности IDE. Перед native adapter проверить текущую официальную документацию и реальную установленную версию; версии/результаты записать в отдельный host acceptance record. Платный вызов и внешняя передача материалов требуют действующего разрешения, а не только строки budget.
+
+## Риски и критерии остановки расширений
+
+Если host не обеспечивает изоляцию/наблюдаемость/лимиты, использовать последовательный путь. Если инструмент ухудшает groundedness или не даёт измеримой пользы, не включать его по умолчанию. Несоответствие schema/snapshot и отсутствие provenance блокируют adoption; роль/поле authorized=true не предоставляют прав. Неизвестная цена не считается нулём или безлимитным разрешением. Основные gates работают и без opt-in automation.
+
+Для каждого milestone сохранять изменённые файлы, доказательства проверок и статус implemented / not_verified / accepted с ограничениями, timestamp в reports/, отдельный смысловой commit/push. Unit/smoke подтверждают конкретные механизмы; human/native/independent acceptance отмечается отдельно. Полный план готовности теперь находится здесь, а [основной план](plan-main.md) и [краткий roadmap](roadmap-full-solution.md) сохраняют общий порядок R3.1 → R4 → R5 → R6.

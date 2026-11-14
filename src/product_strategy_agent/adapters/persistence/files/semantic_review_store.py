@@ -65,6 +65,9 @@ class FileSemanticReviewStore:
         from product_strategy_agent.application.services.baseline_numbers_service import (
             BaselineNumbersService,
         )
+        from product_strategy_agent.application.services.calculation_check_service import (
+            CalculationCheckService,
+        )
         from product_strategy_agent.adapters.persistence.files.validation_plan_store import (
             FileValidationPlanStore,
         )
@@ -106,7 +109,7 @@ class FileSemanticReviewStore:
         issues.extend(
             f"{row['claim_id']}: {item}" for row in proof for item in row["blockers"]
         )
-        measurement = numbers = None
+        measurement = numbers = calculations = None
         if scope == "validation":
             events = [
                 json.loads(line)
@@ -135,10 +138,13 @@ class FileSemanticReviewStore:
             store = FileValidationPlanStore(self.root)
             measurement = ValidationPlanService(store).check(project_id)
             numbers = BaselineNumbersService(store).check(project_id)
+            calculations = CalculationCheckService(store).check(project_id)
             if measurement["structural_status"] != "complete":
                 issues.extend(measurement["issues"])
             if numbers["status"] == "blocked":
                 issues.extend(numbers["issues"])
+            if calculations["status"] == "blocked":
+                issues.extend(calculations["issues"])
         return {
             "coverage": coverage,
             "structure": structure,
@@ -146,6 +152,7 @@ class FileSemanticReviewStore:
             "factual_evidence": proof,
             "measurement": measurement,
             "baseline_numbers": numbers,
+            "calculations": calculations,
             "blocking_issues": sorted(set(issues)),
         }
 

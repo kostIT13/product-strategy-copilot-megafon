@@ -34,6 +34,7 @@ class WorkflowReopenService:
                 "stages": state["stages"],
                 "historical_approvals": state.get("approvals", []),
                 "reopen_history": state.get("reopen_history", []),
+                "rollback_history": state.get("rollback_history", []),
                 "claim_impact": impact,
                 "review_hash": review_hash(
                     snapshot["state"], snapshot["events"], snapshot["inputs"]
@@ -41,6 +42,7 @@ class WorkflowReopenService:
                 "semantic_alignment_verified": False,
                 "human_decision_changed": False,
                 "reopen_authorized": False,
+                "rollback_authorized": False,
             }
 
     def reopen(self, project_id, command):

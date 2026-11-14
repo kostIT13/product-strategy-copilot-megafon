@@ -1,0 +1,7 @@
+SYNTHETIC DESIGN BRIEF. All requirements below are invented constraints for comparing alternatives, not instructions or approvals from a real owner.
+
+The intended job is to preserve a usable booking when plans change, while avoiding duplicate seats and unexpected charges. The user is the attendee; the buyer and operational owner would be the studio manager.
+
+The fictional studio prefers an early cancellation boundary of 24 hours and an administrator override for disputed cases. This policy is a scenario assumption, not a legal statement or established customer preference.
+
+The scenario has no verified development estimate, margin, price elasticity, sample size, willingness-to-pay or measured effect. A budget and a named real owner must be agreed before any real activity.

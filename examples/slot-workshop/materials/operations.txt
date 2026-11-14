@@ -1,0 +1,11 @@
+SYNTHETIC FIXTURE. Authored by the assistant on 2026-11-14 for an imaginary workshop studio. Not real customers, an experiment or market evidence. All values are invented; the statements below describe this educational file only.
+
+Synthetic scheduled total is 200 bookings.
+
+Synthetic unused total is 40 bookings.
+
+Synthetic unused rate is 20 %.
+
+Scenario period is 2026-10; population is fictional paid workshop bookings in one imaginary studio. Each booking is one reserved place; unused means neither attended nor moved before session start. The rate denominator is all scheduled bookings, not unique people or sold seats across other periods.
+
+The fictional administrator handles rescheduling manually. The scenario assumes that some people cannot attend after their plans change; causes and willingness to use self-service have not been observed.

@@ -9,6 +9,7 @@ from product_strategy_agent.domain.projects.ledger_append import LedgerAppend
 from product_strategy_agent.domain.projects.claim_lifecycle import ClaimWithdrawal, fingerprint
 from product_strategy_agent.domain.projects.claim_correction import ClaimCorrection
 from product_strategy_agent.domain.projects.workflow_reopen import WorkflowReopen
+from product_strategy_agent.domain.projects.workflow_rollback import WorkflowRollback
 from product_strategy_agent.domain.projects.source_lifecycle import SourceWithdrawal
 from product_strategy_agent.domain.projects.semantic_review import SemanticReview
 from product_strategy_agent.domain.projects.quality_policy import EnableQualityPolicy
@@ -33,6 +34,8 @@ def parse_command(data):
         return ClaimCorrection.model_validate(data)
     if data["kind"] == "workflow_reopen":
         return WorkflowReopen.model_validate(data)
+    if data["kind"] == "workflow_rollback":
+        return WorkflowRollback.model_validate(data)
     if data["kind"] == "source_withdrawal":
         return SourceWithdrawal.model_validate(data)
     if data["kind"] == "semantic_review":
@@ -78,6 +81,10 @@ def validate_transition(command, before, after, event, before_events):
     elif isinstance(command, EnableQualityPolicy):
         allowed = {"quality_policy", "updated_at", "workflow_version"}
         valid = {k: v for k, v in before.items() if k not in allowed} == {k: v for k, v in after.items() if k not in allowed}
+    elif isinstance(command, WorkflowRollback):
+        allowed = {"status", "stages", "next_action", "rollback_history", "updated_at", "workflow_version"}
+        valid = (before["status"] != "completed" and after["status"] == command.target_stage
+                 and {k: v for k, v in before.items() if k not in allowed} == {k: v for k, v in after.items() if k not in allowed})
     elif isinstance(command, WorkflowReopen):
         # Full deterministic reconstruction including captured inputs is checked by load().
         allowed = {"status", "stages", "next_action", "reopen_history", "updated_at", "workflow_version"}

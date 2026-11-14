@@ -1,4 +1,4 @@
-"""Snapshot and atomic publication contract for explicit workflow reopening."""
+"""Snapshot and atomic publication contract for reviewed workflow reopen/rollback."""
 
 from contextlib import AbstractContextManager
 from typing import Protocol

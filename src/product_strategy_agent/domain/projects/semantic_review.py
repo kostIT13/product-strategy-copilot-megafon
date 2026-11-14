@@ -39,6 +39,7 @@ RELEVANT_EVENTS = {
     "claim_corrected",
     "source_withdrawn",
     "workflow_reopened",
+    "workflow_rolled_back",
     "mode_changed",
 }
 
@@ -93,6 +94,8 @@ def content_hash(scope, state, events, inputs):
     ]
     if "quality_policy" in state:
         policy_names.append("quality_policy")
+    if "rollback_history" in state:
+        policy_names.append("rollback_history")
     return fingerprint(
         {
             "format_version": "psa-semantic-content-v1",

@@ -7,6 +7,10 @@ from product_strategy_agent.application.services.workflow_reopen_service import 
     WorkflowReopenService,
 )
 from product_strategy_agent.domain.projects.workflow_reopen import WorkflowReopen
+from product_strategy_agent.domain.projects.workflow_rollback import WorkflowRollback
+from product_strategy_agent.application.services.workflow_rollback_service import (
+    WorkflowRollbackService,
+)
 from product_strategy_agent.domain.workflow.entities import WORKFLOW_STAGES
 from product_strategy_agent.application.services.workflow_recovery_service import (
     WorkflowRecoveryService,
@@ -21,13 +25,13 @@ def add_workflow_commands(commands):
         "workflow", help="Inspect/recover interrupted workflow operations"
     )
     actions = parser.add_subparsers(dest="workflow_action", required=True)
-    for name in ("pending", "recover", "review", "reopen"):
+    for name in ("pending", "recover", "review", "reopen", "rollback"):
         action = actions.add_parser(name)
         action.add_argument("project_id")
         action.add_argument("--projects-dir", type=Path, default=Path("projects"))
         if name == "recover":
             action.add_argument("--operation", type=UUID, required=True)
-        if name == "reopen":
+        if name in {"reopen", "rollback"}:
             action.add_argument("--stage", required=True, choices=WORKFLOW_STAGES[:-1])
             action.add_argument("--by", required=True)
             action.add_argument("--reason", required=True)
@@ -37,6 +41,20 @@ def add_workflow_commands(commands):
 
 
 def handle_workflow_command(args):
+    if args.workflow_action == "rollback":
+        result = WorkflowRollbackService(FileWorkflowStore(args.projects_dir)).rollback(
+            args.project_id,
+            WorkflowRollback(
+                operation_id=args.operation or uuid4(),
+                target_stage=args.stage,
+                rolled_back_by=args.by,
+                reason=args.reason,
+                review_hash=args.review_hash,
+                expected_workflow_version=args.expected_workflow_version,
+            ),
+        )
+        print(json.dumps(result, ensure_ascii=True, indent=2))
+        return
     if args.workflow_action in {"review", "reopen"}:
         service = WorkflowReopenService(FileWorkflowStore(args.projects_dir))
         if args.workflow_action == "review":

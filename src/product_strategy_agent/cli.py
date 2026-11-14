@@ -42,6 +42,7 @@ from product_strategy_agent.interfaces.cli.claim_lifecycle_commands import add_c
 from product_strategy_agent.application.services.claim_lifecycle_service import ClaimLifecycleService
 from product_strategy_agent.adapters.persistence.files.workflow_repository import FileWorkflowStore
 from product_strategy_agent.interfaces.cli.claim_correction_commands import add_claim_correction_command, handle_claim_correction_command
+from product_strategy_agent.interfaces.cli.subagent_commands import add_subagent_commands, handle_subagent_command
 
 STAGES = (
     "intake",
@@ -96,6 +97,7 @@ def build_parser() -> argparse.ArgumentParser:
     add_workflow_commands(commands)
     add_semantic_review_commands(commands)
     add_quality_policy_commands(commands)
+    add_subagent_commands(commands)
 
     doctor = commands.add_parser("doctor", help="check Python, templates, and optional local configuration")
     doctor.add_argument("--json", action="store_true", help="print a JSON diagnostic report")
@@ -310,6 +312,9 @@ def main() -> None:
             access.enter_context(case_access(args.projects_dir, args.project_id))
         if args.command == "artifact":
             handle_research_artifact_command(args)
+            return
+        if args.command == "subagent":
+            handle_subagent_command(args)
             return
         if args.command == "promise":
             handle_file_promise_command(args)
@@ -577,6 +582,9 @@ def main() -> None:
             if state.get("reopen_history"):
                 latest_reopen = state["reopen_history"][-1]
                 print(f"Reopened at {latest_reopen['target_stage']} by {latest_reopen['reopened_by']}; earlier approvals remain history, follow the current stage.")
+            if state.get("rollback_history"):
+                latest_rollback = state["rollback_history"][-1]
+                print(f"Rolled back from {latest_rollback['from']} to {latest_rollback['target_stage']} by {latest_rollback['rolled_back_by']}; follow current stage and repeat affected human gates.")
             if approvals:
                 latest = approvals[-1]
                 print(f"Last approved: {latest['stage']} by {latest['approved_by']} at {latest['approved_at']}")

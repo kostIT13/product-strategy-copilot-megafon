@@ -55,10 +55,16 @@ uv run --no-sync psa claim impact my-case
 - [Source imports/revisions](docs/source-import-recovery.md), [PDF/DOCX/XLSX](docs/file-document-import.md), [public HTTP policy/provenance](docs/file-web-import.md).
 - [Исправление claims](docs/claim-correction.md), [отзыв claims и impact](docs/claim-withdrawal.md), [план измерения](docs/validation-plan-contract.md), [полнота стратегий](docs/strategy-structure.md), [файловый поиск](docs/file-source-search.md), [promise preflight](docs/file-promise-check.md), [ledger/usage recovery](docs/ledger-recovery.md), [render/adoption](docs/render-recovery.md).
 - [Пересмотр и повторное открытие completed workflow](docs/workflow-reopen.md): snapshot review, явный человек и повторные gates с сохранением истории.
+- [Возврат активного workflow назад](docs/workflow-rollback.md): явный rollback на предыдущий этап с сохранением материалов, истории и crash recovery.
 - [Отзыв источников](docs/source-withdrawal.md): сохранение истории, исключение из текущих оснований/поиска и review зависимых решений.
 - [Числовой фрагмент baseline](docs/baseline-numbers.md): явные spans числа/единицы и current citation proof; read-only preflight, смысл проверяется отдельно.
 - [Semantic review](docs/semantic-review.md): явная оценка человека, immutable snapshot audit и выбор current review в quality gate после adoption.
+- [Quality policy](docs/quality-policy.md): новые кейсы требуют review с первого strategy/validation gate; legacy мигрируется явно через policy show/enable.
+- [Проверка расчётов](docs/calculation-check.md): проценты, отношения, процентные пункты и относительное изменение по текущим цитатам, с явными условиями и округлением.
+- [Инвентаризация чисел](docs/numeric-inventory.md): координаты и контекст digit tokens трёх черновиков для ручного review.
+- [Полный синтетический кейс «Слот»](examples/slot-workshop/README.md): исходные материалы, альтернативы, условные стратегии и measurement-план; воспроизводимая сборка без выдуманных human approvals.
 - [IDE instructions/context](docs/ide-instructions.md), [файловый MCP](docs/mcp.md), [knowledge](knowledge/README.md).
+- [Production-план P0–P9](docs/solution_plans/production-readiness.md) и [контракты субагентов/хуков](docs/automation-contracts.md): milestones, trust boundaries и критерии готовности R3.1–R6.
 
 После interrupted init используйте workspace pending/recover. После interrupted workflow write — `psa workflow pending ID`, затем явный recover точного operation UUID. Replay завершённой операции возвращает исходный результат; неопределённый платный вызов автоматически не повторяется.
 
@@ -74,4 +80,4 @@ uv run --no-sync python -m scripts.ci.docs
 
 Инструкции — [AGENTS.md](AGENTS.md); планы — [основной](docs/solution_plans/plan-main.md) и [roadmap](docs/solution_plans/roadmap-full-solution.md). Сервисы/ports/adapters разделены по ответственности. Каждая итерация фиксируется в [reports](reports/development-log.md), commit/push — в feature/-ветке.
 
-[CI](docs/continuous-integration.md) проверяет unit, clean base install, docs, sync, native secret scanning и replay демо без моделей. [Дистрибутив](docs/distribution.md) содержит wheel/sdist и архив с hashes. Проверки реальных IDE R1/M8 и независимая оценка M6 остаются отложенными; наличие локального stdio smoke их не заменяет. R3 продолжается: corrections/withdrawal и typed measurement plan реализованы; completed review/reopen реализован; source withdrawal реализован; human semantic audit/gate adoption реализованы; новый разрешённый кейс, более широкий numeric alignment и legacy policy migration остаются открытыми. Оценка пользы и комплект сдачи — R5/R6.
+[CI](docs/continuous-integration.md) проверяет unit, clean base install, docs, sync, native secret scanning и replay демо без моделей. [Дистрибутив](docs/distribution.md) содержит wheel/sdist и архив с hashes. Проверки реальных IDE R1/M8 и независимая оценка M6 остаются отложенными; наличие локального stdio smoke их не заменяет. Функциональный R3 пройден на полном синтетическом кейсе «Слот» с явным выбором пользователя, семью gates и двумя semantic reviews; [отчёт](reports/2026-11-14-r3-slot-human-acceptance.md). Это не доказательство спроса/эффекта или независимой пользы. Следующий этап — production-план и R3.1 (opt-in субагенты/хуки). Оценка пользы и комплект сдачи — R5/R6.

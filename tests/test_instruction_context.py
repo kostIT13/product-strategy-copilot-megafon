@@ -26,6 +26,20 @@ def canon(folder):
 
 
 class InstructionContextTests(unittest.TestCase):
+    def test_role_guidance_is_canonical_but_does_not_auto_load_in_case_context(self):
+        with TemporaryDirectory() as folder:
+            root = canon(folder)
+            project = init_project("case", root / "projects")
+            sync(root, write=True)
+            path = root / "agent/roles/critic.md"
+            path.write_text(path.read_text(encoding="utf-8") + "\nChanged role guidance.\n", encoding="utf-8")
+            self.assertFalse(sync(root)["ok"])
+            sync(root, write=True)
+            self.assertTrue(sync(root)["ok"])
+            packet = instruction_context(project, root)
+            self.assertFalse(any(row["path"].startswith("agent/roles/") for row in packet["instructions"]))
+            self.assertFalse(packet["host_loading_verified"])
+
     def test_stage_selects_full_versioned_materials_without_writes(self):
         with TemporaryDirectory() as folder:
             root = canon(folder)

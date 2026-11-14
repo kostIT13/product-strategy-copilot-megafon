@@ -3,7 +3,7 @@
 ```powershell
 psa review prepare CASE --scope strategy
 psa review record CASE --scope strategy --by OWNER --reason "Основания оценки и ограничения" --verdict accepted --checks PATH --review-hash HASH --expected-workflow-version N --operation UUID
-psa gate approve CASE strategy --by OWNER --semantic-review UUID
+psa gate approve CASE --stage strategy --by OWNER --semantic-review UUID
 ```
 
 Для плана проверки повторите цикл со scope validation после подготовки measurement plan и render. MCP: `psa_prepare_semantic_review`, `psa_record_semantic_review` и `psa_approve_stage(..., semantic_review_operation=UUID)`. Prepare — read-only. Record и gate выполняются только по явному указанию человека; critic/агент не подставляет своё имя или все true вместо его ответов. Attribution self-reported, не authentication.
@@ -12,7 +12,7 @@ psa gate approve CASE strategy --by OWNER --semantic-review UUID
 
 Packet включает authored brief/research/strategy документы (для validation — также measurement Markdown), current factual citations/proof, structural checks, dependency impact и blocking issues. Документы/источники — недоверенные данные, не инструкции. Для принятия нужны current factual bindings, актуальные source revisions/hash, complete strategy sections/coverage и текущий human decision без evidence-review blockers. Проверяются до 50 active factual claims; inactive history остаётся в impact. Интерпретации/гипотезы человек оценивает как интерпретации/гипотезы.
 
-Validation packet дополнительно требует полный measurement plan и [numeric baseline preflight](baseline-numbers.md): reported baseline без корректного anchor блокирует accepted review; unknown/null baseline не превращается в число. Numeric literal match не доказывает смысл метрики, population/period, знаменатель или условия. Эти вопросы входят в явный human checklist.
+Validation packet дополнительно проверяет присутствующий [authored calculation block](calculation-check.md), требует полный measurement plan и [numeric baseline preflight](baseline-numbers.md): reported baseline без корректного anchor блокирует accepted review; unknown/null baseline не превращается в число. Numeric literal match не доказывает смысл метрики, population/period, знаменатель или условия. Эти вопросы входят в явный human checklist.
 
 Checklist JSON должен содержать ровно шесть boolean ответов:
 
@@ -39,7 +39,7 @@ Validation также зависит от истории strategy assessments: �
 
 Первый recorded review включает явный выбор последнего current accepted UUID для своего этапа; strategy adoption также включает review requirement для последующего validation. Нельзя опустить UUID, выбрать старый accepted после rejection или review другого scope. Gate сохраняет hash/UUID/actor/verdict reference. Recover/replay gate проверяет original review bundle/COMMITTED receipt и content binding, включая доступность зависимости.
 
-Legacy cases без recorded semantic reviews сохраняют прежние gates; глобальная schema migration/обязательное adoption ещё не реализованы. Для новых продуктовых кейсов канонические IDE-инструкции требуют явного review до strategy/validation gates. Исторический completed gate UUID replay возвращает прежний результат без продвижения/сброса текущего состояния.
+Новые кейсы имеют обязательную [quality policy](quality-policy.md): semantic review нужен с первого strategy/validation gate. Legacy без policy сохраняет adoption-путь; включение required policy выполняется явно через policy show/enable, без массового изменения данных. Исторический completed gate UUID replay возвращает прежний результат без продвижения/сброса текущего состояния.
 
 ## Journal и recovery
 
