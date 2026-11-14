@@ -48,6 +48,7 @@ Use the Python executable from the environment where `product-strategy-agent[mcp
 - `psa_withdraw_claim`, `psa_claim_impact` — [human withdrawal/effective evidence](claim-withdrawal.md), immutable history and derived review without changing human decisions
 - `psa_correct_claim` — [attributed correction](claim-correction.md), append replacement with current citations and workflow v5 recovery; preserves original claims and human decisions
 - `psa_review_workflow`, `psa_reopen_workflow` — [review/reopen](workflow-reopen.md): reviewed snapshot, explicit human instruction, selected stage reset, preserved history and fresh gates
+- `psa_rollback_workflow` — [active rollback](workflow-rollback.md): явное указание человека и current snapshot, строго более ранний этап, история сохранена, повторные gates/reviews и recovery
 - `psa_withdraw_source`, `psa_source_impact` — [source withdrawal](source-withdrawal.md): attributed v6 journal operation, dependent evidence review and no automatic reactivation
 - `psa_check_baseline_numbers` — [numeric baseline literal](baseline-numbers.md): selected numeric/unit spans against current recorded citation; read-only, no inferred semantic alignment or approval
 - `psa_prepare_semantic_review`, `psa_record_semantic_review` — [human semantic audit](semantic-review.md); `psa_approve_stage` selects it with semantic_review_operation after adoption

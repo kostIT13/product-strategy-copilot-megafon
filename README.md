@@ -55,6 +55,7 @@ uv run --no-sync psa claim impact my-case
 - [Source imports/revisions](docs/source-import-recovery.md), [PDF/DOCX/XLSX](docs/file-document-import.md), [public HTTP policy/provenance](docs/file-web-import.md).
 - [Исправление claims](docs/claim-correction.md), [отзыв claims и impact](docs/claim-withdrawal.md), [план измерения](docs/validation-plan-contract.md), [полнота стратегий](docs/strategy-structure.md), [файловый поиск](docs/file-source-search.md), [promise preflight](docs/file-promise-check.md), [ledger/usage recovery](docs/ledger-recovery.md), [render/adoption](docs/render-recovery.md).
 - [Пересмотр и повторное открытие completed workflow](docs/workflow-reopen.md): snapshot review, явный человек и повторные gates с сохранением истории.
+- [Возврат активного workflow назад](docs/workflow-rollback.md): явный rollback на предыдущий этап с сохранением материалов, истории и crash recovery.
 - [Отзыв источников](docs/source-withdrawal.md): сохранение истории, исключение из текущих оснований/поиска и review зависимых решений.
 - [Числовой фрагмент baseline](docs/baseline-numbers.md): явные spans числа/единицы и current citation proof; read-only preflight, смысл проверяется отдельно.
 - [Semantic review](docs/semantic-review.md): явная оценка человека, immutable snapshot audit и выбор current review в quality gate после adoption.

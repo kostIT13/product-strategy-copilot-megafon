@@ -7,7 +7,7 @@ psa workflow reopen CASE --stage strategy --by OWNER --reason "Основани�
 
 Read-only review возвращает status/stages, историю approvals/reopen, claim impact, workflow version и hash просмотренного снимка. Hash связывает точные state/events bytes и fingerprints всех non-journal case inputs, включая authored drafts, источники и generated artifacts. Это снимок для обсуждения, не semantic approval или разрешение reopen. Изменение файлов даже без увеличения версии требует нового review.
 
-Reopen выполняется только по явному указанию человека. Автор, причина, выбранный этап, review hash и expected version обязательны. Имя — self-reported attribution, не authentication. MCP `psa_review_workflow` / `psa_reopen_workflow` используют тот же service. Review допустим для любого текущего этапа; reopen — только для completed workflow с согласованным stages=done. Возврат незавершённого workflow на предыдущий этап пока не реализован.
+Reopen выполняется только по явному указанию человека. Автор, причина, выбранный этап, review hash и expected version обязательны. Имя — self-reported attribution, не authentication. MCP `psa_review_workflow` / `psa_reopen_workflow` используют тот же service. Review допустим для любого текущего этапа; reopen — только для completed workflow с согласованным stages=done. Для незавершённой работы реализован отдельный [rollback](workflow-rollback.md) на строго более ранний этап.
 
 ## Что меняется
 
