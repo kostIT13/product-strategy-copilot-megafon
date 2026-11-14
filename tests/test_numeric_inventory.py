@@ -1,6 +1,7 @@
 """Digit discovery is complete only for its explicit text scope, never evidence coverage."""
 
 import hashlib
+import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
@@ -136,4 +137,23 @@ class NumericInventoryTests(unittest.TestCase):
                 service.inspect("../case")
             (case / DOCUMENTS[0]).write_text("x" * 512001, encoding="utf-8")
             with self.assertRaises(ValueError):
+                service.inspect("case")
+
+    def test_pending_workflow_and_invalid_state_do_not_yield_inventory(self):
+        with TemporaryDirectory() as folder:
+            root, case = fixture(folder)
+            service = NumericInventoryService(FileNumericInventoryReader(root))
+            marker = case / ".psa/workflow/ACTIVE.json"
+            marker.parent.mkdir(parents=True, exist_ok=True)
+            marker.write_text("{}", encoding="utf-8")
+            before = contents(case)
+            with self.assertRaisesRegex(ValueError, "pending"):
+                service.inspect("case")
+            self.assertEqual(contents(case), before)
+            marker.unlink()
+            state_path = case / "state.json"
+            state = json.loads(state_path.read_text(encoding="utf-8"))
+            state["project_id"] = "another-case"
+            state_path.write_text(json.dumps(state), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "invalid.*state"):
                 service.inspect("case")
