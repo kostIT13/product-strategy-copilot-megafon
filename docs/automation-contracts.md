@@ -1,6 +1,6 @@
 # R3.1/P0: контракты субагентов и хуков
 
-Версия протоколов — 1. Это контракты обмена данными и проверки binding. Они не запускают агентов/hooks, не создают sandbox, не измеряют реальные расходы и не предоставляют разрешений. Activation, executor и host adapters разрабатываются следующими срезами [production-плана](solution_plans/production-readiness.md).
+Версия протоколов — 1. P0 реализован в domain/automation: contracts.py, subagents.py, hooks.py; tests/test_automation_contracts.py проверяет границы и binding. Это контракты обмена данными и проверки binding. Они не запускают агентов/hooks, не создают sandbox, не измеряют реальные расходы и не предоставляют разрешений. Activation, executor и host adapters разрабатываются следующими срезами [production-плана](solution_plans/production-readiness.md).
 
 ## Общие правила
 
