@@ -53,6 +53,8 @@ def create_server() -> Any:
     register_baseline_numbers_tools(server)
     from product_strategy_agent.interfaces.mcp.calculation_check_tools import register_calculation_check_tools
     register_calculation_check_tools(server)
+    from product_strategy_agent.interfaces.mcp.numeric_inventory_tools import register_numeric_inventory_tools
+    register_numeric_inventory_tools(server)
     from product_strategy_agent.interfaces.mcp.semantic_review_tools import register_semantic_review_tools
     register_semantic_review_tools(server)
     from product_strategy_agent.interfaces.mcp.quality_policy_tools import register_quality_policy_tools
