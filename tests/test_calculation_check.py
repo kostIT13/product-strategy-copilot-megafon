@@ -50,12 +50,20 @@ def write(case, rows):
 
 
 def fixture(
-    folder, left="3", right="4", unit="users", operation="percentage", expected="75"
+    folder,
+    left="3",
+    right="4",
+    unit="users",
+    operation="percentage",
+    expected="75",
+    *,
+    right_unit=None,
 ):
     root = Path(folder) / "projects"
     case = init_project("case", root)
     path = Path(folder) / "inputs.txt"
-    quotes = [f"Left is {left} {unit}.", f"Right is {right} {unit}."]
+    units = (unit, right_unit or unit)
+    quotes = [f"Left is {left} {units[0]}.", f"Right is {right} {units[1]}."]
     path.write_text("\n".join(quotes) + "\n", encoding="utf-8")
     source = add_local_source(case, path)
     names = (
@@ -64,7 +72,9 @@ def fixture(
         else ["baseline", "current"]
     )
     operands = {}
-    for i, (name, value, quote) in enumerate(zip(names, (left, right), quotes), 1):
+    for i, (name, value, quote, actual_unit) in enumerate(
+        zip(names, (left, right), quotes, units), 1
+    ):
         claim = add_claim(
             case,
             f"Synthetic {name} input",
@@ -86,8 +96,8 @@ def fixture(
                     "end": quote.index(value) + len(value),
                 },
                 "unit_span": {
-                    "start": quote.index(unit),
-                    "end": quote.index(unit) + len(unit),
+                    "start": quote.index(actual_unit),
+                    "end": quote.index(actual_unit) + len(actual_unit),
                 },
             },
             "context": {
@@ -117,6 +127,29 @@ def fixture(
 
 
 class CalculationCheckTests(unittest.TestCase):
+    def test_mixed_input_units_and_cross_period_share_are_blocked(self):
+        with TemporaryDirectory() as folder:
+            root, case, _, _, row = fixture(folder, right_unit="sessions")
+            self.assertTrue(
+                any(
+                    "operand_unit_literals_mismatch" in issue
+                    for issue in check(root)["issues"]
+                )
+            )
+        with TemporaryDirectory() as folder:
+            root, case, _, _, row = fixture(folder)
+            row["period_relation"] = "distinct"
+            row["operands"]["denominator"]["context"]["period"] = (
+                "Another fixture window"
+            )
+            write(case, [row])
+            self.assertTrue(
+                any(
+                    "ratio_and_share_require_same_period" in issue
+                    for issue in check(root)["issues"]
+                )
+            )
+
     def test_percentage_ratio_points_and_relative_change_are_distinct_and_readonly(
         self,
     ):
