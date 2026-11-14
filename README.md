@@ -64,6 +64,7 @@ uv run --no-sync psa claim impact my-case
 - [Инвентаризация чисел](docs/numeric-inventory.md): координаты и контекст digit tokens трёх черновиков для ручного review.
 - [Полный синтетический кейс «Слот»](examples/slot-workshop/README.md): исходные материалы, альтернативы, условные стратегии и measurement-план; воспроизводимая сборка без выдуманных human approvals.
 - [IDE instructions/context](docs/ide-instructions.md), [файловый MCP](docs/mcp.md), [knowledge](knowledge/README.md).
+- [Production-план P0–P9](docs/solution_plans/production-readiness.md) и [контракты субагентов/хуков](docs/automation-contracts.md): milestones, trust boundaries и критерии готовности R3.1–R6.
 
 После interrupted init используйте workspace pending/recover. После interrupted workflow write — `psa workflow pending ID`, затем явный recover точного operation UUID. Replay завершённой операции возвращает исходный результат; неопределённый платный вызов автоматически не повторяется.
 
