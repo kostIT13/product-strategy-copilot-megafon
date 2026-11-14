@@ -36,6 +36,8 @@
 
 ## Следом за R3: субагенты и хуки
 
+Текущий шаг R3 — [сквозная проверка разрешённого кейса](../r3-case-check.md). Диагностика существующих synthetic demo/table-demo 14.11.2026 выявила blockers нового measurement contract; у table-demo также strategy sections/current evidence binding. Legacy validate/verify/coverage проходят, но это не полная готовность R3. История/approvals кейсов сохранены; новый кейс ожидает описания пользователя. [Отчёт проверки](../../reports/2026-11-14-r3-existing-demo-audit.md).
+
 По указанию пользователя 14.11.2026 порядок зафиксирован: **R3 → R3.1 (субагенты и хуки) → продолжение R4 → R5 → R6**. Уже реализованный rollback R4 сохраняется; R3 пока открыт. Детальный этап R3.1 включён в раздел 14 основного плана, а не оставлен только темой будущего пересмотра.
 
 Сначала контракты/host capability matrix/permissions/budgets, затем роли research/evidence/critic, затем hooks before-approval validation, source-revision/revisit и release checks, затем host adapters/runbook и проверка пользы. Результаты субагентов не подменяют факты, человеческий выбор или semantic acceptance. Хуки не подтверждают gates/решения автоматически и не запускают paid/network операции без явного разрешения. Проверки idempotency/replay/conflict/injection/timeout/failure и последовательный fallback обязательны; активация opt-in. Текущая правка добавляет реализацию в план после R3 и не включает hooks/subagents сейчас. Фактические host проверки и отложенные R1/M6/M8 не объявляются пройденными.
