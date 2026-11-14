@@ -60,6 +60,7 @@ uv run --no-sync psa claim impact my-case
 - [Semantic review](docs/semantic-review.md): явная оценка человека, immutable snapshot audit и выбор current review в quality gate после adoption.
 - [Quality policy](docs/quality-policy.md): новые кейсы требуют review с первого strategy/validation gate; legacy мигрируется явно через policy show/enable.
 - [Проверка расчётов](docs/calculation-check.md): проценты, отношения, процентные пункты и относительное изменение по текущим цитатам, с явными условиями и округлением.
+- [Инвентаризация чисел](docs/numeric-inventory.md): координаты и контекст digit tokens трёх черновиков для ручного review.
 - [IDE instructions/context](docs/ide-instructions.md), [файловый MCP](docs/mcp.md), [knowledge](knowledge/README.md).
 
 После interrupted init используйте workspace pending/recover. После interrupted workflow write — `psa workflow pending ID`, затем явный recover точного operation UUID. Replay завершённой операции возвращает исходный результат; неопределённый платный вызов автоматически не повторяется.
