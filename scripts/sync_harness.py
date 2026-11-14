@@ -22,6 +22,13 @@ def expected_files(root):
         raise ValueError("invalid canonical skill name")
     files = ["AGENTS.md", "agent/harness.json", "agent/workflow.md", "agent/quality.md", "agent/safety.md", "knowledge/catalog.json"]
     files += [f".agents/skills/{name}/SKILL.md" for name in skills]
+    role_catalog = json.loads(safe_path(root, "agent/roles/catalog.json").read_text(encoding="utf-8"))
+    if (set(role_catalog) != {"schema_version", "roles"} or type(role_catalog["schema_version"]) is not int
+            or role_catalog["schema_version"] != 1 or not isinstance(role_catalog["roles"], dict)
+            or set(role_catalog["roles"]) != {"research", "evidence", "critic"}
+            or any(not isinstance(version, str) or len(version) > 40 or re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", version) is None for version in role_catalog["roles"].values())):
+        raise ValueError("invalid canonical role catalog")
+    files += ["agent/roles/catalog.json", *[f"agent/roles/{role}.md" for role in sorted(role_catalog["roles"])]]
     catalog = json.loads(safe_path(root, "knowledge/catalog.json").read_text(encoding="utf-8"))
     for item in catalog["documents"]:
         if not item["path"].startswith("knowledge/") or not item["path"].endswith(".md"):

@@ -55,3 +55,6 @@ Source import/revision creation теперь используют [workflow v2 b
 Render и adoption integrity manifest теперь используют [workflow v3 recovery](render-recovery.md); Markdown builder отделён от публикации, existing drafts сохраняются.
 
 Canonical ledger/usage append теперь поддерживает [workflow v4 replay/recovery](ledger-recovery.md); shared version учитывает эти записи, usage business ID отделён от journal UUID.
+
+
+Новые cases создаются с required [quality policy](quality-policy.md) и initialization receipt v2. Исторический v1 seed/receipt остаётся совместимым с recovery; public init не предоставляет legacy/disable flag. Layout/state schema не менялись.

@@ -61,3 +61,6 @@ Mode change и revision review перенесены на тот же bundle/reco
 
 
 [Semantic audit](semantic-review.md) использует workflow v7 с immutable packet и полной реконструкцией state/event. Gate после adoption выбирает current accepted review UUID; recovery проверяет его bundle/receipt и captured content binding. Старые v1–v6 и requests без semantic selector сохранены.
+
+
+[Quality policy enablement](quality-policy.md) использует v1 state/events bundle с новым request kind и полной реконструкцией. Creation receipt v2 фиксирует mandatory profile нового case; historical v1 init/gate replay сохраняет последующие записи. Legacy enablement не меняет stage/approvals/решения.

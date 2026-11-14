@@ -36,4 +36,7 @@ Packet содержит baseline evidence, anchor, issues, fingerprints и revie
 
 Человек отдельно оценивает, относится ли выбранное число именно к нужной метрике, аудитории, периоду, условиям, знаменателю и методике измерения. Совпадение 75 и "%" в цитате не доказывает, что это retention нужной когорты или пригодная baseline. Отдельная unit literal может относиться к другому числу той же цитаты — смысловая связь не выводится автоматически. Actual outcomes/эффект и разрешение эксперимента также не следуют из проверки.
 
-Standalone command остаётся read-only. [Semantic validation review](semantic-review.md) после adoption требует этот preflight для reported baseline; старые validation check/receipts и legacy gates без audit сохранены. Следующие задачи R3 — более широкий numeric alignment, приёмка нового кейса и глобальная policy migration legacy. Полнота стратегий/measurement plan, coverage/verify/promises и явный выбор человека остаются самостоятельными требованиями.
+Standalone command остаётся read-only. [Semantic validation review](semantic-review.md) после adoption требует этот preflight для reported baseline; старые validation check/receipts и legacy gates без audit сохранены. Required policy для новых кейсов и explicit legacy enablement реализованы ([контракт](quality-policy.md)); следующие задачи R3 — более широкий numeric alignment и приёмка нового кейса. Полнота стратегий/measurement plan, coverage/verify/promises и явный выбор человека остаются самостоятельными требованиями.
+
+
+Для производных величин отдельный [calculation contract](calculation-check.md) поддерживает percentage/ratio/points/relative change по двум current factual anchors; baseline literal check остаётся прежним.

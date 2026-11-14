@@ -19,4 +19,6 @@
 
 Critic: `psa critic-pack ID`; это пакет для отдельного review, не автоматический запуск модели. Usage: `psa usage report ID`; добавить реально доступную телеметрию через `psa usage add ID --provider PROVIDER --model MODEL --operation OP --stage STAGE`. Неизвестные tokens/cost не подменять нулём.
 
-При паузе сохранить разрешённые author drafts, показать текущий этап/следующий шаг, незакрытые вопросы и ошибки. Не повторять paid/fetch/import действия только потому, что чат новый. Если входы изменились — использовать resume skill и revisit. Файловая multi-file транзакционность целевого R2 ещё не заявляется готовой.
+При паузе сохранить разрешённые author drafts, показать текущий этап/следующий шаг, незакрытые вопросы и ошибки. Не повторять paid/fetch/import действия только потому, что чат новый. Если входы изменились — использовать resume skill и revisit. Прерванные journal operations требуют pending и явного recover точного UUID; не исправлять state/events вручную.
+
+Если требуется вернуться к более раннему этапу активной работы, показать workflow review и дождаться явного указания человека на `psa workflow rollback`; для completed используется reopen. Материалы и прежние approvals сохраняются, затронутые gates/решение/reviews проходят заново. [Контракт возврата](../docs/workflow-rollback.md).
