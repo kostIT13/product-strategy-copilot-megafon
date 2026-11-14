@@ -1,0 +1,7 @@
+SYNTHETIC SCENARIO. No actual software has been implemented or inspected. Availability describes an imaginary service only and cannot support real customer promises.
+
+The fictional studio currently offers a schedule page and administrator-assisted changes. A self-service rescheduling flow is planned, not available.
+
+The proposed flow would allow one change to an eligible session with a free place at the same price. Eligibility, seat locking and administrator confirmation must be validated before implementation.
+
+Automatic refunds, price changes, payments and a marketplace across studios are outside the proposed scope and unavailable in the scenario.

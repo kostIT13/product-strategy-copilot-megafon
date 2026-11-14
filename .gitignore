@@ -37,3 +37,6 @@ projects/*/sources/
 
 # Reproducible local MCP stdio acceptance scenario
 !projects/mcp-host-smoke-20261106/sources/
+
+# Local working instance of the explicit synthetic example; recipe lives in examples/.
+projects/slot-workshop-synthetic/
