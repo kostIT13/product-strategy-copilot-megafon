@@ -57,6 +57,8 @@ def create_server() -> Any:
     register_numeric_inventory_tools(server)
     from product_strategy_agent.interfaces.mcp.workflow_rollback_tools import register_workflow_rollback_tools
     register_workflow_rollback_tools(server)
+    from product_strategy_agent.interfaces.mcp.subagent_tools import register_subagent_tools
+    register_subagent_tools(server)
     from product_strategy_agent.interfaces.mcp.semantic_review_tools import register_semantic_review_tools
     register_semantic_review_tools(server)
     from product_strategy_agent.interfaces.mcp.quality_policy_tools import register_quality_policy_tools
