@@ -1,6 +1,7 @@
 """Read creation provenance and commit explicit legacy policy migration through workflow v1."""
 
 import json
+from pathlib import Path
 from product_strategy_agent.adapters.persistence.files.case_access import (
     locked_store_method,
 )
@@ -16,6 +17,7 @@ from product_strategy_agent.domain.projects.quality_policy import policy_require
 
 
 def initially_required(case):
+    case = Path(case).absolute()
     path = confined(case, ".psa/initialization.json")
     if not path.exists():
         return False  # Historical MVP folders can predate init receipts.
