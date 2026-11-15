@@ -64,3 +64,6 @@ Use the Python executable from the environment where `product-strategy-agent[mcp
 ## Current limits
 
 MCP is optional and the core CLI has no MCP dependency. The adapter is stdio-only; it does not start an HTTP service. FastMCP is constrained to major version 4; the default setup remains dependency-free. Host compatibility still needs a live connection check in each target IDE before relying on that host for a demo.
+
+
+P2: [изолированный журнал субагентных задач](subagent-journal.md): `psa_register_subagent`, `psa_record_subagent_result`, `psa_review_subagent_result`, инспекция `psa_subagent_task/result/review/pending` и явный `psa_recover_subagent_record`. Записи не запускают модель и не предоставляют human approval. Только четыре инспекционных tools read-only; register/result/review/recovery записывают локальные артефакты.

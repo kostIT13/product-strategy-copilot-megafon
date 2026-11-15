@@ -4,7 +4,7 @@
 psa subagent prepare CASE --request request.json --projects-dir projects --instructions-root .
 ```
 
-FastMCP: `psa_prepare_subagent(project_id, request, projects_dir, instructions_root)`. Обе поверхности используют HandoffService и возвращают одинаковый packet. Подготовка не запускает роль/модель/tools/сеть, не сохраняет task journal и не пишет в case. Native adapters, dispatch и принятие результатов — следующие срезы, не возможности P1.
+FastMCP: `psa_prepare_subagent(project_id, request, projects_dir, instructions_root)`. Обе поверхности используют HandoffService и возвращают одинаковый packet. Подготовка не запускает роль/модель/tools/сеть, не сохраняет task journal и не пишет в case. Изолированная регистрация/results/review добавлены отдельно в [P2](subagent-journal.md); native adapters/dispatch ещё не реализованы.
 
 ## Request и роли
 
@@ -49,6 +49,6 @@ Hashes подтверждают байты/связи, не authentication/truth
 
 Просмотрите пакет и допустимость передачи материалов. Только при действующем явном разрешении передайте полную envelope, включая профиль и fingerprint, в поддержанную среду. Пока native integration не подтверждена, основной агент может выполнить ту же ограниченную задачу последовательно с честной attribution; это не независимый critic/R5.
 
-Findings observation/hypothesis/question/risk и input refs проверяются P0, затем основной агент сверяет scope/актуальность штатными services. Adoption/journal/idempotency — P2. Сейчас подготовка stateless: UUID не резервируется. Неизменные inputs дают тот же packet; changed inputs — новый fingerprint. Старый result не относится к новому снимку.
+Findings observation/hypothesis/question/risk и input refs проверяются P0, затем основной агент сверяет scope/актуальность штатными services. [P2 journal/review/recovery](subagent-journal.md) сохраняет артефакты без canonical adoption. Сама подготовка остаётся stateless: UUID не резервируется. Неизменные inputs дают тот же packet; changed inputs — новый fingerprint. Старый result не относится к новому снимку.
 
 Budget задаёт caps, не измерение и не разрешение расходов. Actual enforcement/cancel/host sandbox ещё не реализованы; unknown usage/cost не равен нулю. Human choice, gates, semantic reviews и разрешения эксперимента/публикации остаются по [AGENTS.md](../AGENTS.md).
