@@ -38,3 +38,8 @@ psa context research-case
 5. Зафиксировать результат/ошибки/время/стоимость/помощь человека в reports/ и author methods-used.md. Нет фактического запуска — статус not_verified, не passed.
 
 Эти проверки предполагают доступ к host и модели; в этой итерации их результат не выдумывается. Автоматический тест контекста/CLI проверяет механизм доставки, а не самостоятельное исследовательское поведение. Старая PG-зависимость некоторых модулей/CI выводится в R2; R1 не объявляет весь runtime уже освобождённым от неё.
+
+
+## P4a: machine-readable profiles
+
+[Версионированная матрица и host plans](host-profiles.md) доступны через CLI/FastMCP. Файловое присутствие отделено от native acceptance; все capabilities пока not_verified. Plan scoped по host/version/OS и предлагает последовательный fallback без activation/config writes. Catalog входит в canon sync, не загружается автоматически в case context. P4/native integration и R1/M6/M8 остаются открытыми.

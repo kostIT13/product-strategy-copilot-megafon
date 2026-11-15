@@ -79,3 +79,6 @@ P3c: [source notifications](source-notifications.md): read-only `psa_prepare_sou
 
 
 P3d: [release checks](release-hooks.md): read-only `psa_prepare_release_hook` и `psa_check_release_hook`. Archive path — явная конфигурация, packet содержит manifest hash. Live recheck с timeout, без cached pass, установки, тега/draft/публикации; pass только статической целостности.
+
+
+P4a: [host profiles/planning](host-profiles.md): read-only `psa_host_matrix`, `psa_host_profile`, `psa_plan_host`. Наличие instruction files не означает host_loading_verified. Native request возвращает fallback_required; никакой activation, config writes или отправки данных.
