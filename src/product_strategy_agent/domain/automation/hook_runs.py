@@ -21,8 +21,11 @@ class HookRun(Packet):
         if self.request.trigger not in {
             "before_strategy_gate",
             "before_validation_gate",
+            "source_revision",
         }:
-            raise ValueError("only before-gate execution is supported")
+            raise ValueError(
+                "only before-gate checks and source notifications are supported"
+            )
         return self
 
 

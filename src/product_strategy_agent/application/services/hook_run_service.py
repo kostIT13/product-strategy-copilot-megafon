@@ -13,7 +13,10 @@ from product_strategy_agent.application.services.hook_preflight_service import (
     nonrecursive,
 )
 from product_strategy_agent.domain.automation.contracts import fingerprint
-from product_strategy_agent.domain.automation.hooks import HookResult
+from product_strategy_agent.domain.automation.hooks import (
+    HookResult,
+    required_hook_allows,
+)
 from product_strategy_agent.domain.automation.hook_runs import HookRun, HookCompletion
 
 
@@ -49,7 +52,11 @@ class HookRunService:
             "freshness": fresh,
             "required_check_passed": not historical
             and fresh == "current"
-            and completion.result.status == "passed",
+            and required_hook_allows(run.request, completion.result),
+            "notification_delivered": not historical
+            and run.request.trigger == "source_revision"
+            and fresh == "current"
+            and completion.result.status in {"passed", "blocked"},
             "workflow_approval_granted": False,
         }
 

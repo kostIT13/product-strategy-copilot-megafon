@@ -25,7 +25,14 @@ def main():
     try:
         with args.request.open("rb") as stream:
             command = parse_hook_request(stream.read(64001))
-        result = hook_preflight(args.projects_dir).check(command)
+        if command.trigger == "source_revision":
+            from product_strategy_agent.interfaces.source_notification import (
+                source_notification,
+            )
+
+            result = source_notification(args.projects_dir).check(command)
+        else:
+            result = hook_preflight(args.projects_dir).check(command)
         import json
 
         with args.output.open("x", encoding="utf-8") as stream:
