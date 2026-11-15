@@ -55,6 +55,7 @@ Use the Python executable from the environment where `product-strategy-agent[mcp
 - `psa_quality_policy`, `psa_enable_quality_policy` — [quality policy](quality-policy.md): read-only inspection and explicit snapshot-bound legacy enablement; new cases require reviews by default
 - `psa_check_calculations` — [authored arithmetic](calculation-check.md): current citations, explicit ratios/percent/points/change, units/context/rounding; no inferred effect or approval
 - `psa_numeric_inventory` — [raw digit inventory](numeric-inventory.md) трёх authored drafts с координатами/context/hashes; read-only, все вхождения unassessed, numeric coverage не подтверждается
+- `psa_prepare_subagent` — [bounded handoff preparation](subagent-handoffs.md): явный request/role/budget/selected material, read-only packet; без модели/dispatch/записи approval
 
 `psa_fetch_source` performs a network request only when explicitly called. Tools write only inside the selected project workspace, except for caller-supplied input/output paths. The server has no delete, shell, or arbitrary command tool.
 

@@ -1,6 +1,6 @@
 # Полный рабочий план готовности к эксплуатации
 
-Обновлён 14.11.2026 после функциональной приёмки R3 на синтетическом «Слот». Это план разработки и проверки, не заявление production-ready. Основной продукт остаётся IDE-native проектом: IDE ведёт цикл, CLI/FastMCP используют общее файловое ядро. PostgreSQL/Docker/SQLite/LangGraph и собственный обязательный LLM loop не добавляются.
+Обновлён 15.11.2026 после функциональной приёмки R3 на синтетическом «Слот». Это план разработки и проверки, не заявление production-ready. Основной продукт остаётся IDE-native проектом: IDE ведёт цикл, CLI/FastMCP используют общее файловое ядро. PostgreSQL/Docker/SQLite/LangGraph и собственный обязательный LLM loop не добавляются.
 
 ## Исходное состояние
 
@@ -21,9 +21,9 @@ R2 runtime выведен; R3 функционально пройден с яв�
 | P8 — оценка пользы R5 | P4–P6 и согласованный протокол | Сопоставимый sequential baseline, opt-in subagent/hook run, независимый review, human help/time/cost | Те же входы/бюджет, blind review где возможно, measured/unknown отдельно, ошибки/вред включены. Синтетика маркируется; M6 не считается пройденной без независимого результата |
 | P9 — комплект сдачи R6 | P5, P6, P8; подтверждённый support matrix | Clean checkout/wheel/sdist/allowlisted ZIP, README/runbooks, synthetic demo, видео до 10 минут, PDF/скриншоты/расходы и evidence map §11 ТЗ | Артефакты/hash/license/permissions проверены, свежая демонстрация воспроизведена. CI/demo/release без внешних моделей/БД/Docker; remote Actions result зафиксирован отдельно. Теги/публикация/отправка — явные действия владельца |
 
-Текущий результат P0: строгие domain models и binding/budget guards реализованы, 12 unit tests прошли также в clean base. Dispatcher, handoff services и native adapters ещё не реализованы; activation выключена. Следующий срез — P1: подготовка bounded задач research/evidence/critic.
+P0 и P1 реализованы: строгие contracts и [read-only handoff service](../subagent-handoffs.md), canonical роли, explicit selections/provenance/ranges, CLI/FastMCP parity и диагностика без input values. Финальные 34 tests и clean-base smoke прошли 15.11.2026. Native dispatch, result journal/adoption и actual resource enforcement не реализованы, activation выключена. Далее P2 — изолированные результаты и provenance с проверкой актуального snapshot.
 
-P1 и P3 логически независимы после P0; реализация в текущем рабочем процессе последовательная. После выполненного P0 продолжить P1 → P2 → P3 → P4; P5/P6 уточнять по мере появления runtime. Не откладывать базовый evidence/human-choice path ради расширений. Завершённые R4 срезы не выполняются повторно только из-за новой нумерации.
+P1 и P3 логически независимы после P0; реализация в текущем рабочем процессе последовательная. После выполненных P0/P1 продолжить P2 → P3 → P4; P5/P6 уточнять по мере появления runtime. Не откладывать базовый evidence/human-choice path ради расширений. Завершённые R4 срезы не выполняются повторно только из-за новой нумерации.
 
 ## Границы ролей и хуков
 

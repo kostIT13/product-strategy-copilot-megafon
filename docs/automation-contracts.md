@@ -30,4 +30,4 @@ Result: operation_id, request fingerprint, status passed/blocked/failed/skipped,
 
 ## Последующие срезы
 
-P1 добавляет coherent snapshot/handoff service и инструкции ролей, P2 — journal/results/provenance, P3 — фиксированные local hook checks, P4 — opt-in host adapters. Native capability/польза не считаются подтверждёнными этими моделями. Runtime integration, cancellation, concurrency/recovery и реальные budgets должны получить отдельные meaningful tests до объявления готовности.
+[P1 coherent snapshot/handoff service и инструкции ролей](subagent-handoffs.md) реализованы; далее P2 — journal/results/provenance, P3 — фиксированные local hook checks, P4 — opt-in host adapters. Native capability/польза не считаются подтверждёнными этими моделями. Runtime integration, cancellation, concurrency/recovery и реальные budgets должны получить отдельные meaningful tests до объявления готовности.
