@@ -67,6 +67,8 @@ def create_server() -> Any:
     register_hook_run_tools(server)
     from product_strategy_agent.interfaces.mcp.source_notification_tools import register_source_notification_tools
     register_source_notification_tools(server)
+    from product_strategy_agent.interfaces.mcp.release_hook_tools import register_release_hook_tools
+    register_release_hook_tools(server)
     from product_strategy_agent.interfaces.mcp.semantic_review_tools import register_semantic_review_tools
     register_semantic_review_tools(server)
     from product_strategy_agent.interfaces.mcp.quality_policy_tools import register_quality_policy_tools

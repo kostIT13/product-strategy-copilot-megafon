@@ -10,6 +10,10 @@ from product_strategy_agent.interfaces.hook_preflight import (
 from product_strategy_agent.application.services.hook_preflight_service import TRIGGERS
 from product_strategy_agent.interfaces.hook_runs import hook_runs, hook_run_command
 from product_strategy_agent.interfaces.source_notification import source_notification
+from product_strategy_agent.interfaces.release_check import (
+    release_check,
+    bounded_release_check,
+)
 
 
 def add_hook_commands(commands):
@@ -24,6 +28,13 @@ def add_hook_commands(commands):
     notification = actions.add_parser("prepare-notification")
     notification.add_argument("project_id")
     notification.add_argument("--operation", type=UUID, required=True)
+    prepare_release = actions.add_parser("prepare-release")
+    prepare_release.add_argument("--archive", type=Path, required=True)
+    prepare_release.add_argument("--operation", type=UUID, required=True)
+    release = actions.add_parser("check-release")
+    release.add_argument("--archive", type=Path, required=True)
+    release.add_argument("--request", type=Path, required=True)
+    release.add_argument("--timeout", type=int, default=30)
     check = actions.add_parser("check")
     check.add_argument("--request", type=Path, required=True)
     run = actions.add_parser("run")
@@ -41,18 +52,25 @@ def add_hook_commands(commands):
 
 
 def handle_hook_command(args):
-    app = hook_preflight(args.projects_dir)
     if args.hook_action == "prepare":
-        result = app.prepare(args.project_id, args.trigger, args.operation)
+        result = hook_preflight(args.projects_dir).prepare(
+            args.project_id, args.trigger, args.operation
+        )
     elif args.hook_action == "prepare-notification":
         result = source_notification(args.projects_dir).prepare(
             args.project_id, args.operation
         )
+    elif args.hook_action == "prepare-release":
+        result = release_check().prepare(args.archive, args.operation)
+    elif args.hook_action == "check-release":
+        with args.request.open("rb") as stream:
+            command = parse_hook_request(stream.read(64001))
+        result = bounded_release_check(command, args.archive, args.timeout)
     elif args.hook_action in ("check", "run"):
         with args.request.open("rb") as stream:
             command = parse_hook_request(stream.read(64001))
         if args.hook_action == "check":
-            result = app.check(command)
+            result = hook_preflight(args.projects_dir).check(command)
         else:
             result = hook_runs(args.projects_dir).run(
                 hook_run_command(command, args.timeout)
@@ -66,7 +84,7 @@ def handle_hook_command(args):
         else:
             result = service.recover(args.project_id, args.operation)
     print(json.dumps(result, ensure_ascii=True, indent=2))
-    if args.hook_action == "check" and result["status"] != "passed":
+    if args.hook_action in ("check", "check-release") and result["status"] != "passed":
         raise SystemExit(1)
     if args.hook_action == "run" and not (
         result["required_check_passed"] or result["notification_delivered"]
