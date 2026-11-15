@@ -73,3 +73,6 @@ P3a: [явный локальный hook preflight](hook-preflight.md): read-onl
 
 
 P3b: [bounded run и journal](hook-runs.md): `psa_run_hook`, `psa_hook_run`, `psa_hook_pending`, `psa_recover_hook_run`. Run/recovery пишут локальные артефакты; inspection read-only. Historical replay всегда required_check_passed=false, даже при прежнем passed. Реальный timeout/watchdog без модели/сети/shell; human gates не утверждаются.
+
+
+P3c: [source notifications](source-notifications.md): read-only `psa_prepare_source_notification`, затем `psa_run_hook` с source_revision. `notification_delivered` сообщает новую current доставку; required_check_passed всегда false. Pending revisions остаются для человека; ошибка не откатывает committed import. Автоматическая активация выключена.

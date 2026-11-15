@@ -1,6 +1,6 @@
 # P3b: ограниченный запуск и журнал хуков
 
-Продолжение [P3a live preflight](hook-preflight.md). Для тех же двух before-gate triggers добавлены отдельный фиксированный worker и журнал. Автоматическая активация hooks, gate approval, модели/сеть/shell не включаются.
+Продолжение [P3a live preflight](hook-preflight.md). Для двух before-gate triggers и [source notice P3c](source-notifications.md) используются фиксированный worker и журнал. Автоматическая активация hooks, gate approval, модели/сеть/shell не включаются.
 
 ## Команды и результаты
 
@@ -13,9 +13,9 @@ psa hook pending CASE --projects-dir projects
 psa hook recover CASE --operation UUID --projects-dir projects
 ```
 
-Timeout — целое число 1–120 секунд (по умолчанию 30), часть identity запуска. Run допускает только current request. Тот же UUID с другим request/timeout — conflict; незавершённый UUID требует inspect/recover, не повторного исполнения. Для новой проверки подготовьте новый UUID.
+Timeout — целое число 1–120 секунд (по умолчанию 30), часть identity запуска. Run допускает только current request (before-gate либо source_revision). Тот же UUID с другим request/timeout — conflict; незавершённый UUID требует inspect/recover, не повторного исполнения. Для новой проверки подготовьте новый UUID.
 
-Packet содержит исходный request/timeout/run_hash, immutable receipt с результатом, временем и record_hash, отдельно `historical`, текущую `freshness` и `required_check_passed`. Workflow approval всегда false. CLI run возвращает 0 только для нового passed/current результата; blocked/failed и historical replay возвращают 1 вместе со структурированным packet. Show/pending/recover — операции инспекции/восстановления: успешное выполнение возвращает 0, что не означает passed preflight. В MCP проверяйте `required_check_passed`, а не только успешность транспорта или вложенный исторический result.status.
+Packet содержит исходный request/timeout/run_hash, immutable receipt с результатом, временем и record_hash, отдельно `historical`, текущую `freshness` и `required_check_passed`. Workflow approval всегда false. Для before-gate CLI run возвращает 0 только для нового passed/current результата. Для source_revision код 0 означает notification_delivered=true, включая показ pending-revisit blockers; required_check_passed всегда false. Failed/skipped/stale и historical replay возвращают 1 со структурированным packet. Show/pending/recover — операции инспекции/восстановления: успешное выполнение возвращает 0, что не означает passed preflight. В MCP проверяйте `required_check_passed`, а не только успешность транспорта или вложенный исторический result.status.
 
 **Завершённый UUID не запускается повторно.** Возвращается прежний receipt; wrapper historical=true и required_check_passed=false даже при current snapshot и прежнем passed. Receipt — история, не reusable разрешение. Freshness пересчитывается и может стать stale/unavailable; старый timestamp/hash не переписывается. Human semantic review/gate остаются отдельными обязательными действиями.
 
@@ -37,4 +37,4 @@ Pending показывает `execution_unknown`, `prepared_result`, `corrupt_or
 
 `psa_run_hook(request, timeout_seconds, projects_dir)` и `psa_recover_hook_run` записывают локальные артефакты. `psa_hook_run` и `psa_hook_pending` read-only. Parity проверена настоящим stdio-клиентом; intent/prepared/committed kill и portable recovery — отдельными subprocess tests.
 
-Прежний `hook check` остаётся живой синхронной read-only проверкой без durable receipt и process timeout; не смешивайте его семантику с run/replay. P3 ещё открыт: source-revision→revisit notification без отката committed import и release checks без публикации. Native activation/host acceptance — P4, R1/M6/M8 остаются открытыми.
+Прежний `hook check` остаётся живой синхронной read-only проверкой без durable receipt и process timeout; не смешивайте его семантику с run/replay. [P3c source-revision notice](source-notifications.md) реализован без отката committed import. P3 ещё открыт: далее release checks без публикации. Native activation/host acceptance — P4, R1/M6/M8 остаются открытыми.

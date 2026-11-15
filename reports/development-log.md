@@ -423,3 +423,10 @@ R4 начат техническим срезом; R3 новый разрешё�
 Реализованы fixed worker с process timeout/watchdog, durable intent/completion, UUID/request/timeout conflicts, explicit recovery без повторного исполнения и historical replay с required_check_passed=false. CLI run/show/pending/recover и четыре FastMCP tools используют общие services; live check P3a сохранён. Current snapshot проверяется перед запуском и публикацией, gate/semantic approval не выдаётся. Коммиты 5952617 / a9862b1 / f844303; итоговый docs commit обновляет план и runbook.
 
 Проверки: P3b11 (56.145 s), финальные core8 (29.817 s)/stdio2 (16.434 s), P3a12 (22.002 s), P012 (0.020 s) — OK; clean base11 (44.138 s, 1 MCP skip), base smoke completed/copy/reopen/reapprove OK, model_calls0. Fresh MCP worker, timeout/watchdog и три kill/copy boundaries проверены. Ruff/sync9/docs/native secret history/tree/negative probes и diff checks OK. Full suite не повторялся. P3 source notifications/release checks впереди; native activation выключена, R1/M6/M8 открыты. Рабочие кейсы/секреты не изменялись. [Отчёт](2026-11-15-r31-hook-runs.md).
+
+
+## 15.11.2026 18:27 (Asia/Novosibirsk) — R3.1/P3c: source revision notifications
+
+Добавлены bounded source notice поверх существующего revisit, отдельные port/service/reader, явные CLI prepare-notification/FastMCP prepare + общий worker/run journal. notification_delivered отделён от required_check_passed; domain helper запрещает source notices как required checks. Ошибка не откатывает committed import, не закрывает human review и не утверждает gate. Captured-copy recovery остаётся historical без delivery. Коммиты eb9971c / 89be4a7; итоговый docs commit обновляет план/runbook.
+
+Проверки: source11 (52.429 s), before-gate runtime11 (118.830 s), P012 (0.033 s) — OK; clean base11 (34.956 s, 1 MCP skip), base smoke completed/copy/reopen/reapprove OK, model_calls0. Ruff/sync9/docs/native secret checks и diff checks OK. Full suite не повторялся. P3 release checks впереди; auto activation выключена, R1/M6/M8 открыты. Рабочие данные/секреты не изменялись. [Отчёт](2026-11-15-r31-source-notifications.md).
