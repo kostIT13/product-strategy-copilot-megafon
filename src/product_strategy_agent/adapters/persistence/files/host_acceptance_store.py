@@ -16,6 +16,13 @@ from product_strategy_agent.domain.automation.host_acceptance import encode, dec
 
 
 class FileHostAcceptanceStore:
+    prefix = ".psa/host-acceptance/v1"
+    decode = staticmethod(decode)
+    encode = staticmethod(encode)
+
+    def identifier(self, record):
+        return record.command.task.operation_id
+
     def __init__(self, root):
         self.root = Path(root).resolve()
 
@@ -27,13 +34,13 @@ class FileHostAcceptanceStore:
             raise ValueError("host acceptance requires operation UUID")
         return confined(
             self.root,
-            f".psa/host-acceptance/v1/{operation_id.hex}{'.pending' if pending else ''}.json",
+            f"{self.prefix}/{operation_id.hex}{'.pending' if pending else ''}.json",
         )
 
     def read(self, operation_id):
         final = self._path(operation_id)
         if final.exists():
-            return decode(read_bounded(final, 256000), operation_id)
+            return self.decode(read_bounded(final, 256000), operation_id)
         if self._path(operation_id, True).exists():
             raise ValueError(
                 "host acceptance publication pending; inspect and explicitly recover"
@@ -47,16 +54,16 @@ class FileHostAcceptanceStore:
         sync_directory(final.parent)
 
     def publish(self, record):
-        identifier = record.command.task.operation_id
+        identifier = self.identifier(record)
         if self.read(identifier) is not None:
             raise ValueError("host acceptance operation already exists")
         path = self._path(identifier, True)
         path.parent.mkdir(parents=True, exist_ok=True)
         if len(list(path.parent.iterdir())) >= 1000:
             raise ValueError("host acceptance reached 1000 records; history retained")
-        durable_write(path, encode(record))
+        durable_write(path, self.encode(record))
         sync_directory(path.parent)
-        decode(read_bounded(path, 256000), identifier)
+        self.decode(read_bounded(path, 256000), identifier)
         self._install(path, self._path(identifier))
         return self.read(identifier)
 
@@ -80,7 +87,7 @@ class FileHostAcceptanceStore:
                 ) from None
             if suffix == ".pending.json":
                 try:
-                    record = decode(read_bounded(path, 256000), identifier)
+                    record = self.decode(read_bounded(path, 256000), identifier)
                     status = "prepared"
                 except (ValueError, OSError):
                     status = "corrupt_or_incomplete"
@@ -94,6 +101,6 @@ class FileHostAcceptanceStore:
         pending = self._path(operation_id, True)
         if not pending.exists():
             raise ValueError("no captured host acceptance publication")
-        decode(read_bounded(pending, 256000), operation_id)
+        self.decode(read_bounded(pending, 256000), operation_id)
         self._install(pending, final)
         return self.read(operation_id)

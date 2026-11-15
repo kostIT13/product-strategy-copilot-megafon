@@ -66,6 +66,9 @@ class HostAcceptanceService:
             "freshness": self._freshness(record.command.task),
         }
 
+    def scope_freshness(self, task):
+        return self._freshness(task)
+
     def record(self, command, reader):
         command = RecordHostAcceptance.model_validate(command)
         with self.store.access():
