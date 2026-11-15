@@ -26,10 +26,11 @@ def register_hook_run_tools(server):
     def psa_run_hook(
         request: dict, timeout_seconds: int = 30, projects_dir: str = "projects"
     ) -> dict:
-        """Explicit fixed local preflight worker (1..120 sec) and immutable journal, without approval.
+        """Explicit fixed preflight/source-notice worker (1..120 sec) and journal, without approval.
 
         Exact UUID/request/timeout replay is historical and required_check_passed is false.
         Pending execution requires explicit recovery, never automatic retry. No host activation/network/model.
+        Source notices never set required_check_passed: inspect notification_delivered and revisit diagnostics.
         """
         return call(
             lambda: hook_runs(projects_dir).run(
