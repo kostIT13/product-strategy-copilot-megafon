@@ -20,7 +20,7 @@ def expected_files(root):
     skills = sorted({name for profile in manifest["stages"].values() for name in profile["skills"]})
     if any(not re.fullmatch(r"[a-z0-9-]{1,64}", name) for name in skills):
         raise ValueError("invalid canonical skill name")
-    files = ["AGENTS.md", "agent/harness.json", "agent/workflow.md", "agent/quality.md", "agent/safety.md", "knowledge/catalog.json"]
+    files = ["AGENTS.md", "agent/harness.json", "agent/workflow.md", "agent/quality.md", "agent/safety.md", "knowledge/catalog.json", "agent/hosts/catalog.json"]
     files += [f".agents/skills/{name}/SKILL.md" for name in skills]
     role_catalog = json.loads(safe_path(root, "agent/roles/catalog.json").read_text(encoding="utf-8"))
     if (set(role_catalog) != {"schema_version", "roles"} or type(role_catalog["schema_version"]) is not int

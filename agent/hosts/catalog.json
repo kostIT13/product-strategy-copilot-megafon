@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "catalog_version": "1.0.0",
+  "hosts": [
+    {
+      "host_id": "codex",
+      "instruction_paths": [
+        "AGENTS.md",
+        ".agents/skills/psa-research/SKILL.md"
+      ],
+      "capabilities": {
+        "instruction_loading": "not_verified",
+        "skill_discovery": "not_verified",
+        "mcp_stdio": "not_verified",
+        "subagents": "not_verified",
+        "hooks": "not_verified",
+        "isolation": "not_verified",
+        "budget_enforcement": "not_verified",
+        "cancellation": "not_verified"
+      }
+    },
+    {
+      "host_id": "cursor",
+      "instruction_paths": [
+        ".cursor/rules/product-strategy.mdc"
+      ],
+      "capabilities": {
+        "instruction_loading": "not_verified",
+        "skill_discovery": "not_verified",
+        "mcp_stdio": "not_verified",
+        "subagents": "not_verified",
+        "hooks": "not_verified",
+        "isolation": "not_verified",
+        "budget_enforcement": "not_verified",
+        "cancellation": "not_verified"
+      }
+    },
+    {
+      "host_id": "claude",
+      "instruction_paths": [
+        "CLAUDE.md",
+        ".claude/skills/psa-research/SKILL.md"
+      ],
+      "capabilities": {
+        "instruction_loading": "not_verified",
+        "skill_discovery": "not_verified",
+        "mcp_stdio": "not_verified",
+        "subagents": "not_verified",
+        "hooks": "not_verified",
+        "isolation": "not_verified",
+        "budget_enforcement": "not_verified",
+        "cancellation": "not_verified"
+      }
+    },
+    {
+      "host_id": "qwen",
+      "instruction_paths": [
+        "QWEN.md"
+      ],
+      "capabilities": {
+        "instruction_loading": "not_verified",
+        "skill_discovery": "not_verified",
+        "mcp_stdio": "not_verified",
+        "subagents": "not_verified",
+        "hooks": "not_verified",
+        "isolation": "not_verified",
+        "budget_enforcement": "not_verified",
+        "cancellation": "not_verified"
+      }
+    },
+    {
+      "host_id": "sourcecraft",
+      "instruction_paths": [
+        "AGENTS.md"
+      ],
+      "capabilities": {
+        "instruction_loading": "not_verified",
+        "skill_discovery": "not_verified",
+        "mcp_stdio": "not_verified",
+        "subagents": "not_verified",
+        "hooks": "not_verified",
+        "isolation": "not_verified",
+        "budget_enforcement": "not_verified",
+        "cancellation": "not_verified"
+      }
+    }
+  ]
+}

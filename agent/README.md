@@ -1,5 +1,7 @@
 # Инструкции агента
 
+Opt-in роли research/evidence/critic доступны через [read-only handoff preparation](../docs/subagent-handoffs.md). Это отдельный явный запрос, не автоматический этап workflow или native запуск субагентов; последовательный путь остаётся базовым.
+
 Канон правил — [AGENTS.md](../AGENTS.md); тематические документы: [workflow](workflow.md), [quality](quality.md), [safety](safety.md). Skills хранятся в [.agents/skills](../.agents/skills/psa-research/SKILL.md); Claude-копии и тонкие host adapters генерируются `scripts/sync_harness.py`, проверяются с `--check` и не редактируются отдельно.
 
 `psa context ID` возвращает текущий этап и полный текст подходящих skills/knowledge с версиями и SHA-256. Команда только читает файлы. Из установленного wheel без репозитория передай `--instructions-root PATH_TO_REPO`; автономная упаковка всего context в wheel ещё не реализована. Source ZIP включает весь проект; sdist также включает канонические instruction assets, но не заявляется отдельным полным IDE-проектом со всей документацией. Для установленного пакета используй instruction root из репозитория/ZIP.

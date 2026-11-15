@@ -3,17 +3,11 @@ import argparse
 import json
 from pathlib import Path, PurePosixPath
 import subprocess
+from product_strategy_agent.domain.release_policy import forbidden_path
 
 
 def git(root, *args):
     return subprocess.check_output(["git", "-C", str(root), *args]).decode("utf-8").split("\0")
-
-
-def forbidden_path(name):
-    path = PurePosixPath(name.strip().casefold())
-    return ((path.name == ".env" or path.name.startswith(".env.")) and path.name != ".env.example"
-            or path.suffix == ".sqlite3"
-            or any(part in {".venv", ".venv-ci", "backups", "postgres-data", ".psa-locks", ".psa-staging"} for part in path.parts))
 
 
 def check_repository(root, history=False):

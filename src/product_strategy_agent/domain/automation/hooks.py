@@ -60,4 +60,7 @@ def validate_hook_binding(request, result):
 
 
 def required_hook_allows(request, result):
-    return validate_hook_binding(request, result).status == "passed"
+    request = HookRequest.model_validate(request)
+    result = validate_hook_binding(request, result)
+    # Notification delivery is never a required pre-gate check, even after all reviews.
+    return request.trigger != "source_revision" and result.status == "passed"
