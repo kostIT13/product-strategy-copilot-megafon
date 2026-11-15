@@ -451,3 +451,10 @@ R4 начат техническим срезом; R3 новый разрешё�
 Добавлены scoped acceptance task/checklist, bounded selected evidence capture и immutable private journal с pending/recovery/historical replay. CLI acceptance-prepare/record/show/pending/recover и пять FastMCP tools используют общее ядро. Records всегда recorded_not_verified и native_activation_allowed=false; matrix P4a не повышает capabilities по self-reported passes. Native tests/config changes не запускались. Коммиты184aa31 /920b230 /1287745; итоговый docs commit обновляет runbook/планы.
 
 Проверки: acceptance10 (22.643 s), P4a9 (14.598 s), P012 (0.037 s) — OK; clean base10 (11.081 s,1 MCP skip), base completed/copy/reopen/reapprove OK,model_calls0. Три process-kill/copy boundaries и сохранность later instructions проверены. Ruff/sync9/docs/native secrets/diff OK; full suite не повторялся. P4 открыт: далее review/adoption/config previews; R3.1/R1/M6/M8 открыты. Рабочие данные/секреты не изменялись. [Отчёт](2026-11-15-r31-host-observations.md).
+
+
+## 15.11.2026 19:33 (Asia/Novosibirsk) — R3.1/P4c: report review и disabled Codex preview
+
+Добавлены exact report/evidence/checklist binding, immutable review journal/recovery и explicit preview-only adoption. Codex MCP renderer возвращает TOML enabled=false с existing absolute interpreter/fixed module/readonly tool allowlist; bootstrap и выбранный review отделены, native flags false, existing configs не читаются/не меняются. CLI/MCP parity проверена. Формат сверён с официальными OpenAI docs через openai-docs; native acceptance не выполнялась. Коммиты8827879 /987a58e /7df38bb /b7db5a7; итоговый docs commit обновляет планы.
+
+Проверки: review/preview9 (22.622 s), observation10 (21.980 s), P012 (0.048 s) — OK; clean base9 (11.663 s,1 MCP skip), base completed/copy/reopen/reapprove OK,model_calls0. Три kill/copy boundaries и parent validation проверены. Ruff/sync9/docs/native secrets/diff OK; full suite не повторялся. P4 открыт: далее config lifecycle и native acceptance; R3.1/R1/M6/M8 открыты, live IDE отсрочка сохранена. [Отчёт](2026-11-15-r31-host-review-preview.md).

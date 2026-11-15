@@ -85,3 +85,6 @@ P4a: [host profiles/planning](host-profiles.md): read-only `psa_host_matrix`, `p
 
 
 P4b: [host observations](host-observations.md): prepare/show/pending read-only, explicit `psa_record_host_acceptance`/`psa_recover_host_acceptance` пишут локальный ignored journal. Task hashes/scope/evidence refs связаны; records recorded_not_verified и native_activation_allowed=false даже при reported passes. Raw evidence text в response не возвращается.
+
+
+P4c: [host review/disabled preview](host-review-preview.md): prepare/show/pending/preview read-only; record/recovery пишут только local review journal. `psa_preview_codex_mcp` возвращает TOML enabled=false, без чтения/записи live config. Четыре inspection tools в его allowlist имеют явные readOnly annotations; actual native capability не подтверждается.

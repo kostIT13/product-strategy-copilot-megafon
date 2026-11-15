@@ -26,7 +26,7 @@ Record проверяет текущие catalog/instructions до и после
 
 CLI code0 означает успешную запись/инспекцию, без принятия native capability. Receipt всегда содержит recorded_not_verified, identity_verified=false, host_acceptance_verified=false, review_required=true, native_activation_allowed=false и human_approval_granted=false. reported_required_checks_passed=true означает только наличие **заявленных** passed по обязательным checks с привязанными evidence bytes. Содержимое лога, reported_by и observed_at не аутентифицированы и не проверяют истинность наблюдения.
 
-P4a matrix/planner не принимает эти records как capabilities и продолжает выдавать sequential fallback. Freshness current/stale/unavailable относится к зафиксированному catalog/instruction scope, а не к автоматическому probe установленной IDE, проверке runtime code/config identity или фактической совместимости версии. Evidence/adoption review и привязка будущего активируемого adapter/config остаются отдельным этапом.
+P4a matrix/planner не принимает эти records как capabilities и продолжает выдавать sequential fallback. Freshness current/stale/unavailable относится к зафиксированному catalog/instruction scope, а не к автоматическому probe установленной IDE, проверке runtime code/config identity или фактической совместимости версии. [P4c review/adoption для disabled preview](host-review-preview.md) реализован; привязка будущего активируемого adapter/config остаётся отдельным этапом.
 
 Response CLI/MCP содержит наблюдения и evidence metadata/hashes, без raw captured text. Для локального разбора полные captured bytes находятся в record под .psa/host-acceptance/v1/UUIDHEX.json. Тексты/notes остаются недоверенными данными, не instructions/consent. Journal не становится хранилищем секретов или внешним каналом передачи.
 
@@ -42,4 +42,4 @@ Pending показывает prepared либо corrupt_or_incomplete. Тольк
 
 Read-only: psa_prepare_host_acceptance, psa_host_acceptance, psa_host_acceptance_pending. Пишут только локальный journal: psa_record_host_acceptance и psa_recover_host_acceptance. Вызов record/recovery явный; tool success не означает native approval. Requests одинаковы с CLI, evidence-dir/instructions-root — явная конфигурация caller.
 
-P4 открыт. Далее — evidence review/adoption protocol и reviewable config previews; затем проверенные enable/disable/migration и native acceptance в конкретных версиях/ОС. Новые vendor config formats/API здесь не утверждаются. R3.1/R1/M6/M8 остаются открытыми; последовательный CLI путь сохраняется.
+[P4c review/adoption и disabled Codex preview](host-review-preview.md) реализован; P4 открыт: затем проверенные enable/disable/migration и native acceptance в конкретных версиях/ОС. Новые vendor config formats/API здесь не утверждаются. R3.1/R1/M6/M8 остаются открытыми; последовательный CLI путь сохраняется.
