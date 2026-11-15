@@ -63,6 +63,8 @@ def create_server() -> Any:
     register_subagent_journal_tools(server)
     from product_strategy_agent.interfaces.mcp.hook_tools import register_hook_tools
     register_hook_tools(server)
+    from product_strategy_agent.interfaces.mcp.hook_run_tools import register_hook_run_tools
+    register_hook_run_tools(server)
     from product_strategy_agent.interfaces.mcp.semantic_review_tools import register_semantic_review_tools
     register_semantic_review_tools(server)
     from product_strategy_agent.interfaces.mcp.quality_policy_tools import register_quality_policy_tools
