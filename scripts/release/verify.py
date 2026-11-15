@@ -12,34 +12,11 @@ from scripts.release.package import allowed, digest
 
 
 def unpack_checked(archive, destination):
-    with zipfile.ZipFile(archive) as bundle:
-        entries = bundle.infolist()
-        names = [entry.filename for entry in entries]
-        if len(names) != len(set(names)) or not names or len(names) > 5000 or sum(e.file_size for e in entries) > 128 * 1024 * 1024:
-            raise ValueError("invalid or oversized archive")
-        roots = set()
-        for entry in entries:
-            path = PurePosixPath(entry.filename)
-            if path.is_absolute() or ".." in path.parts or path.as_posix() != entry.filename or "\\" in entry.filename or ":" in entry.filename or len(path.parts) < 2 or entry.is_dir() or stat.S_ISLNK(entry.external_attr >> 16):
-                raise ValueError("unsafe archive member")
-            roots.add(path.parts[0])
-        if len(roots) != 1:
-            raise ValueError("archive must contain one top-level directory")
-        prefix = roots.pop()
-        if f"{prefix}/release-manifest.json" not in names:
-            raise ValueError("archive manifest is missing")
-        manifest = json.loads(bundle.read(f"{prefix}/release-manifest.json"))
-        if prefix != f"product-strategy-agent-{manifest['version']}":
-            raise ValueError("archive version mismatch")
-        expected = {f"{prefix}/{name}" for name in manifest["files"]} | {f"{prefix}/release-manifest.json"}
-        if set(names) != expected:
-            raise ValueError("manifest file list mismatch")
-        for name, checksum in manifest["files"].items():
-            if not allowed(name) and not (name.startswith("distributions/") and len(PurePosixPath(name).parts) == 2 and name.endswith((".whl", ".tar.gz"))):
-                raise ValueError("archive contains a forbidden file")
-            if digest(bundle.read(f"{prefix}/{name}")) != checksum:
-                raise ValueError("archive content checksum mismatch")
-        for entry in entries:
+    from io import BytesIO
+    from product_strategy_agent.adapters.distribution.release_archive import checked_archive
+    raw, _manifest_raw, _manifest, prefix, _distributions = checked_archive(archive)
+    with zipfile.ZipFile(BytesIO(raw)) as bundle:
+        for entry in bundle.infolist():
             target = destination.joinpath(*PurePosixPath(entry.filename).parts)
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(bundle.read(entry))

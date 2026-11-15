@@ -395,3 +395,66 @@ R4 начат техническим срезом; R3 новый разрешё�
 Подготовлен docs/solution_plans/production-readiness.md: P0–P9/dependencies/DoD/risks/capability matrix, сохраняя IDE-native/file-only/CLI-FastMCP и opt-in последовательный fallback. Контракт docs/automation-contracts.md реализован отдельными domain/automation modules: bounded packets, roles/excerpts/hash, task/result binding, nullable usage и reported-budget guards; hook triggers/targets/request binding/mandatory failure policy. Никакого runtime dispatcher/executor/native activation и actual resource enforcement пока нет. UUID/snapshot/role/permissions от untrusted input не дают human approval.
 
 Коммиты: 39450f0 — план/спецификация; 69c31b3 — модели/guards/12 tests; 224a1f3 — strict JSON boundary regression; заключительный docs/report commit обновляет статусы и timestamp. Проверки: final targeted12, 0.020 s, OK; final clean base12, 0.025 s, OK; existing base completed/reopen/reapprove/copy/resume OK, model_calls0. Ruff/sync9/docs205/repository history и native Gitleaks 8.30.1 history/tree/negative probes — OK. Full suite не повторялся для не подключённых к runtime domain modules; meaningful tests проверяют negative boundaries и baseline smoke. Далее P1 snapshot/handoff service + role instructions + read-only CLI/MCP preparation, затем P2/P3/P4. R1/M6/M8 не закрыты. Кейсы/БД/.env не читались/не менялись; agents/hooks/models/API не запускались. [Отчёт](2026-11-14-r31-automation-contracts.md).
+
+
+## 15.11.2026 17:21 (Asia/Novosibirsk) — R3.1/P1: read-only handoffs завершены
+
+Завершён начатый 14.11 P1: versioned research/evidence/critic profiles с canon sync; coherent selected-material snapshot и provenance/ranges; HandoffService/port/readers, CLI subagent prepare и FastMCP psa_prepare_subagent. Пакет не запускает/не сохраняет задачи и не пишет в канон. Role/selection hashes связаны с task fingerprint; source lifecycle/hash, Unicode/CRLF, limits и shared pending/busy guards проверены. Диагностика не отражает validation input values. Кодовые commits b7939ae / 2bd617d / 51f54d2 / d46a8c4 сохранены, заключительный docs/report commit обновляет runbook и планы P1 complete / P2 next.
+
+Финальные проверки заново после перерыва: 34 tests, 19.088 s, OK (P1/P0/instruction sync/real CLI-MCP); clean base14, 7.562 s, OK (1 MCP-extra skip), existing base completed/reopen/reapprove/copy/resume OK, model_calls0. Ruff/sync9/docs210/repository history, git diff --check и native Gitleaks 8.30.1 history/tree/negative probes — OK. Общий full suite не повторялся; реальных субагентов/моделей/hooks/native hosts не запускали. R1/M6/M8 открыты. Рабочие кейсы/секреты/.env не читались/не менялись. Далее P2 result journal/provenance/current-input checks и replay/conflict, затем P3 hooks/P4 native adapters. [Отчёт](2026-11-15-r31-subagent-handoffs.md).
+
+
+## 15.11.2026 17:54 (Asia/Novosibirsk) — R3.1/P2: task/result/review journal
+
+Реализованы immutable isolated records, parent/snapshot/budget guards, exact historical replay и явное pending/recovery. CLI и восемь FastMCP tools используют общее файловое ядро; result review не меняет канон и не подменяет human semantic acceptance. Crash/copy tests подтверждают восстановление шести границ публикации без потери последующих writes; прежние human reviews сохраняют силу. Коммиты c639c25 / a8cd37f / 077f2e4; заключительный docs commit обновляет runbook/планы.
+
+Проверки: P2 12 (33.001 s), P1 14 (13.995 s), P0 12 (0.018 s) — OK; clean base12 (26.607 s, 1 MCP skip), base completed/reopen/reapprove/copy/resume OK, model_calls0. Ruff/sync9/docs/secret history/tree/negative probes и diff checks OK. Full suite не повторялся. Native execution/enforcement не реализованы, agents/hooks/models не запускались; R1/M6/M8 открыты. Далее P3 local hooks. [Отчёт](2026-11-15-r31-subagent-journal.md).
+
+
+## 15.11.2026 18:02 (Asia/Novosibirsk) — R3.1/P3a: явный gate preflight
+
+Добавлены read-only strategy/validation preflight, coherent hash/version/shared lock, фиксированные существующие checks, stale/recursion guards и безопасная диагностика. CLI prepare/check и FastMCP psa_prepare_hook/psa_check_hook имеют real-stdio parity; blocked/failed CLI exit1. Passed не подменяет human semantic review/gate, что проверено на обоих этапах. Коммиты 3b0d405 / 04ac679; итоговый docs commit фиксирует runbook и планы.
+
+Проверки: P3a12 (22.831 s), P2 regression12 (33.803 s), P0 contracts12 (0.021 s), P1 CLI/stdio2 (8.837 s) — OK; clean base12 (13.959 s, 1 MCP skip), base smoke completed/copy/reopen/reapprove OK, model_calls0. Ruff/sync9/docs/secret history/tree/negative probes и diff checks OK. Full suite не повторялся. P3 ещё открыт: timeout/lifecycle/replay, notifications и release checks впереди; native activation выключена, R1/M6/M8 открыты. Рабочие кейсы/секреты не изменялись. [Отчёт](2026-11-15-r31-hook-preflight.md).
+
+
+## 15.11.2026 18:15 (Asia/Novosibirsk) — R3.1/P3b: bounded hook execution/journal
+
+Реализованы fixed worker с process timeout/watchdog, durable intent/completion, UUID/request/timeout conflicts, explicit recovery без повторного исполнения и historical replay с required_check_passed=false. CLI run/show/pending/recover и четыре FastMCP tools используют общие services; live check P3a сохранён. Current snapshot проверяется перед запуском и публикацией, gate/semantic approval не выдаётся. Коммиты 5952617 / a9862b1 / f844303; итоговый docs commit обновляет план и runbook.
+
+Проверки: P3b11 (56.145 s), финальные core8 (29.817 s)/stdio2 (16.434 s), P3a12 (22.002 s), P012 (0.020 s) — OK; clean base11 (44.138 s, 1 MCP skip), base smoke completed/copy/reopen/reapprove OK, model_calls0. Fresh MCP worker, timeout/watchdog и три kill/copy boundaries проверены. Ruff/sync9/docs/native secret history/tree/negative probes и diff checks OK. Full suite не повторялся. P3 source notifications/release checks впереди; native activation выключена, R1/M6/M8 открыты. Рабочие кейсы/секреты не изменялись. [Отчёт](2026-11-15-r31-hook-runs.md).
+
+
+## 15.11.2026 18:27 (Asia/Novosibirsk) — R3.1/P3c: source revision notifications
+
+Добавлены bounded source notice поверх существующего revisit, отдельные port/service/reader, явные CLI prepare-notification/FastMCP prepare + общий worker/run journal. notification_delivered отделён от required_check_passed; domain helper запрещает source notices как required checks. Ошибка не откатывает committed import, не закрывает human review и не утверждает gate. Captured-copy recovery остаётся historical без delivery. Коммиты eb9971c / 89be4a7; итоговый docs commit обновляет план/runbook.
+
+Проверки: source11 (52.429 s), before-gate runtime11 (118.830 s), P012 (0.033 s) — OK; clean base11 (34.956 s, 1 MCP skip), base smoke completed/copy/reopen/reapprove OK, model_calls0. Ruff/sync9/docs/native secret checks и diff checks OK. Full suite не повторялся. P3 release checks впереди; auto activation выключена, R1/M6/M8 открыты. Рабочие данные/секреты не изменялись. [Отчёт](2026-11-15-r31-source-notifications.md).
+
+
+## 15.11.2026 18:43 (Asia/Novosibirsk) — R3.1/P3d: offline release hooks
+
+Общие allowlist/required files и bounded archive inspector подключены к package/verifier; добавлены port/service/ReleaseRun, fixed read-only worker и CLI/FastMCP prepare-release/check-release. Hash/schema/SHA256SUMS/external assets, dirty/stale/tampering и безопасные paths проверяются без исполнения архива, установки или публикации. Release check live/stateless, case journal не меняется. Коммиты bd6be92 / ebb430d / 370ee65; итоговый docs commit сохраняет runbook и планы.
+
+Проверки: release10 (27.056 s), distribution5 (1.127 s), P012 (0.032 s), прежний CLI/stdio2 (25.120 s) — OK; clean base10 (11.054 s, 1 MCP skip). Реальная offline clean-commit сборка370ee65, bounded hook passed, затем отдельный full wheel/sdist install/demo/base verifier OK, model_calls0. Ruff/sync9/docs/native secret history/tree/negative probes/diff OK. Full unit suite не повторялся. Локальный P3 реализован; далее P4 capability/adapters/fallback, R3.1 и R1/M6/M8 открыты. Tag/draft/publish и native activation не выполнялись, рабочие данные/секреты не изменялись. [Отчёт](2026-11-15-r31-release-hooks.md).
+
+
+## 15.11.2026 18:56 (Asia/Novosibirsk) — R3.1/P4a: host matrix и fallback plans
+
+Добавлены canonical schema1/catalog1.0.0 profiles пяти IDE с all-native not_verified, strict scoped plans и bounded reader. Native request предлагает последовательный fallback без activation/config writes/execution/permissions; наличие instruction files отделено от host loading. CLI host list/inspect/plan и три read-only FastMCP tools имеют real-stdio parity. Canon sync пересобрал9 adapters; host catalog не autoload в case context. Коммиты ad9f2cf / 99dc876 / 1fbe8ff; заключительный docs commit обновляет runbook/планы.
+
+Проверки: host9 (14.113 s), context8 (5.443 s), P012 (0.030 s) — OK; clean base9 (3.123 s, 1 MCP skip), base completed/copy/reopen/reapprove OK, model_calls0. Ruff/sync9/docs/native secret history/tree/negative probes/diff OK; full suite не повторялся. P4 открыт: далее evidence/config previews, затем проверенные native adapters/activation/migration. Native/live R1/M6/M8 не закрыты, реальные IDE settings и рабочие данные не изменялись. [Отчёт](2026-11-15-r31-host-profiles.md).
+
+
+## 15.11.2026 19:13 (Asia/Novosibirsk) — R3.1/P4b: evidence-bound host observations
+
+Добавлены scoped acceptance task/checklist, bounded selected evidence capture и immutable private journal с pending/recovery/historical replay. CLI acceptance-prepare/record/show/pending/recover и пять FastMCP tools используют общее ядро. Records всегда recorded_not_verified и native_activation_allowed=false; matrix P4a не повышает capabilities по self-reported passes. Native tests/config changes не запускались. Коммиты184aa31 /920b230 /1287745; итоговый docs commit обновляет runbook/планы.
+
+Проверки: acceptance10 (22.643 s), P4a9 (14.598 s), P012 (0.037 s) — OK; clean base10 (11.081 s,1 MCP skip), base completed/copy/reopen/reapprove OK,model_calls0. Три process-kill/copy boundaries и сохранность later instructions проверены. Ruff/sync9/docs/native secrets/diff OK; full suite не повторялся. P4 открыт: далее review/adoption/config previews; R3.1/R1/M6/M8 открыты. Рабочие данные/секреты не изменялись. [Отчёт](2026-11-15-r31-host-observations.md).
+
+
+## 15.11.2026 19:33 (Asia/Novosibirsk) — R3.1/P4c: report review и disabled Codex preview
+
+Добавлены exact report/evidence/checklist binding, immutable review journal/recovery и explicit preview-only adoption. Codex MCP renderer возвращает TOML enabled=false с existing absolute interpreter/fixed module/readonly tool allowlist; bootstrap и выбранный review отделены, native flags false, existing configs не читаются/не меняются. CLI/MCP parity проверена. Формат сверён с официальными OpenAI docs через openai-docs; native acceptance не выполнялась. Коммиты8827879 /987a58e /7df38bb /b7db5a7; итоговый docs commit обновляет планы.
+
+Проверки: review/preview9 (22.622 s), observation10 (21.980 s), P012 (0.048 s) — OK; clean base9 (11.663 s,1 MCP skip), base completed/copy/reopen/reapprove OK,model_calls0. Три kill/copy boundaries и parent validation проверены. Ruff/sync9/docs/native secrets/diff OK; full suite не повторялся. P4 открыт: далее config lifecycle и native acceptance; R3.1/R1/M6/M8 открыты, live IDE отсрочка сохранена. [Отчёт](2026-11-15-r31-host-review-preview.md).

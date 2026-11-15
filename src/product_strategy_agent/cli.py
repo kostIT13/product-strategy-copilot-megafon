@@ -43,6 +43,8 @@ from product_strategy_agent.application.services.claim_lifecycle_service import 
 from product_strategy_agent.adapters.persistence.files.workflow_repository import FileWorkflowStore
 from product_strategy_agent.interfaces.cli.claim_correction_commands import add_claim_correction_command, handle_claim_correction_command
 from product_strategy_agent.interfaces.cli.subagent_commands import add_subagent_commands, handle_subagent_command
+from product_strategy_agent.interfaces.cli.hook_commands import add_hook_commands, handle_hook_command
+from product_strategy_agent.interfaces.cli.host_commands import add_host_commands, handle_host_command
 
 STAGES = (
     "intake",
@@ -98,6 +100,8 @@ def build_parser() -> argparse.ArgumentParser:
     add_semantic_review_commands(commands)
     add_quality_policy_commands(commands)
     add_subagent_commands(commands)
+    add_hook_commands(commands)
+    add_host_commands(commands)
 
     doctor = commands.add_parser("doctor", help="check Python, templates, and optional local configuration")
     doctor.add_argument("--json", action="store_true", help="print a JSON diagnostic report")
@@ -315,6 +319,12 @@ def main() -> None:
             return
         if args.command == "subagent":
             handle_subagent_command(args)
+            return
+        if args.command == "hook":
+            handle_hook_command(args)
+            return
+        if args.command == "host":
+            handle_host_command(args)
             return
         if args.command == "promise":
             handle_file_promise_command(args)

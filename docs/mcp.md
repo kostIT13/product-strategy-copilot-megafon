@@ -55,6 +55,7 @@ Use the Python executable from the environment where `product-strategy-agent[mcp
 - `psa_quality_policy`, `psa_enable_quality_policy` — [quality policy](quality-policy.md): read-only inspection and explicit snapshot-bound legacy enablement; new cases require reviews by default
 - `psa_check_calculations` — [authored arithmetic](calculation-check.md): current citations, explicit ratios/percent/points/change, units/context/rounding; no inferred effect or approval
 - `psa_numeric_inventory` — [raw digit inventory](numeric-inventory.md) трёх authored drafts с координатами/context/hashes; read-only, все вхождения unassessed, numeric coverage не подтверждается
+- `psa_prepare_subagent` — [bounded handoff preparation](subagent-handoffs.md): явный request/role/budget/selected material, read-only packet; без модели/dispatch/записи approval
 
 `psa_fetch_source` performs a network request only when explicitly called. Tools write only inside the selected project workspace, except for caller-supplied input/output paths. The server has no delete, shell, or arbitrary command tool.
 
@@ -63,3 +64,27 @@ Use the Python executable from the environment where `product-strategy-agent[mcp
 ## Current limits
 
 MCP is optional and the core CLI has no MCP dependency. The adapter is stdio-only; it does not start an HTTP service. FastMCP is constrained to major version 4; the default setup remains dependency-free. Host compatibility still needs a live connection check in each target IDE before relying on that host for a demo.
+
+
+P2: [изолированный журнал субагентных задач](subagent-journal.md): `psa_register_subagent`, `psa_record_subagent_result`, `psa_review_subagent_result`, инспекция `psa_subagent_task/result/review/pending` и явный `psa_recover_subagent_record`. Записи не запускают модель и не предоставляют human approval. Только четыре инспекционных tools read-only; register/result/review/recovery записывают локальные артефакты.
+
+
+P3a: [явный локальный hook preflight](hook-preflight.md): read-only `psa_prepare_hook` и `psa_check_hook` перед strategy/validation gate. Passed не даёт human approval; blocked/failed требуют остановить продолжение. Повтор — живая проверка, не durable receipt; Process timeout/journal реализованы отдельно в P3b; notifications/release dispatcher ещё впереди.
+
+
+P3b: [bounded run и journal](hook-runs.md): `psa_run_hook`, `psa_hook_run`, `psa_hook_pending`, `psa_recover_hook_run`. Run/recovery пишут локальные артефакты; inspection read-only. Historical replay всегда required_check_passed=false, даже при прежнем passed. Реальный timeout/watchdog без модели/сети/shell; human gates не утверждаются.
+
+
+P3c: [source notifications](source-notifications.md): read-only `psa_prepare_source_notification`, затем `psa_run_hook` с source_revision. `notification_delivered` сообщает новую current доставку; required_check_passed всегда false. Pending revisions остаются для человека; ошибка не откатывает committed import. Автоматическая активация выключена.
+
+
+P3d: [release checks](release-hooks.md): read-only `psa_prepare_release_hook` и `psa_check_release_hook`. Archive path — явная конфигурация, packet содержит manifest hash. Live recheck с timeout, без cached pass, установки, тега/draft/публикации; pass только статической целостности.
+
+
+P4a: [host profiles/planning](host-profiles.md): read-only `psa_host_matrix`, `psa_host_profile`, `psa_plan_host`. Наличие instruction files не означает host_loading_verified. Native request возвращает fallback_required; никакой activation, config writes или отправки данных.
+
+
+P4b: [host observations](host-observations.md): prepare/show/pending read-only, explicit `psa_record_host_acceptance`/`psa_recover_host_acceptance` пишут локальный ignored journal. Task hashes/scope/evidence refs связаны; records recorded_not_verified и native_activation_allowed=false даже при reported passes. Raw evidence text в response не возвращается.
+
+
+P4c: [host review/disabled preview](host-review-preview.md): prepare/show/pending/preview read-only; record/recovery пишут только local review journal. `psa_preview_codex_mcp` возвращает TOML enabled=false, без чтения/записи live config. Четыре inspection tools в его allowlist имеют явные readOnly annotations; actual native capability не подтверждается.

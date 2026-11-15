@@ -22,6 +22,8 @@ backups/
 *.sqlite3
 .psa-locks/
 .psa-staging/
+.psa/host-acceptance/
+.psa/host-evidence/
 
 # Local project source material
 projects/*/sources/
