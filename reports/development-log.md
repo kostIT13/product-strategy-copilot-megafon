@@ -430,3 +430,10 @@ R4 начат техническим срезом; R3 новый разрешё�
 Добавлены bounded source notice поверх существующего revisit, отдельные port/service/reader, явные CLI prepare-notification/FastMCP prepare + общий worker/run journal. notification_delivered отделён от required_check_passed; domain helper запрещает source notices как required checks. Ошибка не откатывает committed import, не закрывает human review и не утверждает gate. Captured-copy recovery остаётся historical без delivery. Коммиты eb9971c / 89be4a7; итоговый docs commit обновляет план/runbook.
 
 Проверки: source11 (52.429 s), before-gate runtime11 (118.830 s), P012 (0.033 s) — OK; clean base11 (34.956 s, 1 MCP skip), base smoke completed/copy/reopen/reapprove OK, model_calls0. Ruff/sync9/docs/native secret checks и diff checks OK. Full suite не повторялся. P3 release checks впереди; auto activation выключена, R1/M6/M8 открыты. Рабочие данные/секреты не изменялись. [Отчёт](2026-11-15-r31-source-notifications.md).
+
+
+## 15.11.2026 18:43 (Asia/Novosibirsk) — R3.1/P3d: offline release hooks
+
+Общие allowlist/required files и bounded archive inspector подключены к package/verifier; добавлены port/service/ReleaseRun, fixed read-only worker и CLI/FastMCP prepare-release/check-release. Hash/schema/SHA256SUMS/external assets, dirty/stale/tampering и безопасные paths проверяются без исполнения архива, установки или публикации. Release check live/stateless, case journal не меняется. Коммиты bd6be92 / ebb430d / 370ee65; итоговый docs commit сохраняет runbook и планы.
+
+Проверки: release10 (27.056 s), distribution5 (1.127 s), P012 (0.032 s), прежний CLI/stdio2 (25.120 s) — OK; clean base10 (11.054 s, 1 MCP skip). Реальная offline clean-commit сборка370ee65, bounded hook passed, затем отдельный full wheel/sdist install/demo/base verifier OK, model_calls0. Ruff/sync9/docs/native secret history/tree/negative probes/diff OK. Full unit suite не повторялся. Локальный P3 реализован; далее P4 capability/adapters/fallback, R3.1 и R1/M6/M8 открыты. Tag/draft/publish и native activation не выполнялись, рабочие данные/секреты не изменялись. [Отчёт](2026-11-15-r31-release-hooks.md).

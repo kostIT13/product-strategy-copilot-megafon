@@ -31,3 +31,8 @@ release.yml запускается по тегу v* или вручную. Пе�
 ## Базовая проверка без runtime extras
 
 В изолированном base environment выполните `python -m scripts.ci.base_smoke`. Сценарий отклоняет окружения с SQL/model/parser/MCP extras, создаёт только временный синтетический кейс, проходит workflow до completed, проверяет promise/evidence/render и продолжение после копирования. Пользовательские данные не используются. Эта механическая проверка не заменяет live IDE acceptance или оценку пользы.
+
+
+## Явный release hook
+
+[Офлайн P3d checker](release-hooks.md) доступен через CLI/FastMCP: manifest/archive/SHA256SUMS/allowlist, dirty/stale checks и fixed worker с timeout. Он не запускает clean install и ничего не публикует. Общий checked_archive используется verifier перед распаковкой; полная install/demo проверка остаётся отдельной командой выше.

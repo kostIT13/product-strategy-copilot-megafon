@@ -76,3 +76,6 @@ P3b: [bounded run и journal](hook-runs.md): `psa_run_hook`, `psa_hook_run`, `ps
 
 
 P3c: [source notifications](source-notifications.md): read-only `psa_prepare_source_notification`, затем `psa_run_hook` с source_revision. `notification_delivered` сообщает новую current доставку; required_check_passed всегда false. Pending revisions остаются для человека; ошибка не откатывает committed import. Автоматическая активация выключена.
+
+
+P3d: [release checks](release-hooks.md): read-only `psa_prepare_release_hook` и `psa_check_release_hook`. Archive path — явная конфигурация, packet содержит manifest hash. Live recheck с timeout, без cached pass, установки, тега/draft/публикации; pass только статической целостности.

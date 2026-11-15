@@ -39,4 +39,4 @@ Intent/result journal, limits, historical replay и recovery сохраняют 
 
 FastMCP: `psa_prepare_source_notification(project_id, operation_id, projects_dir)` read-only, затем существующий `psa_run_hook(request, timeout_seconds, projects_dir)`. Инспекция — psa_hook_run/pending, восстановление — psa_recover_hook_run. CLI/настоящий stdio, initial-vs-revision, human-review isolation, failure и copy/recovery проверяются на временных синтетических fixtures, без внешних моделей и сообщений.
 
-P3 ещё не завершён: далее release checks без публикации. Native activation/host acceptance относятся к P4; R1/M6/M8 открыты. Автоматический event dispatcher при импорте и native hooks не заявляются реализованными.
+[P3d release checks](release-hooks.md) реализован отдельно без публикации. Локальные механизмы P3 готовы; далее P4 host adapters/fallback. Native activation/host acceptance относятся к P4; R1/M6/M8 открыты. Автоматический event dispatcher при импорте и native hooks не заявляются реализованными.
