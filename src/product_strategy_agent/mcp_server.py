@@ -22,6 +22,9 @@ from product_strategy_agent.adapters.persistence.files.workflow_guard import req
 from product_strategy_agent.adapters.persistence.files.case_access import case_access
 
 
+READ_LOCAL = {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False}
+
+
 def create_server() -> Any:
     try:
         from fastmcp import FastMCP
@@ -73,6 +76,8 @@ def create_server() -> Any:
     register_host_tools(server)
     from product_strategy_agent.interfaces.mcp.host_acceptance_tools import register_host_acceptance_tools
     register_host_acceptance_tools(server)
+    from product_strategy_agent.interfaces.mcp.host_review_tools import register_host_review_tools
+    register_host_review_tools(server)
     from product_strategy_agent.interfaces.mcp.semantic_review_tools import register_semantic_review_tools
     register_semantic_review_tools(server)
     from product_strategy_agent.interfaces.mcp.quality_policy_tools import register_quality_policy_tools
@@ -105,7 +110,7 @@ def create_server() -> Any:
         except OSError:
             raise ToolError("workspace preparation failed; inspect psa workspace pending before retrying") from None
 
-    @server.tool()
+    @server.tool(annotations=READ_LOCAL)
     def psa_status(project_id: str, projects_dir: str = "projects") -> dict[str, Any]:
         """Read the current workflow stage, next action, and pending questions."""
         state = load_state(project_id, Path(projects_dir))
@@ -203,7 +208,7 @@ def create_server() -> Any:
         return add_capability(workspace(project_id, projects_dir), name, status, claim_ids,
                               operation_id=operation_id, expected_workflow_version=expected_workflow_version)
 
-    @server.tool()
+    @server.tool(annotations=READ_LOCAL)
     def psa_coverage(project_id: str, projects_dir: str = "projects") -> dict[str, Any]:
         """Check authored strategy paragraphs for claims, hypotheses, questions, and supported commitments."""
         return coverage_report(workspace(project_id, projects_dir))
@@ -249,13 +254,13 @@ def create_server() -> Any:
                              operation_id=operation_id, expected_workflow_version=expected_workflow_version,
                              semantic_review_operation=semantic_review_operation)
 
-    @server.tool()
+    @server.tool(annotations=READ_LOCAL)
     def psa_validate(project_id: str, projects_dir: str = "projects") -> dict[str, Any]:
         """Validate project schemas, registries, IDs, and cross-references."""
         errors = validate_project(workspace(project_id, projects_dir))
         return {"ok": not errors, "errors": errors}
 
-    @server.tool()
+    @server.tool(annotations=READ_LOCAL)
     def psa_verify(project_id: str, projects_dir: str = "projects") -> dict[str, Any]:
         """Verify source hashes and exact quotations against locally extracted text."""
         errors, warnings = verify_project(workspace(project_id, projects_dir))

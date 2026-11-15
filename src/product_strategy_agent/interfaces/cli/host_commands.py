@@ -1,6 +1,10 @@
 """Read-only host inspection and plan; does not alter IDE configurations."""
 
 import json
+from product_strategy_agent.interfaces.cli.host_review_commands import (
+    add_review_actions,
+    handle_review_command,
+)
 from pathlib import Path
 from product_strategy_agent.interfaces.host_profiles import (
     host_profiles,
@@ -43,9 +47,12 @@ def add_host_commands(commands):
             action.add_argument("--operation", type=UUID, required=True)
         if name == "acceptance-record":
             action.add_argument("--evidence-dir", type=Path, required=True)
+    add_review_actions(actions)
 
 
 def handle_host_command(args):
+    if args.host_action.startswith("review-") or args.host_action == "preview-codex":
+        return handle_review_command(args)
     if args.host_action.startswith("acceptance-"):
         return handle_acceptance(args)
     service = host_profiles(args.instructions_root)
