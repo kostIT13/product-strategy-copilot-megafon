@@ -444,3 +444,10 @@ R4 начат техническим срезом; R3 новый разрешё�
 Добавлены canonical schema1/catalog1.0.0 profiles пяти IDE с all-native not_verified, strict scoped plans и bounded reader. Native request предлагает последовательный fallback без activation/config writes/execution/permissions; наличие instruction files отделено от host loading. CLI host list/inspect/plan и три read-only FastMCP tools имеют real-stdio parity. Canon sync пересобрал9 adapters; host catalog не autoload в case context. Коммиты ad9f2cf / 99dc876 / 1fbe8ff; заключительный docs commit обновляет runbook/планы.
 
 Проверки: host9 (14.113 s), context8 (5.443 s), P012 (0.030 s) — OK; clean base9 (3.123 s, 1 MCP skip), base completed/copy/reopen/reapprove OK, model_calls0. Ruff/sync9/docs/native secret history/tree/negative probes/diff OK; full suite не повторялся. P4 открыт: далее evidence/config previews, затем проверенные native adapters/activation/migration. Native/live R1/M6/M8 не закрыты, реальные IDE settings и рабочие данные не изменялись. [Отчёт](2026-11-15-r31-host-profiles.md).
+
+
+## 15.11.2026 19:13 (Asia/Novosibirsk) — R3.1/P4b: evidence-bound host observations
+
+Добавлены scoped acceptance task/checklist, bounded selected evidence capture и immutable private journal с pending/recovery/historical replay. CLI acceptance-prepare/record/show/pending/recover и пять FastMCP tools используют общее ядро. Records всегда recorded_not_verified и native_activation_allowed=false; matrix P4a не повышает capabilities по self-reported passes. Native tests/config changes не запускались. Коммиты184aa31 /920b230 /1287745; итоговый docs commit обновляет runbook/планы.
+
+Проверки: acceptance10 (22.643 s), P4a9 (14.598 s), P012 (0.037 s) — OK; clean base10 (11.081 s,1 MCP skip), base completed/copy/reopen/reapprove OK,model_calls0. Три process-kill/copy boundaries и сохранность later instructions проверены. Ruff/sync9/docs/native secrets/diff OK; full suite не повторялся. P4 открыт: далее review/adoption/config previews; R3.1/R1/M6/M8 открыты. Рабочие данные/секреты не изменялись. [Отчёт](2026-11-15-r31-host-observations.md).

@@ -82,3 +82,6 @@ P3d: [release checks](release-hooks.md): read-only `psa_prepare_release_hook` и
 
 
 P4a: [host profiles/planning](host-profiles.md): read-only `psa_host_matrix`, `psa_host_profile`, `psa_plan_host`. Наличие instruction files не означает host_loading_verified. Native request возвращает fallback_required; никакой activation, config writes или отправки данных.
+
+
+P4b: [host observations](host-observations.md): prepare/show/pending read-only, explicit `psa_record_host_acceptance`/`psa_recover_host_acceptance` пишут локальный ignored journal. Task hashes/scope/evidence refs связаны; records recorded_not_verified и native_activation_allowed=false даже при reported passes. Raw evidence text в response не возвращается.
