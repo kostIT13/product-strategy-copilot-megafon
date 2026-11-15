@@ -409,3 +409,10 @@ R4 начат техническим срезом; R3 новый разрешё�
 Реализованы immutable isolated records, parent/snapshot/budget guards, exact historical replay и явное pending/recovery. CLI и восемь FastMCP tools используют общее файловое ядро; result review не меняет канон и не подменяет human semantic acceptance. Crash/copy tests подтверждают восстановление шести границ публикации без потери последующих writes; прежние human reviews сохраняют силу. Коммиты c639c25 / a8cd37f / 077f2e4; заключительный docs commit обновляет runbook/планы.
 
 Проверки: P2 12 (33.001 s), P1 14 (13.995 s), P0 12 (0.018 s) — OK; clean base12 (26.607 s, 1 MCP skip), base completed/reopen/reapprove/copy/resume OK, model_calls0. Ruff/sync9/docs/secret history/tree/negative probes и diff checks OK. Full suite не повторялся. Native execution/enforcement не реализованы, agents/hooks/models не запускались; R1/M6/M8 открыты. Далее P3 local hooks. [Отчёт](2026-11-15-r31-subagent-journal.md).
+
+
+## 15.11.2026 18:02 (Asia/Novosibirsk) — R3.1/P3a: явный gate preflight
+
+Добавлены read-only strategy/validation preflight, coherent hash/version/shared lock, фиксированные существующие checks, stale/recursion guards и безопасная диагностика. CLI prepare/check и FastMCP psa_prepare_hook/psa_check_hook имеют real-stdio parity; blocked/failed CLI exit1. Passed не подменяет human semantic review/gate, что проверено на обоих этапах. Коммиты 3b0d405 / 04ac679; итоговый docs commit фиксирует runbook и планы.
+
+Проверки: P3a12 (22.831 s), P2 regression12 (33.803 s), P0 contracts12 (0.021 s), P1 CLI/stdio2 (8.837 s) — OK; clean base12 (13.959 s, 1 MCP skip), base smoke completed/copy/reopen/reapprove OK, model_calls0. Ruff/sync9/docs/secret history/tree/negative probes и diff checks OK. Full suite не повторялся. P3 ещё открыт: timeout/lifecycle/replay, notifications и release checks впереди; native activation выключена, R1/M6/M8 открыты. Рабочие кейсы/секреты не изменялись. [Отчёт](2026-11-15-r31-hook-preflight.md).

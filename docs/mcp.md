@@ -67,3 +67,6 @@ MCP is optional and the core CLI has no MCP dependency. The adapter is stdio-onl
 
 
 P2: [изолированный журнал субагентных задач](subagent-journal.md): `psa_register_subagent`, `psa_record_subagent_result`, `psa_review_subagent_result`, инспекция `psa_subagent_task/result/review/pending` и явный `psa_recover_subagent_record`. Записи не запускают модель и не предоставляют human approval. Только четыре инспекционных tools read-only; register/result/review/recovery записывают локальные артефакты.
+
+
+P3a: [явный локальный hook preflight](hook-preflight.md): read-only `psa_prepare_hook` и `psa_check_hook` перед strategy/validation gate. Passed не даёт human approval; blocked/failed требуют остановить продолжение. Повтор — живая проверка, не durable receipt; timeout/notifications/release dispatcher ещё не реализованы.
