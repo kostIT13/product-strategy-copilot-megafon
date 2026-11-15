@@ -38,6 +38,7 @@ class InstructionContextTests(unittest.TestCase):
             self.assertTrue(sync(root)["ok"])
             packet = instruction_context(project, root)
             self.assertFalse(any(row["path"].startswith("agent/roles/") for row in packet["instructions"]))
+            self.assertFalse(any(row["path"].startswith("agent/hosts/") for row in packet["instructions"]))
             self.assertFalse(packet["host_loading_verified"])
 
     def test_stage_selects_full_versioned_materials_without_writes(self):
@@ -127,7 +128,7 @@ class InstructionContextTests(unittest.TestCase):
             self.assertEqual(packet, instruction_context(project, ROOT))
 
     def test_distribution_allows_only_intended_hidden_instruction_files(self):
-        for path in ("AGENTS.md", "CLAUDE.md", "agent/harness.json", ".agents/skills/psa-research/SKILL.md",
+        for path in ("AGENTS.md", "CLAUDE.md", "agent/harness.json", "agent/hosts/catalog.json", ".agents/skills/psa-research/SKILL.md",
                      ".claude/skills/psa-research/SKILL.md", ".cursor/rules/product-strategy.mdc", ".codex/README.md"):
             self.assertTrue(allowed(path), path)
         for path in (".codex/auth.json", ".claude/settings.local.json", ".agents/.env", ".cursor/mcp.json"):
