@@ -416,3 +416,10 @@ R4 начат техническим срезом; R3 новый разрешё�
 Добавлены read-only strategy/validation preflight, coherent hash/version/shared lock, фиксированные существующие checks, stale/recursion guards и безопасная диагностика. CLI prepare/check и FastMCP psa_prepare_hook/psa_check_hook имеют real-stdio parity; blocked/failed CLI exit1. Passed не подменяет human semantic review/gate, что проверено на обоих этапах. Коммиты 3b0d405 / 04ac679; итоговый docs commit фиксирует runbook и планы.
 
 Проверки: P3a12 (22.831 s), P2 regression12 (33.803 s), P0 contracts12 (0.021 s), P1 CLI/stdio2 (8.837 s) — OK; clean base12 (13.959 s, 1 MCP skip), base smoke completed/copy/reopen/reapprove OK, model_calls0. Ruff/sync9/docs/secret history/tree/negative probes и diff checks OK. Full suite не повторялся. P3 ещё открыт: timeout/lifecycle/replay, notifications и release checks впереди; native activation выключена, R1/M6/M8 открыты. Рабочие кейсы/секреты не изменялись. [Отчёт](2026-11-15-r31-hook-preflight.md).
+
+
+## 15.11.2026 18:15 (Asia/Novosibirsk) — R3.1/P3b: bounded hook execution/journal
+
+Реализованы fixed worker с process timeout/watchdog, durable intent/completion, UUID/request/timeout conflicts, explicit recovery без повторного исполнения и historical replay с required_check_passed=false. CLI run/show/pending/recover и четыре FastMCP tools используют общие services; live check P3a сохранён. Current snapshot проверяется перед запуском и публикацией, gate/semantic approval не выдаётся. Коммиты 5952617 / a9862b1 / f844303; итоговый docs commit обновляет план и runbook.
+
+Проверки: P3b11 (56.145 s), финальные core8 (29.817 s)/stdio2 (16.434 s), P3a12 (22.002 s), P012 (0.020 s) — OK; clean base11 (44.138 s, 1 MCP skip), base smoke completed/copy/reopen/reapprove OK, model_calls0. Fresh MCP worker, timeout/watchdog и три kill/copy boundaries проверены. Ruff/sync9/docs/native secret history/tree/negative probes и diff checks OK. Full suite не повторялся. P3 source notifications/release checks впереди; native activation выключена, R1/M6/M8 открыты. Рабочие кейсы/секреты не изменялись. [Отчёт](2026-11-15-r31-hook-runs.md).
