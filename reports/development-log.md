@@ -486,3 +486,10 @@ R4 начат техническим срезом; R3 новый разрешё�
 Общий guard блокирует unsupported/mixed namespace до v1 lookup в task/hook/host/config stores. Пустая история больше не выводится из отсутствия v1 при наличии v2. Published v1 schemas сохранены; compatible copy replay и read/write/recovery refusal проверены. Upgrade/rollback policy описан в runbook; cross-schema конвертер без целевой схемы не добавлен. Коммитыeadebaa /82d3a52; итоговый docs commit фиксирует планы/отчёт.
 
 Проверки: namespace/directory7 (14.354 s), task12 (39.541 s), hook11 (59.701 s), host43 (58.171 s) —73 tests OK; clean base7 (11.950 s) и base completed/copy/resume/reopen/reapprove OK,model_calls0. Ruff/sync9/docs/native secrets/diff OK; full suite не повторялся. Все mutations только temp synthetic fixtures; реальные settings/кейсы не менялись. P5 частичный, далее P5d privacy/injection diagnostics; live/native P4 и R1/M6/M8 открыты. [Отчёт](2026-11-16-p5-journal-version-compatibility.md).
+
+
+## 16.11.2026 17:48 (Asia/Novosibirsk) — P5d: automation privacy diagnostics
+
+Fixed runtime I/O/encoding/model diagnostics для host/hook/subagent CLI и subagent MCP исключают private details; domain refusals сохранены. Existing role-catalog sanitation закреплён regression. Selected-material injection corpus не меняет role instructions/goal/authority или canonical case bytes. Коммитыb5fff83 /c95202d; итоговый docs commit фиксирует планы/runbook/отчёт.
+
+Privacy5 (13.657 s), handoffs14 (16.170 s), task12 (38.229 s), hook11 (59.191 s), host43 (57.950 s) —85 tests OK. Clean base privacy5 (5.583 s,1 MCP skip). Ruff/sync9/docs/native secrets/diff OK; full suite/base workflow smoke не повторялись. Mutations только temp synthetic fixtures, моделей/native activation не было. P5 частичный; далее P5e dependency/artifact integrity и сверка рисков перед P6. P4/R1/M6/M8 открыты. [Отчёт](2026-11-16-p5-automation-privacy.md).

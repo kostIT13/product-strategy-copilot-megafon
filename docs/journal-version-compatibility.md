@@ -37,4 +37,4 @@ Namespace не заменяет record-schema/hash/identity validators. Они �
 
 Реальная cross-schema migration потребует конкретной целевой схемы, mapping IDs/fields, отдельного migration command, dry-run, сохранения provenance/human reviews и испытания crash/rollback. Сейчас такого конвертера нет. Проверка действует в этой версии кода; она не добавляет защиту старым бинарникам задним числом. Внешняя конкурентная подмена путей и power-loss/NAS гарантии не заявлены.
 
-P5 остаётся частичным. Следующий независимый P5d — privacy/injection и безопасная диагностика на негативном корпусе. Native enable/acceptance P4 и R1/M6/M8 остаются открытыми.
+P5 остаётся частичным. [P5d privacy/injection diagnostics](automation-privacy.md) реализован; далее P5e dependency/artifact integrity и сверка оставшихся рисков перед P6. Native enable/acceptance P4 и R1/M6/M8 остаются открытыми.
