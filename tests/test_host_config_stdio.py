@@ -117,3 +117,18 @@ class ConfigStdioTests(unittest.IsolatedAsyncioTestCase):
                         {**base, "request": {**body, "action": "enable"}},
                     )
                 self.assertEqual(contents(root), before)
+                future = root / ".psa/host-config/v2"
+                future.mkdir()
+                (future / "PRIVATE-FUTURE-NAME").write_bytes(b"future journal")
+                unchanged = contents(root)
+                code, raw = cli(root, "config-audit")
+                self.assertIn("unsupported journal namespace", str(code))
+                self.assertEqual(raw, "")
+                with self.assertRaises(ToolError) as failure:
+                    await client.call_tool("psa_audit_host_config", base)
+                self.assertNotIn("PRIVATE", str(failure.exception))
+                with self.assertRaises(ToolError):
+                    await client.call_tool(
+                        "psa_apply_host_config", {**base, "request": planned["command"]}
+                    )
+                self.assertEqual(contents(root), unchanged)
