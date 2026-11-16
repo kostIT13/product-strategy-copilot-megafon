@@ -2,6 +2,9 @@
 
 import os
 from pathlib import Path
+from product_strategy_agent.adapters.persistence.files.directory_bounds import (
+    bounded_entries,
+)
 from uuid import UUID
 from product_strategy_agent.adapters.persistence.files.case_access import (
     case_access,
@@ -105,8 +108,11 @@ class FileTaskJournalStore:
         final = self._path(project_id, kind, identifier)
         pending = self._path(project_id, kind, identifier, True)
         final.parent.mkdir(parents=True, exist_ok=True)
-        if len(list(final.parent.iterdir())) >= MAX_RECORDS:
-            raise ValueError("task journal reached 1000 records; history is retained")
+        bounded_entries(
+            final.parent,
+            MAX_RECORDS - 1,
+            message="task journal reached 1000 records; history is retained",
+        )
         data = encode_record(record)
         durable_write(pending, data)
         sync_directory(pending.parent)
@@ -122,9 +128,11 @@ class FileTaskJournalStore:
             folder = self._path(project_id, kind, UUID(int=0)).parent
             if not folder.exists():
                 continue
-            paths = list(folder.iterdir())
-            if len(paths) > MAX_RECORDS:
-                raise ValueError("task journal exceeds supported history limit")
+            paths = bounded_entries(
+                folder,
+                MAX_RECORDS,
+                message="task journal exceeds supported history limit",
+            )
             for path in sorted(paths):
                 suffix = (
                     ".pending.json" if path.name.endswith(".pending.json") else ".json"

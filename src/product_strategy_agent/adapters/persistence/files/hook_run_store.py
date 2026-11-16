@@ -2,6 +2,9 @@
 
 import os
 from pathlib import Path
+from product_strategy_agent.adapters.persistence.files.directory_bounds import (
+    bounded_entries,
+)
 from uuid import UUID
 from product_strategy_agent.adapters.persistence.files.case_access import (
     case_access,
@@ -73,10 +76,11 @@ class FileHookRunStore:
             raise ValueError("hook operation already exists")
         folder = self.folder(project_id, identifier)
         folder.parent.mkdir(parents=True, exist_ok=True)
-        if len(list(folder.parent.iterdir())) >= 1000:
-            raise ValueError(
-                "hook journal reached 1000 operations; history is retained"
-            )
+        bounded_entries(
+            folder.parent,
+            999,
+            message="hook journal reached 1000 operations; history is retained",
+        )
         folder.mkdir()
         durable_write(confined(folder, "request.json"), encode(command))
         sync_directory(folder)
@@ -117,9 +121,9 @@ class FileHookRunStore:
         rows = []
         if not parent.exists():
             return {"operations": rows}
-        entries = list(parent.iterdir())
-        if len(entries) > 1000:
-            raise ValueError("hook journal exceeds 1000 operations")
+        entries = bounded_entries(
+            parent, 1000, message="hook journal exceeds 1000 operations"
+        )
         for entry in sorted(entries):
             try:
                 identifier = UUID(hex=entry.name)

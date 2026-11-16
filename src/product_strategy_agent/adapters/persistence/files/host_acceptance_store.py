@@ -2,6 +2,9 @@
 
 import os
 from pathlib import Path
+from product_strategy_agent.adapters.persistence.files.directory_bounds import (
+    bounded_entries,
+)
 from uuid import UUID
 from product_strategy_agent.adapters.persistence.files.paths import confined
 from product_strategy_agent.adapters.persistence.files.project_lock import project_lock
@@ -59,8 +62,11 @@ class FileHostAcceptanceStore:
             raise ValueError("host acceptance operation already exists")
         path = self._path(identifier, True)
         path.parent.mkdir(parents=True, exist_ok=True)
-        if len(list(path.parent.iterdir())) >= 1000:
-            raise ValueError("host acceptance reached 1000 records; history retained")
+        bounded_entries(
+            path.parent,
+            999,
+            message="host acceptance reached 1000 records; history retained",
+        )
         durable_write(path, self.encode(record))
         sync_directory(path.parent)
         self.decode(read_bounded(path, 256000), identifier)
@@ -71,9 +77,9 @@ class FileHostAcceptanceStore:
         folder = self._path(UUID(int=0)).parent
         if not folder.exists():
             return {"records": []}
-        entries = list(folder.iterdir())
-        if len(entries) > 1000:
-            raise ValueError("host acceptance exceeds supported history limit")
+        entries = bounded_entries(
+            folder, 1000, message="host acceptance exceeds supported history limit"
+        )
         rows = []
         for path in sorted(entries):
             suffix = ".pending.json" if path.name.endswith(".pending.json") else ".json"
