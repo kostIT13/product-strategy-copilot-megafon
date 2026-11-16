@@ -1,10 +1,15 @@
 """Private write-ahead config intent, active guard and exact forward recovery."""
 
 from datetime import datetime, timezone
-import json
 import os
 from pathlib import Path
 from uuid import UUID
+from product_strategy_agent.adapters.persistence.files.host_config_audit import audit
+from product_strategy_agent.adapters.persistence.files.host_config_publication import (
+    preserve,
+    publish,
+    staged,
+)
 from product_strategy_agent.adapters.persistence.files.paths import confined
 from product_strategy_agent.adapters.persistence.files.project_lock import project_lock
 from product_strategy_agent.adapters.persistence.files.source_search_repository import (
@@ -28,6 +33,9 @@ class FileHostConfigStore:
 
     def access(self):
         return project_lock(self.root, "psa-host-config")
+
+    def audit(self):
+        return audit(self)
 
     def _path(self, name):
         return confined(self.root, f"{PREFIX}/{name}")
@@ -82,6 +90,10 @@ class FileHostConfigStore:
         if not path.exists():
             return None
         body = strict_json(read_bounded(path, 4096))
+        self._validate_receipt(record, body)
+        return body
+
+    def _validate_receipt(self, record, body):
         if (
             not isinstance(body, dict)
             or set(body) != {"record_hash", "applied_at"}
@@ -94,7 +106,35 @@ class FileHostConfigStore:
                 raise ValueError("missing timezone")
         except ValueError:
             raise ValueError("config completion timestamp invalid") from None
-        return body
+
+    def _stage(self, record, name):
+        return confined(
+            self.folder(record.command.operation_id), name + ".pending.json"
+        )
+
+    def _marker(self, record, binding):
+        def validate(body):
+            if body != binding:
+                raise ValueError("config staged guard mismatch")
+
+        return publish(
+            self._path("ACTIVE.json"),
+            self._stage(record, "ACTIVE"),
+            self.folder(record.command.operation_id),
+            binding,
+            validate,
+            durable_write,
+        )
+
+    def _receipt(self, record, body):
+        return publish(
+            confined(self.folder(record.command.operation_id), "COMMITTED.json"),
+            self._stage(record, "COMMITTED"),
+            self.folder(record.command.operation_id),
+            body,
+            lambda value: self._validate_receipt(record, value),
+            durable_write,
+        )
 
     def _active(self):
         path = self._path("ACTIVE.json")
@@ -176,10 +216,13 @@ class FileHostConfigStore:
             )
             if temporary.exists():
                 if read_bounded(temporary, 64000) != record.after.encode("utf-8"):
-                    raise ValueError(
-                        "config staging bytes changed; preserve for inspection"
+                    preserve(
+                        temporary,
+                        self.folder(record.command.operation_id),
+                        64000,
+                        durable_write,
                     )
-            else:
+            if not temporary.exists():
                 durable_write(temporary, record.after.encode("utf-8"))
             os.replace(temporary, target)
         sync_directory(target.parent)
@@ -194,14 +237,20 @@ class FileHostConfigStore:
         if marker.exists() and self._active() != binding:
             raise ValueError("another config operation is active")
         if old is None:
+            captured = staged(
+                self._stage(record, "COMMITTED"),
+                lambda value: self._validate_receipt(record, value),
+            )
+            if captured is not None:
+                old = self._receipt(record, captured)
+        if old is None:
             current = digest(self.read_config())
             if current not in {digest(record.before), digest(record.after)}:
                 raise ValueError(
                     "config changed outside this operation; refusing recovery overwrite"
                 )
             if not marker.exists():
-                durable_write(marker, json.dumps(binding).encode())
-                sync_directory(marker.parent)
+                self._marker(record, binding)
             if current != digest(record.after):
                 self._replace_config(record)
             # Detect persistent unrelated writes before publishing completion.
@@ -213,11 +262,7 @@ class FileHostConfigStore:
                 "record_hash": fingerprint(record),
                 "applied_at": datetime.now(timezone.utc).isoformat(),
             }
-            durable_write(
-                confined(self.folder(record.command.operation_id), "COMMITTED.json"),
-                json.dumps(old).encode(),
-            )
-            sync_directory(self.folder(record.command.operation_id))
+            old = self._receipt(record, old)
         if marker.exists():
             marker.unlink()
             sync_directory(marker.parent)

@@ -162,6 +162,10 @@ class HostConfigService:
         with self.store.access():
             return self.store.pending()
 
+    def audit(self):
+        with self.store.access():
+            return self.store.audit()
+
     def recover(self, identifier):
         with self.store.access():
             record = self.store.load(identifier)

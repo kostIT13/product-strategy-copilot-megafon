@@ -25,13 +25,28 @@ def pause():
     while True: time.sleep(.02)
 write=module.durable_write
 def durable(path,data):
-    if point=="partial" and path.name=="operation.json":
+    if ((point=="partial" and path.name=="operation.json")
+        or (point=="partial_marker" and path.name=="ACTIVE.pending.json")
+        or (point=="partial_receipt" and path.name=="COMMITTED.pending.json")
+        or (point=="partial_config" and path.name.endswith(".tmp"))):
         with path.open("xb") as stream:
             stream.write(data[:20]);stream.flush();os.fsync(stream.fileno())
         pause()
     write(path,data)
-    if (point=="marker" and path.name=="ACTIVE.json") or (point=="receipt" and path.name=="COMMITTED.json"): pause()
+    if point=="captured_receipt" and path.name=="COMMITTED.pending.json": pause()
 module.durable_write=durable
+marker=module.FileHostConfigStore._marker
+def marking(self,record,binding):
+    result=marker(self,record,binding)
+    if point=="marker": pause()
+    return result
+module.FileHostConfigStore._marker=marking
+receipt=module.FileHostConfigStore._receipt
+def receiving(self,record,body):
+    result=receipt(self,record,body)
+    if point=="receipt": pause()
+    return result
+module.FileHostConfigStore._receipt=receiving
 begin=module.FileHostConfigStore.begin
 def beginning(self,record):
     begin(self,record)
