@@ -12,6 +12,7 @@ from typing import Any
 from uuid import UUID
 
 from product_strategy_agent import __version__
+from product_strategy_agent.interfaces.automation_diagnostics import automation_diagnostic
 from product_strategy_agent.critic import write_critic_pack
 from product_strategy_agent.ledger import add_capability, add_claim, add_decision, add_gap, add_option
 from product_strategy_agent.coverage import coverage_report
@@ -599,6 +600,8 @@ def main() -> None:
                 latest = approvals[-1]
                 print(f"Last approved: {latest['stage']} by {latest['approved_by']} at {latest['approved_at']}")
     except (FileExistsError, FileNotFoundError, ValueError, OSError, json.JSONDecodeError) as error:
+        if args.command in {"host", "hook", "subagent"}:
+            raise SystemExit(f"psa: error: {automation_diagnostic(error)}") from None
         raise SystemExit(f"psa: error: {error}") from error
     finally:
         access.close()

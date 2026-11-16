@@ -1,6 +1,9 @@
 """Local journal tools; writes are isolated artifacts, never product facts or approvals."""
 
 import json
+from product_strategy_agent.interfaces.automation_diagnostics import (
+    automation_diagnostic,
+)
 from typing import Literal
 from uuid import UUID
 from product_strategy_agent.domain.automation.handoffs import parse_request
@@ -26,7 +29,7 @@ def register_subagent_journal_tools(server):
         try:
             return callback()
         except ValueError as error:
-            raise ToolError(str(error)) from None
+            raise ToolError(automation_diagnostic(error)) from None
         except OSError:
             raise ToolError(
                 "subagent journal IO unavailable; inspect pending before retrying"
