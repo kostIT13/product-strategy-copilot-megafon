@@ -94,3 +94,6 @@ P4d: [disabled config lifecycle](host-config-lifecycle.md): plan/show/pending re
 
 
 [P5a config integrity](host-config-integrity.md): read-only `psa_audit_host_config` выдаёт counts/issues без private bytes и без recovery. CLI parity: `psa host config-audit`. Проверять integrity_ok отдельно от успешного выполнения команды; pending не означает повреждение, audit не означает native acceptance.
+
+
+[P6a operation diagnostics](operation-diagnostics.md): read-only `psa_diagnose_operation` для task/result/review/hook, metadata без private texts. Publication, captured outcome и unknown/self-reported usage разделены; никакого выполнения/recovery/gate approval. CLI: `psa diagnostics operation case UUID --kind result --projects-dir PATH`.

@@ -500,3 +500,10 @@ Privacy5 (13.657 s), handoffs14 (16.170 s), task12 (38.229 s), hook11 (59.191 s)
 Backend setuptools82.0.1 закреплён в build-system/build group и uv.lock с hashes; runtime/extras версии не менялись. Package/verify проверяют stale lock offline до build/install, используют exported hash constraints. Verifier перешёл на общий bounded asset checker. Коммиты19b7232 /d06560f; итоговый docs commit фиксирует планы/runbook/отчёт.
 
 Release/dependency15 (30.453 s), distribution5 (1.459 s) —20 tests OK; clean base5+5 (2.454/1.345 s) OK. Реальные wheel/sdist установлены вне source, doctor/help/demo/base completed/copy/resume/reopen/reapprove OK,model_calls0/sql_dependenciesfalse. Development artifact dirty=true, не clean release candidate; теги/публикация не выполнялись. Ruff/sync9/docs/native secrets/diff OK; full suite не повторялся. Пять локальных P5 срезов выполнены, весь P5 остаётся открытым по risk ledger; далее независимый P6a diagnostics. Native/live P4 и R1/M6/M8 открыты. [Отчёт](2026-11-16-p5-dependency-artifact-integrity.md).
+
+
+## 16.11.2026 18:24 (Asia/Novosibirsk) — P6a: historical operation diagnostics
+
+Добавлены text-free metadata projection/service/reader и read-only CLI/FastMCP для task/result/review/hook. Publication отделён от outcome; captured snapshot freshness not_checked. Self-reported usage сохраняет нули и unknown basis, отсутствующий usage остаётся null. Recovery/checks/gates/native activation не выполняются; actor/source/goal/reason texts не выводятся. Коммиты745b0ce /980a9fb; итоговый docs commit фиксирует планы/runbook/отчёт.
+
+Projection6 (16.117 s), CLI/stdio2 (14.153 s), task12 (68.605 s), hook11 (104.286 s), privacy5 (21.216 s) —36 tests OK. Clean base8 (17.175 s,1 MCP skip). Ruff/sync9/docs/native secrets/diff OK; full suite/base completed smoke не повторялись. Mutations только synthetic temp fixtures; реальные данные/native settings не менялись. P6 частичный, далее P6b summaries/resume guidance; P4/P5/R1/M6/M8 открыты. [Отчёт](2026-11-16-p6-operation-diagnostics.md).

@@ -42,3 +42,6 @@ python -m scripts.release.verify dist/p5e-check/product-strategy-agent-0.1.0.zip
 | Host paths/native activation | Disabled-only локальный lifecycle проверен | P4 live enable/acceptance отложен; R1/M8 открыты |
 
 Локальные P5a–P5e срезы выполнены; весь P5/production readiness не закрыт, host-зависимые и независимые приёмки остаются открытыми. Можно продолжить независимый P6a: read-only диагностика automation operations/versions и понятные outcomes без private texts. Usage/cost должны отличать measured/estimated/unknown; новых моделей/dispatch это не разрешает. M6 остаётся отдельной независимой оценкой.
+
+
+[P6a operation diagnostics](operation-diagnostics.md) реализован независимо от отложенной native приёмки: text-free task/result/review/hook metadata и unknown/self-reported usage. Далее P6b summaries/resume guidance; весь P6 и остающиеся P4/P5 приёмки не закрыты.
