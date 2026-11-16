@@ -507,3 +507,10 @@ Release/dependency15 (30.453 s), distribution5 (1.459 s) —20 tests OK; clean b
 Добавлены text-free metadata projection/service/reader и read-only CLI/FastMCP для task/result/review/hook. Publication отделён от outcome; captured snapshot freshness not_checked. Self-reported usage сохраняет нули и unknown basis, отсутствующий usage остаётся null. Recovery/checks/gates/native activation не выполняются; actor/source/goal/reason texts не выводятся. Коммиты745b0ce /980a9fb; итоговый docs commit фиксирует планы/runbook/отчёт.
 
 Projection6 (16.117 s), CLI/stdio2 (14.153 s), task12 (68.605 s), hook11 (104.286 s), privacy5 (21.216 s) —36 tests OK. Clean base8 (17.175 s,1 MCP skip). Ruff/sync9/docs/native secrets/diff OK; full suite/base completed smoke не повторялись. Mutations только synthetic temp fixtures; реальные данные/native settings не менялись. P6 частичный, далее P6b summaries/resume guidance; P4/P5/R1/M6/M8 открыты. [Отчёт](2026-11-16-p6-operation-diagnostics.md).
+
+
+## 16.11.2026 18:43 (Asia/Novosibirsk) — P6b: selected-operation summaries
+
+Strict 1–32 selection одного case, общий batch case lock, published/unpublished counts и прежние redacted packets. Guidance фиксирует только read-only status/pending argv и prerequisites; authorization/autorun false. Usage totals не вычисляются, zero/null/currencies сохранены. CLI/FastMCP parity проверена. Коммитыee179ff /a21be85; итоговый docs commit фиксирует планы/runbook/отчёт.
+
+Core5 (6.352 s), CLI/stdio3 (17.165 s), P6a8 (29.725 s), privacy5 (21.001 s) —21 целевой test OK. Clean base summary8 (9.972 s,1 MCP skip). Ruff/sync9/docs/native secrets/diff OK; full suite/execution suites/base completed smoke не повторялись. Mutations только temp synthetic fixtures; реальные данные/native settings не менялись. P6 частичный; далее P6c usage/cost provenance. Host/native cancel отдельно; P4/P5/R1/M6/M8 открыты. [Отчёт](2026-11-16-p6-operation-summaries.md).

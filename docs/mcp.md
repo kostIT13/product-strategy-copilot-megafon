@@ -97,3 +97,6 @@ P4d: [disabled config lifecycle](host-config-lifecycle.md): plan/show/pending re
 
 
 [P6a operation diagnostics](operation-diagnostics.md): read-only `psa_diagnose_operation` для task/result/review/hook, metadata без private texts. Publication, captured outcome и unknown/self-reported usage разделены; никакого выполнения/recovery/gate approval. CLI: `psa diagnostics operation case UUID --kind result --projects-dir PATH`.
+
+
+[P6b summaries](operation-summaries.md): read-only `psa_summarize_operations` принимает bounded explicit selection одного кейса и выдаёт counts/redacted diagnostics/fixed advisory guidance. Pending outcomes не считаются опубликованными; нет usage totals, autorun или разрешения recovery. CLI: `psa diagnostics summary --request summary.json --projects-dir PATH`.

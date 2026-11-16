@@ -41,4 +41,4 @@ Corrupt/partial journal, неизвестный namespace, conflicting final+pen
 
 Тесты сравнивают bytes кейса, сохраняют явные нули/unknown, проверяют prepared/conflict/interrupted состояния, отсутствие private canaries, историческое чтение после изменения материала/недоступности role guidance и реальную CLI/FastMCP parity. Это локальная механическая проверка, не native IDE или независимая оценка пользы.
 
-P6a завершает первый ограниченный срез P6. Далее P6b — сводки состояния и безопасные подсказки продолжения; более широкая provenance/usage telemetry, native cancel/resume и host coverage остаются отдельными задачами. P4/R1/M6/M8 и host-зависимые границы P5 остаются открытыми.
+P6a завершает первый ограниченный срез P6. [P6b selected-operation summaries](operation-summaries.md) реализован; далее P6c usage/cost provenance; более широкая provenance/usage telemetry, native cancel/resume и host coverage остаются отдельными задачами. P4/R1/M6/M8 и host-зависимые границы P5 остаются открытыми.
