@@ -458,3 +458,10 @@ R4 начат техническим срезом; R3 новый разрешё�
 Добавлены exact report/evidence/checklist binding, immutable review journal/recovery и explicit preview-only adoption. Codex MCP renderer возвращает TOML enabled=false с existing absolute interpreter/fixed module/readonly tool allowlist; bootstrap и выбранный review отделены, native flags false, existing configs не читаются/не меняются. CLI/MCP parity проверена. Формат сверён с официальными OpenAI docs через openai-docs; native acceptance не выполнялась. Коммиты8827879 /987a58e /7df38bb /b7db5a7; итоговый docs commit обновляет планы.
 
 Проверки: review/preview9 (22.622 s), observation10 (21.980 s), P012 (0.048 s) — OK; clean base9 (11.663 s,1 MCP skip), base completed/copy/reopen/reapprove OK,model_calls0. Три kill/copy boundaries и parent validation проверены. Ruff/sync9/docs/native secrets/diff OK; full suite не повторялся. P4 открыт: далее config lifecycle и native acceptance; R3.1/R1/M6/M8 открыты, live IDE отсрочка сохранена. [Отчёт](2026-11-15-r31-host-review-preview.md).
+
+
+## 16.11.2026 16:53 (Asia/Novosibirsk) — R3.1/P4d: disabled config lifecycle завершён
+
+Доделаны controlled plan/apply/install/refresh/disable/restore с private before/after journal, exact hashes/scope, ownership markers, ACTIVE/receipt и explicit recovery. CLI/MCP parity проверена; mutating tools destructive=true. Foreign comments/settings сохраняются, restore active PSA запрещён, completed replay не трогает later edits. Коммиты7a616b4 /e8052c8 /d4ca057; итоговый docs commit обновляет runbook/план. Предыдущее ограничение automatic approval review по usage снялось; пропущенные regression команды выполнены.
+
+Проверки: config10 (18.309 s), review9 (12.714 s), P012 (0.051 s) — OK; clean base10 (8.564 s,1 MCP skip), base completed/copy/reopen/reapprove OK,model_calls0. Пять kill/copy boundaries и preservation conflict проверены. Ruff/sync9/docs/native secrets/diff OK; full suite не повторялся. Enable/native acceptance/cross-version migrations остаются открытыми. Реальный IDE config/рабочие данные не применялись, все mutations только synthetic temp fixtures. [Отчёт](2026-11-16-r31-host-config-lifecycle.md).
