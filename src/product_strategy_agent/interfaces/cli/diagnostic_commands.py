@@ -11,6 +11,10 @@ from product_strategy_agent.domain.automation.operation_diagnostics import (
 from product_strategy_agent.interfaces.operation_diagnostics import (
     operation_diagnostics,
 )
+from product_strategy_agent.domain.automation.operation_summary import (
+    parse_summary,
+    SUMMARY_LIMIT,
+)
 
 
 def add_diagnostic_commands(commands):
@@ -23,9 +27,18 @@ def add_diagnostic_commands(commands):
     operation.add_argument("operation_id", type=UUID)
     operation.add_argument("--kind", choices=get_args(OperationKind), required=True)
     operation.add_argument("--projects-dir", type=Path, default=Path("projects"))
+    summary = actions.add_parser("summary")
+    summary.add_argument("--request", type=Path, required=True)
+    summary.add_argument("--projects-dir", type=Path, default=Path("projects"))
 
 
 def handle_diagnostic_command(args):
+    if args.diagnostic_action == "summary":
+        with args.request.open("rb") as stream:
+            request = parse_summary(stream.read(SUMMARY_LIMIT + 1))
+        result = operation_diagnostics(args.projects_dir).summary(request)
+        print(json.dumps(result, ensure_ascii=True, indent=2))
+        return
     request = DiagnoseOperation(
         project_id=args.project_id, operation_id=args.operation_id, kind=args.kind
     )
