@@ -77,6 +77,7 @@ class ConfigStdioTests(unittest.IsolatedAsyncioTestCase):
                     "psa_plan_host_config",
                     "psa_host_config_operation",
                     "psa_host_config_pending",
+                    "psa_audit_host_config",
                 ):
                     self.assertTrue(tools[name].annotations.read_only_hint)
                 for name in ("psa_apply_host_config", "psa_recover_host_config"):
@@ -99,6 +100,12 @@ class ConfigStdioTests(unittest.IsolatedAsyncioTestCase):
                 self.assertFalse(saved["receipt"]["native_activation_allowed"])
                 path.write_text(json.dumps(planned["command"]), encoding="utf-8")
                 before = contents(root)
+                code, raw = cli(root, "config-audit")
+                self.assertEqual(code, 0)
+                audit = (await client.call_tool("psa_audit_host_config", base)).data
+                self.assertEqual(audit, json.loads(raw))
+                self.assertTrue(audit["integrity_ok"])
+                self.assertNotIn("PRIVATE-CONFIG", json.dumps(audit))
                 code, raw = cli(root, "config-apply", "--request", path)
                 self.assertEqual(code, 0)
                 self.assertEqual(json.loads(raw)["receipt"], saved["receipt"])

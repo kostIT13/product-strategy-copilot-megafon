@@ -80,3 +80,12 @@ def register_host_config_tools(server):
         Completed receipt recovery preserves later config writes.
         """
         return call(lambda: host_config(instructions_root).recover(operation_id))
+
+    @server.tool(annotations=READ)
+    def psa_audit_host_config(instructions_root: str = ".") -> dict:
+        """Read-only bounded integrity audit of private config intents, receipts and staging.
+
+        Returns fixed issue codes and counts, never configuration bytes. Does not repair,
+        activate native support, run a server or validate an IDE installation.
+        """
+        return call(lambda: host_config(instructions_root).audit())

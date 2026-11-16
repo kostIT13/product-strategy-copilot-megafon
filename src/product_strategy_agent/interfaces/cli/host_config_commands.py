@@ -17,6 +17,7 @@ def add_config_actions(actions):
         "config-apply",
         "config-show",
         "config-pending",
+        "config-audit",
         "config-recover",
     ):
         action = actions.add_parser(name)
@@ -42,6 +43,8 @@ def handle_config_command(args):
         result = service.show(args.operation)
     elif name == "config-pending":
         result = service.pending()
+    elif name == "config-audit":
+        result = service.audit()
     else:
         result = service.recover(args.operation)
     print(json.dumps(result, ensure_ascii=True, indent=2))
