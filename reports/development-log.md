@@ -465,3 +465,10 @@ R4 начат техническим срезом; R3 новый разрешё�
 Доделаны controlled plan/apply/install/refresh/disable/restore с private before/after journal, exact hashes/scope, ownership markers, ACTIVE/receipt и explicit recovery. CLI/MCP parity проверена; mutating tools destructive=true. Foreign comments/settings сохраняются, restore active PSA запрещён, completed replay не трогает later edits. Коммиты7a616b4 /e8052c8 /d4ca057; итоговый docs commit обновляет runbook/план. Предыдущее ограничение automatic approval review по usage снялось; пропущенные regression команды выполнены.
 
 Проверки: config10 (18.309 s), review9 (12.714 s), P012 (0.051 s) — OK; clean base10 (8.564 s,1 MCP skip), base completed/copy/reopen/reapprove OK,model_calls0. Пять kill/copy boundaries и preservation conflict проверены. Ruff/sync9/docs/native secrets/diff OK; full suite не повторялся. Enable/native acceptance/cross-version migrations остаются открытыми. Реальный IDE config/рабочие данные не применялись, все mutations только synthetic temp fixtures. [Отчёт](2026-11-16-r31-host-config-lifecycle.md).
+
+
+## 16.11.2026 17:10 (Asia/Novosibirsk) — P5a: config journal integrity
+
+Завершён независимый hardening-срез: atomic ACTIVE/COMMITTED publication, preservation interrupted staging, explicit copy recovery и read-only audit CLI/FastMCP. Коммиты07338d7 /432a14c /ca405d9; итоговый docs commit фиксирует планы/runbook/отчёт.
+
+Проверены15 разных config tests (initial13 + final integrity5 с пересечением3), P0 contracts12; clean base13 с1 MCP skip и base completed/copy/resume/reopen/reapprove smoke, model_calls0. Ruff/sync9/docs/native Gitleaks/diff OK; full suite не повторялся. Все mutations только synthetic temp fixtures; real IDE config/рабочие данные не менялись. P4 live acceptance отложена, P5 частичный; далее P5b journal/path/resource hardening. R1/M6/M8 открыты. [Отчёт](2026-11-16-p5-host-config-integrity.md).

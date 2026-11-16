@@ -91,3 +91,6 @@ P4c: [host review/disabled preview](host-review-preview.md): prepare/show/pendin
 
 
 P4d: [disabled config lifecycle](host-config-lifecycle.md): plan/show/pending read-only; explicit `psa_apply_host_config`/`psa_recover_host_config` имеют mutating/destructive hints и меняют только project config по exact hashes с private backup. Enable отсутствует, существующие чужие values не выводятся. Текущий workspace config не применялся — тесты только synthetic.
+
+
+[P5a config integrity](host-config-integrity.md): read-only `psa_audit_host_config` выдаёт counts/issues без private bytes и без recovery. CLI parity: `psa host config-audit`. Проверять integrity_ok отдельно от успешного выполнения команды; pending не означает повреждение, audit не означает native acceptance.
