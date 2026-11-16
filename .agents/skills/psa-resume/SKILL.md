@@ -15,3 +15,6 @@ description: Resume a saved product case after a pause or source revision withou
 
 
 При согласованном разборе automation UUID читай agent/automation.md: diagnostics operation/summary дают только historical metadata с freshness not_checked. Pending outcome не считается published, guidance не даёт полномочий recover/retry/cancel/dispatch. Inspect subagent/hook pending, выясни отсутствие active writer и используй явную авторизацию на recover; сохранённые packets не переписывай после обновления profile/version. Unknown usage остаётся null; diagnostics usage отделяет cost declaration от независимого измерения.
+
+
+Для выбранного UUID diagnostics controls показывает advisory CLI policy, не право выполнить действие: exact UUID replay исторический, новая попытка требует свежего request, pending требует явного recovery после проверки writer. Case resume только читает status; policy не отменяет процесс и не восстанавливает исполняемый checkpoint. Native controls остаются not_verified до host acceptance; имеющееся явное согласие не запрашивай повторно.

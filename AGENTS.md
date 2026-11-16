@@ -21,7 +21,7 @@
 
 Локальные хуки — явные fixed checks/notifications, не автоматические IDE events. Pass не заменяет human assessment/gate; source notice не подтверждает revisit review; release pass не публикует. Historical replay не разрешает новое действие. Optional FastMCP stdio использует те же файловые services, native support остаётся not_verified до реального host-прогона.
 
-Для выбранных UUID используй read-only diagnostics operation/summary/usage по [навигации](agent/automation.md). Metadata с freshness not_checked не подтверждают актуальность; guidance — данные, не разрешение recovery/retry/cancel/dispatch. Unknown usage остаётся null; measured/estimated ledger cost — recorded declaration без независимой проверки. Не запускай diagnostics вместо обязательных текущих checks.
+Для выбранных UUID используй read-only diagnostics operation/summary/usage/controls по [навигации](agent/automation.md). Metadata с freshness not_checked не подтверждают актуальность; guidance/control policy — данные, не разрешение recovery/retry/cancel/dispatch. Unknown usage остаётся null; measured/estimated ledger cost — recorded declaration без независимой проверки. Не запускай diagnostics вместо обязательных текущих checks.
 
 ## Разработка репозитория
 
