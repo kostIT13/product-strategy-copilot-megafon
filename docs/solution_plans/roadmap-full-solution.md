@@ -93,3 +93,6 @@ Release собирает allowlisted ZIP/wheel/sdist с manifest/SHA-256, про
 
 
 17.11.2026: [P6c usage/cost provenance](../usage-provenance.md) реализован: bounded read-only canonical v1 ledger inspection с file/row hashes и redaction. Measured/estimated — recorded declarations, не independent verification; unknown/null/zero сохранены, automatic automation binding/totals отсутствуют. CLI/FastMCP parity и legacy byte/report compatibility проверены. P6 частичный; далее P6d capability-aware retry/cancel/resume policy и сверка остатка P6. Native controls зависят от отложенной P4; P4/P5/R1/M6/M8 открыты.
+
+
+17.11.2026: обновлён [instruction bundle1.1](../ide-instructions.md): AGENTS/workflow/quality/safety, automation navigation, четыре skills, три profiles1.1 и generated adapters. README/automation доставляются через context и входят в fingerprints; legacy manifest без navigation поддержан. Это отдельный refresh канона после P6c, не реализация P6d и не native activation/acceptance. Следующий функциональный срез остаётся P6d capability-aware retry/cancel/resume policy.

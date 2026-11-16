@@ -521,3 +521,10 @@ Core5 (6.352 s), CLI/stdio3 (17.165 s), P6a8 (29.725 s), privacy5 (21.001 s) —
 Добавлен bounded read-only canonical usage ledger report с source/row/business hashes, redaction и declared measured/estimated/unknown basis без independent verification. Unknown/null/zero сохранены; totals/automatic automation binding отсутствуют. Старые ledger/receipts/usage_report не изменены. CLI/FastMCP parity проверена. Коммиты96317de /dc0cdb9; итоговый docs commit фиксирует планы/runbook/отчёт.
 
 Final provenance7 (13.601 s), P6a8 (18.118 s), P6b8 (14.630 s) —23 tests OK. Clean base7 (5.163 s,1 MCP skip). Ruff/sync9/docs/native secrets/diff OK; full suite/writer suites/base completed smoke не повторялись. Mutations только synthetic temp fixtures, реальные cases/native settings не менялись, моделей не было. P6 частичный; далее P6d capability-aware retry/cancel/resume policy. P4/P5/R1/M6/M8 открыты. [Отчёт](2026-11-17-p6-usage-provenance.md).
+
+
+## 17.11.2026 01:44 (Asia/Novosibirsk) — instruction bundle/profile refresh1.1.0
+
+Обновлены AGENTS/workflow/quality/safety, новый agent/automation router,4 canonical skills и3 role profiles. README/automation доставляются в context и входят в fingerprints; optional navigation поддерживает legacy manifests и запрещает role/host autoload/escape. Все9 generated adapters пересобраны. Human gates/opt-in/sequential fallback сохранены; native activation не включена. Коммиты52e1620 /4359353; итоговый docs commit фиксирует runbook/планы/отчёт.
+
+Context10 (5.130 s), handoffs14 (15.927 s), task12 (35.776 s), host9 (10.173 s) —45 tests OK; final base context10 (4.599 s) OK. Skill validator8 UTF-8 /CLI parser8/sync9/Ruff/docs/native secrets/diff OK; full suite/hook workers/base completed smoke не повторялись. Реальные configs/кейсы/согласования не менялись; модели/native dispatch не запускались. P6d остаётся следующим функциональным срезом, P4/P5/R1/M6/M8 открыты. [Отчёт](2026-11-17-instructions-refresh.md).

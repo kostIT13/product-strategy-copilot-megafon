@@ -106,3 +106,6 @@ uv run --no-sync python -m scripts.ci.docs
 
 
 17.11.2026: [P6c usage/cost provenance](docs/usage-provenance.md) реализован: bounded read-only canonical v1 ledger inspection с file/row hashes и redaction. Measured/estimated — recorded declarations, не independent verification; unknown/null/zero сохранены, automatic automation binding/totals отсутствуют. CLI/FastMCP parity и legacy byte/report compatibility проверены. P6 частичный; далее P6d capability-aware retry/cancel/resume policy и сверка остатка P6. Native controls зависят от отложенной P4; P4/P5/R1/M6/M8 открыты.
+
+
+17.11.2026: instruction bundle и role profiles обновлены до1.1.0. [Навигация агента](agent/README.md) и [automation](agent/automation.md) охватывают opt-in subagents/journal, local hooks и diagnostics; четыре canonical skills и девять generated adapters синхронизированы. Это не native activation/acceptance. [Контракт доставки context](docs/ide-instructions.md).
