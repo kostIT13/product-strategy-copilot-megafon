@@ -78,6 +78,8 @@ def create_server() -> Any:
     register_host_acceptance_tools(server)
     from product_strategy_agent.interfaces.mcp.host_review_tools import register_host_review_tools
     register_host_review_tools(server)
+    from product_strategy_agent.interfaces.mcp.host_config_tools import register_host_config_tools
+    register_host_config_tools(server)
     from product_strategy_agent.interfaces.mcp.semantic_review_tools import register_semantic_review_tools
     register_semantic_review_tools(server)
     from product_strategy_agent.interfaces.mcp.quality_policy_tools import register_quality_policy_tools
