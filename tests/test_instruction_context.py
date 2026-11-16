@@ -26,6 +26,53 @@ def canon(folder):
 
 
 class InstructionContextTests(unittest.TestCase):
+    def test_navigation_is_loaded_hashed_and_missing_material_fails_without_case_writes(self):
+        with TemporaryDirectory() as folder:
+            root = canon(folder)
+            manifest_path = root / "agent/harness.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest.update(bundle_version="1.1.0", navigation=["agent/README.md", "agent/automation.md"])
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            (root / "agent/automation.md").write_text("Synthetic navigation only.\n", encoding="utf-8")
+            project = init_project("case", root / "projects")
+            before = {str(path): path.read_bytes() for path in project.rglob("*") if path.is_file()}
+            sync(root, write=True)
+            first = instruction_context(project, root)
+            paths = {item["path"] for item in first["instructions"]}
+            self.assertTrue({"agent/README.md", "agent/automation.md"} <= paths)
+            self.assertEqual(first["bundle_version"], "1.1.0")
+            navigation = root / "agent/automation.md"
+            navigation.write_text(navigation.read_text(encoding="utf-8") + "\nChanged automation policy.\n", encoding="utf-8")
+            self.assertNotEqual(first["context_hash"], instruction_context(project, root)["context_hash"])
+            self.assertFalse(sync(root)["ok"])
+            navigation.unlink()
+            with self.assertRaises(FileNotFoundError):
+                instruction_context(project, root)
+            with self.assertRaises(FileNotFoundError):
+                sync(root)
+            self.assertEqual(before, {str(path): path.read_bytes() for path in project.rglob("*") if path.is_file()})
+
+    def test_navigation_rejects_role_autoload_escape_duplicates_and_preserves_legacy_manifest(self):
+        with TemporaryDirectory() as folder:
+            root = canon(folder)
+            project = init_project("case", root / "projects")
+            manifest_path = root / "agent/harness.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            for navigation in (["../private.md"], ["agent/roles/critic.md"],
+                               ["agent/README.md"] * 2, [["agent/README.md"]]):
+                with self.subTest(navigation=navigation):
+                    manifest_path.write_text(json.dumps({**manifest, "navigation": navigation}), encoding="utf-8")
+                    with self.assertRaises(ValueError):
+                        instruction_context(project, root)
+                    with self.assertRaises(ValueError):
+                        sync(root)
+            legacy = {key: value for key, value in manifest.items() if key != "navigation"}
+            legacy["bundle_version"] = "1.0.0"
+            manifest_path.write_text(json.dumps(legacy), encoding="utf-8")
+            packet = instruction_context(project, root)
+            self.assertEqual(packet["bundle_version"], "1.0.0")
+            self.assertFalse(any(item["path"] in {"agent/README.md", "agent/automation.md"} for item in packet["instructions"]))
+
     def test_role_guidance_is_canonical_but_does_not_auto_load_in_case_context(self):
         with TemporaryDirectory() as folder:
             root = canon(folder)
