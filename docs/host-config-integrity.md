@@ -35,3 +35,6 @@ P5 остаётся открытым: hardening остальных журнал�
 
 
 [P5b directory boundaries](journal-directory-boundaries.md) ограничивает исходную enumeration для pending/audit/publication и snapshots через os.scandir. Path/limit failure может завершить audit ошибкой без частичного ответа; это не чистый integrity_ok результат. Схемы intent/receipt не изменены.
+
+
+[P5c namespace compatibility](journal-version-compatibility.md) проверяет version namespace до доступа к v1, включая config audit/replay. Unsupported namespace — ошибка без частичного ответа; совместимые v1 schemas сохранены. Обновление/откат проверяются на отдельной полной копии, автоматической конвертации нет.

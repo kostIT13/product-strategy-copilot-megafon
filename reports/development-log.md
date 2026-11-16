@@ -479,3 +479,10 @@ R4 начат техническим срезом; R3 новый разрешё�
 Общий streaming helper ограничивает исходную enumeration и проверяет confinement до skip/ignore. Применён к task/hook/host observation/review/config journals, config audit и interrupted staging. Коммиты4ce57e2 /f8a4915; итоговый docs commit фиксирует runbook и планы.
 
 Проверки: new4 (8.682 s), task12 (33.040 s), hook11 (55.778 s), host43 (53.303 s) —70 целевых tests OK. Реальные Windows junctions и lazy bound/closure проверены; clean base4 (9.456 s) и base completed/copy/resume/reopen/reapprove OK,model_calls0. Ruff/sync9/docs/native secrets/diff OK. Full suite не повторялся. Все mutations только temp synthetic fixtures; реальные settings/рабочие данные не менялись. P5 частичный; далее P5c compatibility/upgrade. Native/live P4 и R1/M6/M8 открыты. [Отчёт](2026-11-16-p5-journal-directory-boundaries.md).
+
+
+## 16.11.2026 17:39 (Asia/Novosibirsk) — P5c: journal namespace compatibility
+
+Общий guard блокирует unsupported/mixed namespace до v1 lookup в task/hook/host/config stores. Пустая история больше не выводится из отсутствия v1 при наличии v2. Published v1 schemas сохранены; compatible copy replay и read/write/recovery refusal проверены. Upgrade/rollback policy описан в runbook; cross-schema конвертер без целевой схемы не добавлен. Коммитыeadebaa /82d3a52; итоговый docs commit фиксирует планы/отчёт.
+
+Проверки: namespace/directory7 (14.354 s), task12 (39.541 s), hook11 (59.701 s), host43 (58.171 s) —73 tests OK; clean base7 (11.950 s) и base completed/copy/resume/reopen/reapprove OK,model_calls0. Ruff/sync9/docs/native secrets/diff OK; full suite не повторялся. Все mutations только temp synthetic fixtures; реальные settings/кейсы не менялись. P5 частичный, далее P5d privacy/injection diagnostics; live/native P4 и R1/M6/M8 открыты. [Отчёт](2026-11-16-p5-journal-version-compatibility.md).

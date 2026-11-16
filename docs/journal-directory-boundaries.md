@@ -30,3 +30,6 @@
 Это ограничение числа entries, которые код сохраняет/проверяет, а не обещание жёсткого wall-clock timeout файловой системы. Не заявляется транзакция с внешним редактором, защита от конкурентной подмены пути вне participating lock, OS sandbox или обнаружение hardlinks. Полный аудит содержимого всех final records этим изменением не добавлен: pending продолжает отвечать на вопрос о незавершённых публикациях.
 
 P5 остаётся открытым. Следующий P5c — проверка совместимости journal namespaces/schema, правила upgrade/rollback и отказ при неизвестном формате; остальные privacy/injection/resource/dependency сценарии требуют следующих срезов. Native enable и live IDE acceptance P4 остаются отложенными; R1/M6/M8 не закрыты.
+
+
+[P5c namespace compatibility](journal-version-compatibility.md) проверяет version namespace до доступа к v1, включая config audit/replay. Unsupported namespace — ошибка без частичного ответа; совместимые v1 schemas сохранены. Обновление/откат проверяются на отдельной полной копии, автоматической конвертации нет.
