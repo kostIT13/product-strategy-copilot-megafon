@@ -2,7 +2,13 @@
 
 import os
 from pathlib import Path
+from product_strategy_agent.adapters.persistence.files.directory_bounds import (
+    bounded_entries,
+)
 from uuid import UUID
+from product_strategy_agent.adapters.persistence.files.journal_versions import (
+    require_namespace,
+)
 from product_strategy_agent.adapters.persistence.files.case_access import (
     case_access,
     locked_store_method,
@@ -39,6 +45,7 @@ class FileHookRunStore:
         case = confined(self.root, project_id)
         if not confined(case, "state.json").is_file():
             raise ValueError("hook case does not exist")
+        require_namespace(case, PREFIX)
         return confined(case, f"{PREFIX}/{operation_id.hex}")
 
     def _read(self, project_id, operation_id):
@@ -63,6 +70,22 @@ class FileHookRunStore:
         return run, completion
 
     @locked_store_method()
+    def inspect(self, project_id, operation_id):
+        old = self._read(project_id, operation_id)
+        if old is None:
+            return None
+        run, completion = old
+        pending = confined(self.folder(project_id, operation_id), "result.pending.json")
+        if completion is not None and pending.exists():
+            raise ValueError("conflicting final/pending hook results; preserve for inspection")
+        if completion is not None:
+            return run, completion, "completion_recorded"
+        if pending.exists():
+            captured = validate_completion(run, decode(read_bounded(pending, 128000), HookCompletion))
+            return run, captured, "result_prepared"
+        return run, None, "execution_unknown"
+
+    @locked_store_method()
     def read(self, project_id, operation_id):
         return self._read(project_id, operation_id)
 
@@ -73,10 +96,11 @@ class FileHookRunStore:
             raise ValueError("hook operation already exists")
         folder = self.folder(project_id, identifier)
         folder.parent.mkdir(parents=True, exist_ok=True)
-        if len(list(folder.parent.iterdir())) >= 1000:
-            raise ValueError(
-                "hook journal reached 1000 operations; history is retained"
-            )
+        bounded_entries(
+            folder.parent,
+            999,
+            message="hook journal reached 1000 operations; history is retained",
+        )
         folder.mkdir()
         durable_write(confined(folder, "request.json"), encode(command))
         sync_directory(folder)
@@ -117,9 +141,9 @@ class FileHookRunStore:
         rows = []
         if not parent.exists():
             return {"operations": rows}
-        entries = list(parent.iterdir())
-        if len(entries) > 1000:
-            raise ValueError("hook journal exceeds 1000 operations")
+        entries = bounded_entries(
+            parent, 1000, message="hook journal exceeds 1000 operations"
+        )
         for entry in sorted(entries):
             try:
                 identifier = UUID(hex=entry.name)

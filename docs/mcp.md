@@ -88,3 +88,15 @@ P4b: [host observations](host-observations.md): prepare/show/pending read-only, 
 
 
 P4c: [host review/disabled preview](host-review-preview.md): prepare/show/pending/preview read-only; record/recovery пишут только local review journal. `psa_preview_codex_mcp` возвращает TOML enabled=false, без чтения/записи live config. Четыре inspection tools в его allowlist имеют явные readOnly annotations; actual native capability не подтверждается.
+
+
+P4d: [disabled config lifecycle](host-config-lifecycle.md): plan/show/pending read-only; explicit `psa_apply_host_config`/`psa_recover_host_config` имеют mutating/destructive hints и меняют только project config по exact hashes с private backup. Enable отсутствует, существующие чужие values не выводятся. Текущий workspace config не применялся — тесты только synthetic.
+
+
+[P5a config integrity](host-config-integrity.md): read-only `psa_audit_host_config` выдаёт counts/issues без private bytes и без recovery. CLI parity: `psa host config-audit`. Проверять integrity_ok отдельно от успешного выполнения команды; pending не означает повреждение, audit не означает native acceptance.
+
+
+[P6a operation diagnostics](operation-diagnostics.md): read-only `psa_diagnose_operation` для task/result/review/hook, metadata без private texts. Publication, captured outcome и unknown/self-reported usage разделены; никакого выполнения/recovery/gate approval. CLI: `psa diagnostics operation case UUID --kind result --projects-dir PATH`.
+
+
+[P6b summaries](operation-summaries.md): read-only `psa_summarize_operations` принимает bounded explicit selection одного кейса и выдаёт counts/redacted diagnostics/fixed advisory guidance. Pending outcomes не считаются опубликованными; нет usage totals, autorun или разрешения recovery. CLI: `psa diagnostics summary --request summary.json --projects-dir PATH`.

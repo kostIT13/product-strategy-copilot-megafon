@@ -36,3 +36,8 @@ release.yml запускается по тегу v* или вручную. Пе�
 ## Явный release hook
 
 [Офлайн P3d checker](release-hooks.md) доступен через CLI/FastMCP: manifest/archive/SHA256SUMS/allowlist, dirty/stale checks и fixed worker с timeout. Он не запускает clean install и ничего не публикует. Общий checked_archive используется verifier перед распаковкой; полная install/demo проверка остаётся отдельной командой выше.
+
+
+## P5e dependency/artifact preflight
+
+[Подробный контракт и сверка рисков](dependency-artifact-integrity.md): package/verify проверяют freshness uv.lock offline, exact setuptools82.0.1 build policy и hash constraints. Verifier использует общий bounded artifact checker до установки; wheel/sdist устанавливаются с hashes и locked isolated backend. Runtime dependencies не менялись. Проверенный development snapshot dirty=true не заменяет clean release candidate.

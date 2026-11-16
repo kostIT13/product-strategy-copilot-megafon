@@ -11,6 +11,7 @@ import tomllib
 import zipfile
 
 from scripts.ci.repository import git
+from scripts.release.dependencies import check_lock, export_build_constraints
 
 from product_strategy_agent.domain.release_policy import allowed, REQUIRED
 
@@ -36,11 +37,14 @@ def package(root, output, tag=None, require_clean=False):
     dirty = bool(git(root, "status", "--porcelain")[0].strip())
     if require_clean and dirty:
         raise ValueError("release requires a clean checkout")
+    check_lock(root)
     output.mkdir(parents=True, exist_ok=True)
     # Build in a new subdirectory so stale distributions cannot become release assets.
     from tempfile import TemporaryDirectory
     with TemporaryDirectory(prefix="psa-build-") as build:
-        result = subprocess.run(["uv", "build", "--out-dir", build], cwd=root, capture_output=True)
+        constraints = export_build_constraints(root, Path(build) / "build-constraints.txt")
+        result = subprocess.run(["uv", "build", "--build-constraints", str(constraints),
+                                 "--require-hashes", "--out-dir", build], cwd=root, capture_output=True)
         if result.returncode:
             raise ValueError("uv build failed; run uv build directly for build-system diagnostics")
         distributions = [path for path in Path(build).iterdir() if path.name.endswith((".whl", ".tar.gz"))]

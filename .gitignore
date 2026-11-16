@@ -24,6 +24,9 @@ backups/
 .psa-staging/
 .psa/host-acceptance/
 .psa/host-evidence/
+.psa/host-config/
+.codex/config.toml
+.codex/.psa-config-*.tmp
 
 # Local project source material
 projects/*/sources/
