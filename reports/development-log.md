@@ -472,3 +472,10 @@ R4 начат техническим срезом; R3 новый разрешё�
 Завершён независимый hardening-срез: atomic ACTIVE/COMMITTED publication, preservation interrupted staging, explicit copy recovery и read-only audit CLI/FastMCP. Коммиты07338d7 /432a14c /ca405d9; итоговый docs commit фиксирует планы/runbook/отчёт.
 
 Проверены15 разных config tests (initial13 + final integrity5 с пересечением3), P0 contracts12; clean base13 с1 MCP skip и base completed/copy/resume/reopen/reapprove smoke, model_calls0. Ruff/sync9/docs/native Gitleaks/diff OK; full suite не повторялся. Все mutations только synthetic temp fixtures; real IDE config/рабочие данные не менялись. P4 live acceptance отложена, P5 частичный; далее P5b journal/path/resource hardening. R1/M6/M8 открыты. [Отчёт](2026-11-16-p5-host-config-integrity.md).
+
+
+## 16.11.2026 17:30 (Asia/Novosibirsk) — P5b: journal directory/path boundaries
+
+Общий streaming helper ограничивает исходную enumeration и проверяет confinement до skip/ignore. Применён к task/hook/host observation/review/config journals, config audit и interrupted staging. Коммиты4ce57e2 /f8a4915; итоговый docs commit фиксирует runbook и планы.
+
+Проверки: new4 (8.682 s), task12 (33.040 s), hook11 (55.778 s), host43 (53.303 s) —70 целевых tests OK. Реальные Windows junctions и lazy bound/closure проверены; clean base4 (9.456 s) и base completed/copy/resume/reopen/reapprove OK,model_calls0. Ruff/sync9/docs/native secrets/diff OK. Full suite не повторялся. Все mutations только temp synthetic fixtures; реальные settings/рабочие данные не менялись. P5 частичный; далее P5c compatibility/upgrade. Native/live P4 и R1/M6/M8 открыты. [Отчёт](2026-11-16-p5-journal-directory-boundaries.md).
