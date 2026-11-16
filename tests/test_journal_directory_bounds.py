@@ -87,7 +87,13 @@ class DirectoryBoundTests(unittest.TestCase):
                 with self.subTest(store=type(store).__name__):
                     journal.mkdir(parents=True)
                     scan = Scan(1000000)
-                    with patch("os.scandir", return_value=scan):
+                    original = os.scandir
+                    with patch(
+                        "os.scandir",
+                        side_effect=lambda path: (
+                            scan if Path(path) == journal else original(path)
+                        ),
+                    ):
                         with self.assertRaises(ValueError):
                             store.pending("case") if case_scoped else store.pending()
                     self.assertEqual(scan.visited, 1001)

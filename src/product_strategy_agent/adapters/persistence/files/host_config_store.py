@@ -7,6 +7,9 @@ from product_strategy_agent.adapters.persistence.files.directory_bounds import (
     bounded_entries,
 )
 from uuid import UUID
+from product_strategy_agent.adapters.persistence.files.journal_versions import (
+    require_namespace,
+)
 from product_strategy_agent.adapters.persistence.files.host_config_audit import audit
 from product_strategy_agent.adapters.persistence.files.host_config_publication import (
     preserve,
@@ -41,6 +44,7 @@ class FileHostConfigStore:
         return audit(self)
 
     def _path(self, name):
+        require_namespace(self.root, PREFIX)
         return confined(self.root, f"{PREFIX}/{name}")
 
     def folder(self, identifier):

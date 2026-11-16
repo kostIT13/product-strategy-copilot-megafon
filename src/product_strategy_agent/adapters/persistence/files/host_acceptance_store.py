@@ -6,6 +6,9 @@ from product_strategy_agent.adapters.persistence.files.directory_bounds import (
     bounded_entries,
 )
 from uuid import UUID
+from product_strategy_agent.adapters.persistence.files.journal_versions import (
+    require_namespace,
+)
 from product_strategy_agent.adapters.persistence.files.paths import confined
 from product_strategy_agent.adapters.persistence.files.project_lock import project_lock
 from product_strategy_agent.adapters.persistence.files.source_search_repository import (
@@ -35,6 +38,11 @@ class FileHostAcceptanceStore:
     def _path(self, operation_id, pending=False):
         if not isinstance(operation_id, UUID):
             raise ValueError("host acceptance requires operation UUID")
+        require_namespace(
+            self.root, FileHostAcceptanceStore.prefix, companions=("reviews",)
+        )
+        if self.prefix != FileHostAcceptanceStore.prefix:
+            require_namespace(self.root, self.prefix)
         return confined(
             self.root,
             f"{self.prefix}/{operation_id.hex}{'.pending' if pending else ''}.json",

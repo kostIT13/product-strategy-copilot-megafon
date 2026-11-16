@@ -6,6 +6,9 @@ from product_strategy_agent.adapters.persistence.files.directory_bounds import (
     bounded_entries,
 )
 from uuid import UUID
+from product_strategy_agent.adapters.persistence.files.journal_versions import (
+    require_namespace,
+)
 from product_strategy_agent.adapters.persistence.files.case_access import (
     case_access,
     locked_store_method,
@@ -42,6 +45,7 @@ class FileHookRunStore:
         case = confined(self.root, project_id)
         if not confined(case, "state.json").is_file():
             raise ValueError("hook case does not exist")
+        require_namespace(case, PREFIX)
         return confined(case, f"{PREFIX}/{operation_id.hex}")
 
     def _read(self, project_id, operation_id):

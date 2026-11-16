@@ -6,6 +6,9 @@ from product_strategy_agent.adapters.persistence.files.directory_bounds import (
     bounded_entries,
 )
 from uuid import UUID
+from product_strategy_agent.adapters.persistence.files.journal_versions import (
+    require_namespace,
+)
 from product_strategy_agent.adapters.persistence.files.case_access import (
     case_access,
     locked_store_method,
@@ -44,6 +47,7 @@ class FileTaskJournalStore:
         case = confined(self.root, project_id)
         if not case.is_dir() or not confined(case, "state.json").is_file():
             raise ValueError("task journal case does not exist")
+        require_namespace(case, PREFIX)
         return confined(
             case,
             f"{PREFIX}/{kind}s/{identifier.hex}{'.pending' if pending else ''}.json",
