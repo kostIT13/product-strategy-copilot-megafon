@@ -52,12 +52,17 @@ class DistributionChecks(unittest.TestCase):
                 self.assertFalse((root / 'out').exists())
 
     def test_changed_external_wheel_is_rejected_before_installation(self):
+        from test_release_hooks import fixture
+        from unittest.mock import patch
+
         with TemporaryDirectory() as folder:
             root = Path(folder)
-            names = ('release.zip', 'release-manifest.json', 'package.whl', 'package.tar.gz')
-            for name in names:
-                (root / name).write_bytes(b'original')
-            (root / 'SHA256SUMS').write_text(''.join(f'{digest(b"original")}  {name}\n' for name in names), encoding='utf-8')
-            (root / 'package.whl').write_bytes(b'changed')
-            with self.assertRaisesRegex(ValueError, 'asset checksum mismatch'):
-                verify(root / 'release.zip', '3.12')
+            archive = fixture(root)
+            next(root.glob("*.whl")).write_bytes(b"changed")
+            with patch(
+                "subprocess.run", side_effect=AssertionError("must not install")
+            ):
+                with self.assertRaisesRegex(
+                    ValueError, "external distribution differs"
+                ):
+                    verify(archive, "3.12")
