@@ -13,6 +13,7 @@ from uuid import UUID
 
 from product_strategy_agent import __version__
 from product_strategy_agent.interfaces.automation_diagnostics import automation_diagnostic
+from product_strategy_agent.interfaces.cli.diagnostic_commands import add_diagnostic_commands, handle_diagnostic_command
 from product_strategy_agent.critic import write_critic_pack
 from product_strategy_agent.ledger import add_capability, add_claim, add_decision, add_gap, add_option
 from product_strategy_agent.coverage import coverage_report
@@ -297,6 +298,7 @@ def build_parser() -> argparse.ArgumentParser:
         entry.add_argument("--journal-operation" if entry is usage_add else "--operation", dest="journal_operation", type=UUID,
                            help="caller-chosen journal UUID for exact append replay")
         entry.add_argument("--expected-workflow-version", type=int, help="expected shared workflow journal version")
+    add_diagnostic_commands(commands)
     return parser
 
 
@@ -326,6 +328,9 @@ def main() -> None:
             return
         if args.command == "host":
             handle_host_command(args)
+            return
+        if args.command == "diagnostics":
+            handle_diagnostic_command(args)
             return
         if args.command == "promise":
             handle_file_promise_command(args)
@@ -600,7 +605,7 @@ def main() -> None:
                 latest = approvals[-1]
                 print(f"Last approved: {latest['stage']} by {latest['approved_by']} at {latest['approved_at']}")
     except (FileExistsError, FileNotFoundError, ValueError, OSError, json.JSONDecodeError) as error:
-        if args.command in {"host", "hook", "subagent"}:
+        if args.command in {"host", "hook", "subagent", "diagnostics"}:
             raise SystemExit(f"psa: error: {automation_diagnostic(error)}") from None
         raise SystemExit(f"psa: error: {error}") from error
     finally:
