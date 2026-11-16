@@ -70,6 +70,22 @@ class FileHookRunStore:
         return run, completion
 
     @locked_store_method()
+    def inspect(self, project_id, operation_id):
+        old = self._read(project_id, operation_id)
+        if old is None:
+            return None
+        run, completion = old
+        pending = confined(self.folder(project_id, operation_id), "result.pending.json")
+        if completion is not None and pending.exists():
+            raise ValueError("conflicting final/pending hook results; preserve for inspection")
+        if completion is not None:
+            return run, completion, "completion_recorded"
+        if pending.exists():
+            captured = validate_completion(run, decode(read_bounded(pending, 128000), HookCompletion))
+            return run, captured, "result_prepared"
+        return run, None, "execution_unknown"
+
+    @locked_store_method()
     def read(self, project_id, operation_id):
         return self._read(project_id, operation_id)
 

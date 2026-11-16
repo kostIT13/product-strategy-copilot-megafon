@@ -79,6 +79,18 @@ class FileTaskJournalStore:
         return None
 
     @locked_store_method()
+    def inspect(self, project_id, kind, identifier):
+        final = self._path(project_id, kind, identifier)
+        pending = self._path(project_id, kind, identifier, True)
+        if final.exists() and pending.exists():
+            raise ValueError("conflicting final/pending task records; preserve for inspection")
+        if final.exists():
+            return self._load(project_id, kind, identifier), "published"
+        if pending.exists():
+            return self._load(project_id, kind, identifier, True), "prepared"
+        return None
+
+    @locked_store_method()
     def task(self, project_id, task_id):
         return self._read(project_id, "task", task_id)
 
