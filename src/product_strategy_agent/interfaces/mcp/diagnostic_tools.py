@@ -2,6 +2,7 @@
 
 from uuid import UUID
 import json
+from product_strategy_agent.interfaces.usage_provenance import usage_provenance
 from product_strategy_agent.domain.automation.operation_summary import parse_summary
 from product_strategy_agent.domain.automation.operation_diagnostics import (
     DiagnoseOperation,
@@ -14,6 +15,28 @@ from product_strategy_agent.interfaces.operation_diagnostics import (
 
 def register_diagnostic_tools(server):
     from fastmcp.exceptions import ToolError
+
+    @server.tool(
+        annotations=dict(
+            readOnlyHint=True,
+            destructiveHint=False,
+            idempotentHint=True,
+            openWorldHint=False,
+        )
+    )
+    def psa_diagnose_usage(project_id: str, projects_dir: str = "projects") -> dict:
+        """Read bounded v1 usage declarations with file/row hashes and redacted provenance.
+
+        Measured/estimated cost is a recorded declaration, not independent verification.
+        Missing metrics stay null; no totals, provider/model/note text or inferred binding to
+        automation operations. Never writes records, calls a model or approves a gate.
+        """
+        try:
+            return usage_provenance(projects_dir).inspect(project_id)
+        except (ValueError, OSError):
+            raise ToolError(
+                "usage provenance unavailable; inspect case lock and bounded ledger integrity"
+            ) from None
 
     @server.tool(
         annotations=dict(

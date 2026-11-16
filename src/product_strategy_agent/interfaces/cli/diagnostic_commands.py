@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 from typing import get_args
 from uuid import UUID
+from product_strategy_agent.interfaces.usage_provenance import usage_provenance
 from product_strategy_agent.domain.automation.operation_diagnostics import (
     DiagnoseOperation,
     OperationKind,
@@ -30,9 +31,16 @@ def add_diagnostic_commands(commands):
     summary = actions.add_parser("summary")
     summary.add_argument("--request", type=Path, required=True)
     summary.add_argument("--projects-dir", type=Path, default=Path("projects"))
+    usage = actions.add_parser("usage")
+    usage.add_argument("project_id")
+    usage.add_argument("--projects-dir", type=Path, default=Path("projects"))
 
 
 def handle_diagnostic_command(args):
+    if args.diagnostic_action == "usage":
+        result = usage_provenance(args.projects_dir).inspect(args.project_id)
+        print(json.dumps(result, ensure_ascii=True, indent=2))
+        return
     if args.diagnostic_action == "summary":
         with args.request.open("rb") as stream:
             request = parse_summary(stream.read(SUMMARY_LIMIT + 1))
