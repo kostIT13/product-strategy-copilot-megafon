@@ -29,4 +29,4 @@ Subagent prepare/journal MCP используют тот же formatter для V
 
 Изменение касается runtime error rendering указанных automation interfaces. Оно не является глобальным scrubber всех CLI-команд, argparse diagnostics, success packets, пользовательских actor/reason полей, сторонних журналов или stack traces debugger. Secret scanning репозитория и permissions/human gates сохраняют отдельную роль. Действительные роли/permissions не выводятся из строки SYSTEM или чужого approved_by.
 
-P5 частичный. Далее P5e — сверка dependency/artifact integrity и оставшихся рисков перед P6. Новая cross-schema migration по-прежнему требует целевой схемы. Native enable/acceptance P4 и R1/M6/M8 остаются открытыми.
+P5 частичный. [P5e dependency/artifact integrity](dependency-artifact-integrity.md) и сверка рисков выполнены; далее независимый P6a diagnostics. Новая cross-schema migration по-прежнему требует целевой схемы. Native enable/acceptance P4 и R1/M6/M8 остаются открытыми.

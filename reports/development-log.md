@@ -493,3 +493,10 @@ R4 начат техническим срезом; R3 новый разрешё�
 Fixed runtime I/O/encoding/model diagnostics для host/hook/subagent CLI и subagent MCP исключают private details; domain refusals сохранены. Existing role-catalog sanitation закреплён regression. Selected-material injection corpus не меняет role instructions/goal/authority или canonical case bytes. Коммитыb5fff83 /c95202d; итоговый docs commit фиксирует планы/runbook/отчёт.
 
 Privacy5 (13.657 s), handoffs14 (16.170 s), task12 (38.229 s), hook11 (59.191 s), host43 (57.950 s) —85 tests OK. Clean base privacy5 (5.583 s,1 MCP skip). Ruff/sync9/docs/native secrets/diff OK; full suite/base workflow smoke не повторялись. Mutations только temp synthetic fixtures, моделей/native activation не было. P5 частичный; далее P5e dependency/artifact integrity и сверка рисков перед P6. P4/R1/M6/M8 открыты. [Отчёт](2026-11-16-p5-automation-privacy.md).
+
+
+## 16.11.2026 18:07 (Asia/Novosibirsk) — P5e: dependency/artifact integrity
+
+Backend setuptools82.0.1 закреплён в build-system/build group и uv.lock с hashes; runtime/extras версии не менялись. Package/verify проверяют stale lock offline до build/install, используют exported hash constraints. Verifier перешёл на общий bounded asset checker. Коммиты19b7232 /d06560f; итоговый docs commit фиксирует планы/runbook/отчёт.
+
+Release/dependency15 (30.453 s), distribution5 (1.459 s) —20 tests OK; clean base5+5 (2.454/1.345 s) OK. Реальные wheel/sdist установлены вне source, doctor/help/demo/base completed/copy/resume/reopen/reapprove OK,model_calls0/sql_dependenciesfalse. Development artifact dirty=true, не clean release candidate; теги/публикация не выполнялись. Ruff/sync9/docs/native secrets/diff OK; full suite не повторялся. Пять локальных P5 срезов выполнены, весь P5 остаётся открытым по risk ledger; далее независимый P6a diagnostics. Native/live P4 и R1/M6/M8 открыты. [Отчёт](2026-11-16-p5-dependency-artifact-integrity.md).
