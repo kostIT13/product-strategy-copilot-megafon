@@ -49,4 +49,4 @@ Corrupt/partial/unsupported/conflicting выбранная запись прер
 
 Проверены exact CLI/service/real-stdio parity, pending outcome separation, currencies/zero/unknown preservation, 32/33/empty/duplicate/extra-field/request-byte boundaries, один case lock на batch с конкурирующим потоком, fixed read-only argv и безопасные отказы. Unit tests подтверждают программные границы, не native IDE acceptance.
 
-P6b реализован; весь P6 открыт. Следующий P6c — provenance telemetry/usage/cost: различение measured/estimated/unknown требует реальных оснований, а не повышения self-reported values. Host coverage и native cancel/resume остаются отдельными задачами; P4/P5/R1/M6/M8 не закрыты.
+P6b реализован; весь P6 открыт. [P6c usage provenance](usage-provenance.md) реализован; далее P6d capability-aware retry/cancel/resume policy. Для telemetry: различение measured/estimated/unknown требует реальных оснований, а не повышения self-reported values. Host coverage и native cancel/resume остаются отдельными задачами; P4/P5/R1/M6/M8 не закрыты.
