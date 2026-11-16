@@ -20,6 +20,14 @@ class FileOperationDiagnosticsReader:
         self.tasks = FileTaskJournalStore(self.root)
         self.hooks = FileHookRunStore(self.root)
 
+    def read_many(self, requests):
+        if not 1 <= len(requests) <= 32 or any(
+            row.project_id != requests[0].project_id for row in requests
+        ):
+            raise ValueError("operation summary requires 1-32 selections in one case")
+        with case_access(self.root, requests[0].project_id):
+            return [self.read(request) for request in requests]
+
     def read(self, request):
         with case_access(self.root, request.project_id):
             if request.kind == "hook":

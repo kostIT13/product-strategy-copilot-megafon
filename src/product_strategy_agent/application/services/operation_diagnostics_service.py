@@ -9,6 +9,10 @@ from product_strategy_agent.domain.automation.operation_diagnostics import (
     usage_diagnostics,
 )
 from product_strategy_agent.domain.projects.workspace import validate_workspace_id
+from product_strategy_agent.domain.automation.operation_summary import (
+    SummarizeOperations,
+    summarize,
+)
 
 
 class OperationDiagnosticsService:
@@ -19,6 +23,28 @@ class OperationDiagnosticsService:
         request = DiagnoseOperation.model_validate(request)
         validate_workspace_id(request.project_id)
         facts = self.reader.read(request)
+        return self._packet(request, facts)
+
+    def summary(self, request):
+        request = SummarizeOperations.model_validate(request)
+        validate_workspace_id(request.project_id)
+        selections = [
+            DiagnoseOperation(
+                project_id=request.project_id,
+                kind=row.kind,
+                operation_id=row.operation_id,
+            )
+            for row in request.operations
+        ]
+        facts = self.reader.read_many(selections)
+        packets = [
+            self._packet(selection, fact)
+            for selection, fact in zip(selections, facts, strict=True)
+        ]
+        return summarize(request, packets, __version__)
+
+    @staticmethod
+    def _packet(request, facts):
         return {
             "format_version": "psa-operation-diagnostic-v1",
             "package_version": __version__,

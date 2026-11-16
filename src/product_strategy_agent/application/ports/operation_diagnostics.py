@@ -9,3 +9,6 @@ from product_strategy_agent.domain.automation.operation_diagnostics import (
 
 class OperationDiagnosticsReader(Protocol):
     def read(self, request: DiagnoseOperation) -> OperationFacts | None: ...
+    def read_many(
+        self, requests: list[DiagnoseOperation]
+    ) -> list[OperationFacts | None]: ...
