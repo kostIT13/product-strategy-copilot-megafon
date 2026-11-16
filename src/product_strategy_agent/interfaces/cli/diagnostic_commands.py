@@ -23,11 +23,12 @@ def add_diagnostic_commands(commands):
         "diagnostics", help="inspect recorded automation metadata without execution"
     )
     actions = parser.add_subparsers(dest="diagnostic_action", required=True)
-    operation = actions.add_parser("operation")
-    operation.add_argument("project_id")
-    operation.add_argument("operation_id", type=UUID)
-    operation.add_argument("--kind", choices=get_args(OperationKind), required=True)
-    operation.add_argument("--projects-dir", type=Path, default=Path("projects"))
+    for name in ("operation", "controls"):
+        operation = actions.add_parser(name)
+        operation.add_argument("project_id")
+        operation.add_argument("operation_id", type=UUID)
+        operation.add_argument("--kind", choices=get_args(OperationKind), required=True)
+        operation.add_argument("--projects-dir", type=Path, default=Path("projects"))
     summary = actions.add_parser("summary")
     summary.add_argument("--request", type=Path, required=True)
     summary.add_argument("--projects-dir", type=Path, default=Path("projects"))
@@ -50,5 +51,10 @@ def handle_diagnostic_command(args):
     request = DiagnoseOperation(
         project_id=args.project_id, operation_id=args.operation_id, kind=args.kind
     )
-    result = operation_diagnostics(args.projects_dir).inspect(request)
+    service = operation_diagnostics(args.projects_dir)
+    result = (
+        service.controls(request)
+        if args.diagnostic_action == "controls"
+        else service.inspect(request)
+    )
     print(json.dumps(result, ensure_ascii=True, indent=2))

@@ -24,6 +24,37 @@ def register_diagnostic_tools(server):
             openWorldHint=False,
         )
     )
+    def psa_operation_controls(
+        project_id: str,
+        operation_id: UUID,
+        kind: OperationKind,
+        projects_dir: str = "projects",
+    ) -> dict:
+        """Read advisory retry/replay/recovery capabilities for one journal operation.
+
+        No execution, cancellation, checkpoint resume or authorization evaluation. Native
+        host controls stay not_verified; recorded cancelled/passed is not capability proof.
+        Freshness and active writer/permissions must be checked at the separate real action.
+        """
+        try:
+            return operation_diagnostics(projects_dir).controls(
+                DiagnoseOperation(
+                    project_id=project_id, operation_id=operation_id, kind=kind
+                )
+            )
+        except (ValueError, OSError):
+            raise ToolError(
+                "operation controls unavailable; inspect case lock, namespace and journal integrity"
+            ) from None
+
+    @server.tool(
+        annotations=dict(
+            readOnlyHint=True,
+            destructiveHint=False,
+            idempotentHint=True,
+            openWorldHint=False,
+        )
+    )
     def psa_diagnose_usage(project_id: str, projects_dir: str = "projects") -> dict:
         """Read bounded v1 usage declarations with file/row hashes and redacted provenance.
 
