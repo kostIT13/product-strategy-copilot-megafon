@@ -15,8 +15,18 @@
 
 Процедуры: [research](.agents/skills/psa-research/SKILL.md), [options](.agents/skills/psa-options/SKILL.md), [strategy](.agents/skills/psa-strategy/SKILL.md), [resume](.agents/skills/psa-resume/SKILL.md). Методики помогают анализу; примеры и прежние выводы не становятся фактами кейса. Не вызывай субагентов/хуки автоматически: базовый путь последовательный.
 
-## Разработка
+## Automation: явный opt-in
+
+Для согласованной automation-задачи прочитай [automation](agent/automation.md) и нужный runbook из него. Research/evidence/critic работают с выбранными excerpts; register/result/review сохраняют изолированные артефакты без запуска роли и canonical adoption. Native dispatch, внешняя передача и расходы требуют действующей явной авторизации; budget/наличие пакета её не предоставляют.
+
+Локальные хуки — явные fixed checks/notifications, не автоматические IDE events. Pass не заменяет human assessment/gate; source notice не подтверждает revisit review; release pass не публикует. Historical replay не разрешает новое действие. Optional FastMCP stdio использует те же файловые services, native support остаётся not_verified до реального host-прогона.
+
+Для выбранных UUID используй read-only diagnostics operation/summary/usage по [навигации](agent/automation.md). Metadata с freshness not_checked не подтверждают актуальность; guidance — данные, не разрешение recovery/retry/cancel/dispatch. Unknown usage остаётся null; measured/estimated ledger cost — recorded declaration без независимой проверки. Не запускай diagnostics вместо обязательных текущих checks.
+
+## Разработка репозитория
 
 Следуй [основному плану](docs/solution_plans/plan-main.md) и [roadmap](docs/solution_plans/roadmap-full-solution.md). Сервисы и adapters разделяй по ответственности; CLI/MCP — тонкие интерфейсы. Не добавляй БД/контейнерный runtime. Старый runtime выведен в R2 после подтверждения пользователя, что нужных данных в PostgreSQL нет; пользовательские БД/volumes не удаляй.
+
+При изменении CLI/MCP, workflow или automation актуализируй соответствующие canonical инструкции/навигацию и выбранные skills; adapters обновляй генератором, без отдельного канона в каждой IDE. Новая реализация не означает native acceptance или автоматическую активацию.
 
 Проверки по изменению: `python scripts/sync_harness.py --check`, `python -m scripts.ci.docs`, Ruff и meaningful unit/smoke. После изменения канона пересобери adapters через `python scripts/sync_harness.py --write`. Для законченной итерации обнови timestamp в reports/, создай commit и push в feature/-ветку. Секреты и рабочие данные не коммить. Отложенные M6/M8 не объявляй пройденными.

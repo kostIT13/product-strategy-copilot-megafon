@@ -1,8 +1,8 @@
 # Инструкции агента
 
-Opt-in роли research/evidence/critic доступны через [read-only handoff preparation](../docs/subagent-handoffs.md). Это отдельный явный запрос, не автоматический этап workflow или native запуск субагентов; последовательный путь остаётся базовым.
+Для явно выбранной automation-задачи прочитай [automation](automation.md): роли research/evidence/critic, task/result/review journal, local hooks, diagnostics и host/config lifecycle. Это opt-in scope, не автоматический этап workflow; последовательный путь остаётся базовым.
 
-Канон правил — [AGENTS.md](../AGENTS.md); тематические документы: [workflow](workflow.md), [quality](quality.md), [safety](safety.md). Skills хранятся в [.agents/skills](../.agents/skills/psa-research/SKILL.md); Claude-копии и тонкие host adapters генерируются `scripts/sync_harness.py`, проверяются с `--check` и не редактируются отдельно.
+Канон правил — [AGENTS.md](../AGENTS.md); тематические документы: [workflow](workflow.md), [quality](quality.md), [safety](safety.md), [automation](automation.md). Skills хранятся в [.agents/skills](../.agents/skills/psa-research/SKILL.md); Claude-копии и тонкие host adapters генерируются `scripts/sync_harness.py`, проверяются с `--check` и не редактируются отдельно. Bundle 1.1.0 включает навигацию README/automation в context и canonical hash; роли загружаются только для выбранного handoff.
 
 `psa context ID` возвращает текущий этап и полный текст подходящих skills/knowledge с версиями и SHA-256. Команда только читает файлы. Из установленного wheel без репозитория передай `--instructions-root PATH_TO_REPO`; автономная упаковка всего context в wheel ещё не реализована. Source ZIP включает весь проект; sdist также включает канонические instruction assets, но не заявляется отдельным полным IDE-проектом со всей документацией. Для установленного пакета используй instruction root из репозитория/ZIP.
 

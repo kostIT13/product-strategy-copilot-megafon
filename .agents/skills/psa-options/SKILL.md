@@ -12,3 +12,6 @@ description: Compare evidence-grounded status-quo, stop and change alternatives 
 Запиши option add с --role, --description, --benefits, --costs, --risks, --objection, --assumption и --claim по фактическим возможностям CLI; недоступное численное основание явно обозначь как неизвестное. Отдельно покажи сравнение и рекомендованный вариант с причиной/условием пересмотра. Содержательную различимость проверяет review, не только schema.
 
 Выход: три опции в реестре и сравнение в author notes, ссылки на claims и пробелы, validate/verify. Решение и gate остаются человеку. Если пользователь ещё не выбрал вариант, не вызывай decision add и не выдумывай owner/confirmed.
+
+
+При явном поручении critic/evidence роли используй agent/automation.md: bounded excerpts, exact binding и review результата основным агентом. Ready_for_followup не является человеческим выбором или semantic acceptance; findings требуют проверки по current evidence. Не делегируй автоматически ради положительного verdict.
