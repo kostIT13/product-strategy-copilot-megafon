@@ -3,6 +3,9 @@
 from datetime import datetime, timezone
 import os
 from pathlib import Path
+from product_strategy_agent.adapters.persistence.files.directory_bounds import (
+    bounded_entries,
+)
 from uuid import UUID
 from product_strategy_agent.adapters.persistence.files.host_config_audit import audit
 from product_strategy_agent.adapters.persistence.files.host_config_publication import (
@@ -161,9 +164,12 @@ class FileHostConfigStore:
         root = self._path("")
         if not root.exists():
             return {"operations": []}
-        entries = [path for path in root.iterdir() if path.name != "ACTIVE.json"]
-        if len(entries) > 1000:
-            raise ValueError("config history exceeds 1000 operations")
+        entries = bounded_entries(
+            root,
+            1000,
+            ignore=("ACTIVE.json",),
+            message="config history exceeds 1000 operations",
+        )
         rows = []
         for path in sorted(entries):
             try:
@@ -197,8 +203,12 @@ class FileHostConfigStore:
     def begin(self, record):
         folder = self.folder(record.command.operation_id)
         folder.parent.mkdir(parents=True, exist_ok=True)
-        if len([p for p in folder.parent.iterdir() if p.name != "ACTIVE.json"]) >= 1000:
-            raise ValueError("config history reached 1000 operations; history retained")
+        bounded_entries(
+            folder.parent,
+            999,
+            ignore=("ACTIVE.json",),
+            message="config history reached 1000 operations; history retained",
+        )
         folder.mkdir()
         durable_write(confined(folder, "operation.json"), encode(record))
         sync_directory(folder)

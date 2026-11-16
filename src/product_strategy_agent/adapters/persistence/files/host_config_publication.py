@@ -1,6 +1,9 @@
 """Atomic metadata publication; bounded preservation of interrupted private staging."""
 
 from hashlib import sha256
+from product_strategy_agent.adapters.persistence.files.directory_bounds import (
+    bounded_entries,
+)
 import json
 import os
 
@@ -23,10 +26,11 @@ def preserve(stage, folder, limit, writer):
         if read_bounded(target, limit) != raw:
             raise ValueError("interrupted staging snapshot mismatch")
     else:
-        if len(list(archive.iterdir())) >= 16:
-            raise ValueError(
-                "interrupted staging retention full; preserve for inspection"
-            )
+        bounded_entries(
+            archive,
+            15,
+            message="interrupted staging retention full; preserve for inspection",
+        )
         writer(target, raw)
         sync_directory(archive)
     if read_bounded(stage, limit) != raw:

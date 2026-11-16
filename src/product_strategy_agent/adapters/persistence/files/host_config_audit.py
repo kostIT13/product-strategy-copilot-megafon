@@ -1,6 +1,9 @@
 """Read-only private journal diagnostics without configuration contents or paths."""
 
 from hashlib import sha256
+from product_strategy_agent.adapters.persistence.files.directory_bounds import (
+    bounded_entries,
+)
 from uuid import UUID
 
 from product_strategy_agent.adapters.persistence.files.host_config_publication import (
@@ -21,9 +24,16 @@ def audit(store):
         issues.append({"code": code, "operation_id": identifier})
 
     root = store._path("")
-    entries = list(root.iterdir()) if root.exists() else []
-    if sum(entry.name != "ACTIVE.json" for entry in entries) > 1000:
-        raise ValueError("config audit exceeds history limit")
+    entries = (
+        bounded_entries(
+            root,
+            1000,
+            ignore=("ACTIVE.json",),
+            message="config audit exceeds history limit",
+        )
+        if root.exists()
+        else []
+    )
     active = None
     try:
         active = store._active()
@@ -58,7 +68,7 @@ def audit(store):
                 "COMMITTED.pending.json",
                 "interrupted",
             }
-            for path in entry.iterdir():
+            for path in bounded_entries(entry, len(allowed)):
                 if path.name not in allowed:
                     issue("unrecognized_operation_entry", key)
             for name in ("ACTIVE", "COMMITTED"):
@@ -83,9 +93,7 @@ def audit(store):
                 issue("unpublished_config", key)
             archive = confined(entry, "interrupted")
             if archive.exists():
-                snapshots = list(archive.iterdir())
-                if len(snapshots) > 16:
-                    raise ValueError("snapshot limit")
+                snapshots = bounded_entries(archive, 16, message="snapshot limit")
                 for snapshot in snapshots:
                     path = confined(archive, snapshot.name)
                     raw = read_bounded(path, 64000)
