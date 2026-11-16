@@ -528,3 +528,10 @@ Final provenance7 (13.601 s), P6a8 (18.118 s), P6b8 (14.630 s) —23 tests OK. C
 Обновлены AGENTS/workflow/quality/safety, новый agent/automation router,4 canonical skills и3 role profiles. README/automation доставляются в context и входят в fingerprints; optional navigation поддерживает legacy manifests и запрещает role/host autoload/escape. Все9 generated adapters пересобраны. Human gates/opt-in/sequential fallback сохранены; native activation не включена. Коммиты52e1620 /4359353; итоговый docs commit фиксирует runbook/планы/отчёт.
 
 Context10 (5.130 s), handoffs14 (15.927 s), task12 (35.776 s), host9 (10.173 s) —45 tests OK; final base context10 (4.599 s) OK. Skill validator8 UTF-8 /CLI parser8/sync9/Ruff/docs/native secrets/diff OK; full suite/hook workers/base completed smoke не повторялись. Реальные configs/кейсы/согласования не менялись; модели/native dispatch не запускались. P6d остаётся следующим функциональным срезом, P4/P5/R1/M6/M8 открыты. [Отчёт](2026-11-17-instructions-refresh.md).
+
+
+## 17.11.2026 01:59 (Asia/Novosibirsk) — P6d: advisory controls policy
+
+CLI/FastMCP controls projection разделяет inspect/case resume, pending forward recovery, exact UUID replay и fresh-request new attempt. Generic cancel/checkpoint executor отсутствуют в CLI, native controls not_verified. Policy не исполняет действия и не оценивает/не предоставляет authorization. Канон/resume skill актуализированы, bundle1.1.1 и9 adapters пересобраны. Коммитыdbedee4 /bbdee60 /7c45fa6; итоговый docs commit фиксирует планы/отчёт.
+
+Controls8 (17.062 s), P6a8 (19.408 s), P6b8 (14.908 s), context10 (5.388 s) —34 tests OK; clean base8 (10.245 s,1 MCP skip). Skills validator2/sync9/Ruff/docs/native secrets/diff OK. Full suite/base completed/worker execution suites не повторялись. Explicit recovery только на temp synthetic fixtures, реальные кейсы/native settings не менялись. Локальные P6a–P6d выполнены, весь P6 и P4/P5/R1/M6/M8 открыты. Далее независимый P7a tools inventory/eval protocol. [Отчёт](2026-11-17-p6-operation-controls.md).

@@ -103,3 +103,6 @@ P4d: [disabled config lifecycle](host-config-lifecycle.md): plan/show/pending re
 
 
 [P6c usage provenance](usage-provenance.md): read-only `psa_diagnose_usage` показывает bounded canonical ledger с source/row hashes и redacted declaration provenance. Cost basis measured/estimated не становится verified measurement; нет totals/автоматической привязки business ID к automation UUID. CLI: `psa diagnostics usage case --projects-dir PATH`.
+
+
+[P6d operation controls](operation-controls.md): read-only `psa_operation_controls` показывает advisory механизмы одного task/result/review/hook UUID. Availability не является authorization, native controls not_verified; cancel/checkpoint resume не выполняются. CLI: `psa diagnostics controls case UUID --kind task --projects-dir PATH`.
