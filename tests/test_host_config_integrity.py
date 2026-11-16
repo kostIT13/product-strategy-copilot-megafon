@@ -14,6 +14,17 @@ from test_host_profiles import fixture
 
 
 class ConfigIntegrityTests(unittest.TestCase):
+    def test_audit_operation_limit_does_not_depend_on_presence_of_active_guard(self):
+        with TemporaryDirectory() as folder:
+            root = fixture(folder)
+            journal = root / ".psa/host-config/v1"
+            journal.mkdir(parents=True)
+            for index in range(1001):
+                (journal / f"unknown-{index}").mkdir()
+            with self.assertRaisesRegex(ValueError, "history limit"):
+                host_config(root).audit()
+            self.assertEqual(len(list(journal.iterdir())), 1001)
+
     def test_complete_invalid_staging_is_never_repaired_as_a_torn_write(self):
         for name, raw in (
             ("ACTIVE", b'{"future_version":99}'),

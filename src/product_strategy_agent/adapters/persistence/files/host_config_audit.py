@@ -22,7 +22,7 @@ def audit(store):
 
     root = store._path("")
     entries = list(root.iterdir()) if root.exists() else []
-    if len(entries) > 1001:
+    if sum(entry.name != "ACTIVE.json" for entry in entries) > 1000:
         raise ValueError("config audit exceeds history limit")
     active = None
     try:
