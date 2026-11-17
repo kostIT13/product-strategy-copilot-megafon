@@ -31,6 +31,7 @@ ROOT_FILES = {
     "uv.lock",
     ".env.example",
     ".gitignore",
+    ".gitattributes",
     "MANIFEST.in",
     "AGENTS.md",
     "CLAUDE.md",

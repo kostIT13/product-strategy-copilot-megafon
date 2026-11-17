@@ -1,5 +1,7 @@
 # Краткий roadmap основной разработки
 
+**Актуальный срез 17.11.2026 — P8a:** [подготовка IDE pair evaluation](../evaluation/paired-ide-preparation.md) реализована: общий synthetic brief/materials, sequential/opt-in automation protocol, owner-only A/B key, neutral reviewer templates и hash-bound preparation builder. Actual outputs/scores/measurements отсутствуют, review_ready/authorization=false; P4–P6 и M6 не приняты. P7a–P7d local contracts есть, measured benefit P7 открыт. Далее P8b — фиксация/проверка host/model/settings, scope/authorization, одинаковых caps/order/hashes и actual human choice для стратегии перед реальным парным запуском. Подготовка не разрешает model/native dispatch или передачу reviewer; R1/M8 открыты.
+
 **Обновлён 17.11.2026 по полному [ТЗ](../../specs/case.md).** Рабочий план находится в [plan-main.md](plan-main.md). Ветка: `feature/main-solution-roadmap`.
 
 ## Принятое решение

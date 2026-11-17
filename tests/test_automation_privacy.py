@@ -135,9 +135,9 @@ class AutomationPrivacyTests(unittest.TestCase):
         )
         with TemporaryDirectory() as folder:
             root, case, instructions, _, _ = fixture(folder)
-            trusted = (instructions / "agent/roles/evidence.md").read_text(
-                encoding="utf-8"
-            )
+            # The handoff intentionally preserves the trusted file's exact
+            # bytes; read_text would normalize a Windows checkout's CRLF.
+            trusted = (instructions / "agent/roles/evidence.md").read_bytes().decode("utf-8")
             for payload in corpus:
                 with self.subTest(payload=payload):
                     (case / "01_brief.md").write_text(payload, encoding="utf-8")

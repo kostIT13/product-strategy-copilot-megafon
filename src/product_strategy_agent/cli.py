@@ -47,6 +47,7 @@ from product_strategy_agent.interfaces.cli.claim_correction_commands import add_
 from product_strategy_agent.interfaces.cli.subagent_commands import add_subagent_commands, handle_subagent_command
 from product_strategy_agent.interfaces.cli.hook_commands import add_hook_commands, handle_hook_command
 from product_strategy_agent.interfaces.cli.host_commands import add_host_commands, handle_host_command
+from product_strategy_agent.interfaces.cli.research_tool_commands import add_research_tool_commands, handle_research_tool_command
 
 STAGES = (
     "intake",
@@ -299,6 +300,7 @@ def build_parser() -> argparse.ArgumentParser:
                            help="caller-chosen journal UUID for exact append replay")
         entry.add_argument("--expected-workflow-version", type=int, help="expected shared workflow journal version")
     add_diagnostic_commands(commands)
+    add_research_tool_commands(commands)
     return parser
 
 
@@ -306,6 +308,9 @@ def main() -> None:
     args = build_parser().parse_args()
     access = ExitStack()
     try:
+        if args.command == "tools":
+            handle_research_tool_command(args)
+            return
         if args.command == "review":
             handle_semantic_review_command(args)
             return

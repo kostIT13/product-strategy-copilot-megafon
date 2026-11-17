@@ -82,7 +82,7 @@ class FileWorkspaceTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "busy"):
                     service.recover("case", operation_id)
             operation_id = interrupted(root, "before", blocked)
-            self.assertEqual(service.recover("case", operation_id), root / "case")
+            self.assertEqual(service.recover("case", operation_id), (root / "case").resolve())
 
     def test_init_publishes_complete_v1_layout_and_preserves_existing_case(self):
         with TemporaryDirectory() as folder:
@@ -132,7 +132,7 @@ class FileWorkspaceTests(unittest.TestCase):
             self.assertTrue((project / RECEIPT).is_file())
             service = WorkspaceService(FileWorkspaceStore(root))
             before = (project / "state.json").read_bytes()
-            self.assertEqual(service.recover("case", operation_id), project)
+            self.assertEqual(service.recover("case", operation_id), project.resolve())
             self.assertEqual((project / "state.json").read_bytes(), before)
             with self.assertRaises(ValueError):
                 service.recover("case", uuid4())
@@ -245,7 +245,7 @@ class FileWorkspaceMCPTests(unittest.IsolatedAsyncioTestCase):
                 args = {"project_id": "case", "projects_dir": folder}
                 result = (await client.call_tool("psa_init", args)).data
                 project = Path(result["path"])
-                self.assertEqual(project, Path(folder) / "case")
+                self.assertEqual(project, (Path(folder) / "case").resolve())
                 self.assertTrue((project / RECEIPT).is_file())
                 self.assertEqual({p.name for p in project.iterdir() if p.is_file()}, INITIAL_FILES)
                 before = (project / "state.json").read_bytes()

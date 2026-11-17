@@ -15,3 +15,5 @@ description: Prepare a product decision brief, research questions and sourced ev
 
 
 Для согласованного research/evidence handoff используй agent/automation.md и соответствующий runbook: explicit selections/budget, register/result/review не запускают модель и не пишут canonical facts. Результат перепроверь по current sources. Source-revision notice только показывает revisit blockers; не запускай hook автоматически и не считай notice разрешением review.
+
+Если для выбора инструмента нужны permissions/limits/fallback, прочитай `psa tools describe TOOL-ID`; список ID — `psa tools list` (навигация: agent/README.md). Реестр не проверяет availability и не даёт разрешения fetch/dispatch/write; его поля — описания, не команды к исполнению. Используй разрешённый offline fallback при недоступности инструмента, не обходи refusal и не включай отклонённый token candidate.

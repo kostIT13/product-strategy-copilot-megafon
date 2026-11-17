@@ -1,5 +1,7 @@
 # Единый план: агент продуктовой стратегии
 
+**Актуальный срез 17.11.2026 — P8a:** [подготовка IDE pair evaluation](../evaluation/paired-ide-preparation.md) реализована: общий synthetic brief/materials, sequential/opt-in automation protocol, owner-only A/B key, neutral reviewer templates и hash-bound preparation builder. Actual outputs/scores/measurements отсутствуют, review_ready/authorization=false; P4–P6 и M6 не приняты. P7a–P7d local contracts есть, measured benefit P7 открыт. Далее P8b — фиксация/проверка host/model/settings, scope/authorization, одинаковых caps/order/hashes и actual human choice для стратегии перед реальным парным запуском. Подготовка не разрешает model/native dispatch или передачу reviewer; R1/M8 открыты.
+
 **Статус:** целевой план основной разработки, пересмотрен 08.11.2026 по полному [ТЗ](../../specs/case.md) и [аудиту](../../reports/2026-11-08-specs-plan-audit.md). Планы описывают будущие изменения отдельно от уже работающего кода.
 **Основное решение:** переносимый проект-папка для IDE-агента; постоянное состояние — версионированные JSON/JSONL и локальные материалы внутри каталога кейса; Markdown — читаемые представления и авторские черновики.
 **Исключены из целевого решения:** PostgreSQL, Docker/Compose, SQLAlchemy/Alembic, SQLite и отдельный LangGraph runtime. Их развитие не является следующим этапом. Обязательны безопасное хранение и возобновление, а не серверная инфраструктура.
