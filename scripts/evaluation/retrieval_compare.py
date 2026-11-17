@@ -105,10 +105,13 @@ def main():
         "protocol_sha256": hashlib.sha256(
             (ROOT / "evals/retrieval/p7b-protocol.md").read_bytes()
         ).hexdigest(),
-        "source_sha256": {
-            path: hashlib.sha256((ROOT / path).read_bytes()).hexdigest()
+        "source_sha256": [
+            {
+                "path": path,
+                "sha256": hashlib.sha256((ROOT / path).read_bytes()).hexdigest(),
+            }
             for path in source_paths
-        },
+        ],
         "git_commit": subprocess.check_output(
             ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True
         ).strip(),
