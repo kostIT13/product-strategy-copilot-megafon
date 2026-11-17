@@ -35,12 +35,16 @@ jobs:
       - run: uv sync --frozen --no-default-groups
       - name: Validate, verify, resume and rebuild synthetic cases in temporary copies
         run: uv run --frozen --no-sync python -m scripts.ci.demo --report demo-report.json
+      - name: Check offline research provenance, refusal and source lifecycle
+        run: uv run --frozen --no-sync python -m scripts.ci.research_smoke --report research-report.json
       - name: Summarize demo checks
         if: always()
         shell: bash
         run: |
-          if [ -f demo-report.json ]; then
-            printf '### Local synthetic demo\n\n```json\n' >> "$GITHUB_STEP_SUMMARY"
-            cat demo-report.json >> "$GITHUB_STEP_SUMMARY"
-            printf '\n```\n' >> "$GITHUB_STEP_SUMMARY"
-          fi
+          for report in demo-report.json research-report.json; do
+            if [ -f "$report" ]; then
+              printf '### %s\n\n```json\n' "$report" >> "$GITHUB_STEP_SUMMARY"
+              cat "$report" >> "$GITHUB_STEP_SUMMARY"
+              printf '\n```\n' >> "$GITHUB_STEP_SUMMARY"
+            fi
+          done

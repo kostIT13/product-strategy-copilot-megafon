@@ -30,3 +30,5 @@
 При изменении CLI/MCP, workflow или automation актуализируй соответствующие canonical инструкции/навигацию и выбранные skills; adapters обновляй генератором, без отдельного канона в каждой IDE. Новая реализация не означает native acceptance или автоматическую активацию.
 
 Проверки по изменению: `python scripts/sync_harness.py --check`, `python -m scripts.ci.docs`, Ruff и meaningful unit/smoke. После изменения канона пересобери adapters через `python scripts/sync_harness.py --write`. Для законченной итерации обнови timestamp в reports/, создай commit и push в feature/-ветку. Секреты и рабочие данные не коммить. Отложенные M6/M8 не объявляй пройденными.
+
+Для изменений research-path проверь `python -m scripts.ci.research_smoke`: runner создаёт только собственную temporary synthetic fixture, не принимает пользовательский case и не выполняет gates/решения/внешний fetch. Pass подтверждает технические contracts, не measured agent benefit или IDE acceptance.
