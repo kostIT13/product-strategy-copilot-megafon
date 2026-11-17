@@ -542,3 +542,10 @@ Controls8 (17.062 s), P6a8 (19.408 s), P6b8 (14.908 s), context10 (5.388 s) —3
 Сверены research/knowledge/retrieval tools и границы permissions/provenance/limits/offline. Добавлен runnable synthetic kernel eval:5 sources/8 gold queries, TP5/FP1/FN1, precision=recall5/6;6 exact quotes. Размеченный semantic miss и неоднозначный FP сохранены. Cost unknown/null,0 model/external calls; это не agent-level benefit или independent review. Зафиксирован holdout/candidate protocol до RAG/provider. Код/tests commit aa5ce89; отдельный docs commit фиксирует inventory/планы/отчёт.
 
 Новые5 tests (0.012s), file search11 (22.179s,1 Windows symlink skip):16 различных tests. Clean base повтор5 (0.007s). Generator write/check9 без differences, docs/Ruff/native Gitleaks/diff OK. Full suite/web/binary parser suites/native host/final release не повторялись. P7a выполнен; далее P7b holdout и local candidate comparison. Весь P7, P4/P5/P6 и R1/M6/M8 открыты. [Отчёт](2026-11-17-p7-retrieval-baseline.md).
+
+
+## 17.11.2026 19:37 (Asia/Novosibirsk) — P7b: frozen retrieval comparison
+
+Holdout/protocol10 sources/16 queries до candidate:88960f1; isolated token-window candidate/comparison/tests:adae42f. Development run fa36406/dirty=true сохранён в JSON с commit/hashes/versions: baseline precision1/recall5/11, candidate precision9/11/recall9/11. Recall gain не компенсирует precision loss; candidate отклонён, production literal search сохранён. False positives и null/unknown оставлены видимыми, model/network calls0.
+
+Candidate7 (1.889s), evaluator5 (0.010s), file-search11 (21.573s,1 Windows symlink skip):23 различных tests. Clean base повтор12 (1.793s). Lifecycle/revision/withdrawal через real temp store и read-only bytes проверены. Sync/docs/Ruff/Gitleaks/diff OK; full suite/native host/independent review/final release не выполнялись. P7b завершён; далее P7c versioned registry existing tools, без adoption candidate. Весь P7, P4/P5/P6 и R1/M6/M8 открыты. [Отчёт](2026-11-17-p7b-retrieval-comparison.md).

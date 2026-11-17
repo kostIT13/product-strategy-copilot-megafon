@@ -8,7 +8,7 @@
 
 ## Протокол
 
-Отдельный [offline retrieval eval P7a](../retrieval-evaluation.md) измеряет поиск фрагментов на synthetic gold corpus. Он не оценивает стратегию или агентный цикл и не закрывает M6.
+Отдельный [offline retrieval eval P7a](../retrieval-evaluation.md) измеряет поиск фрагментов на synthetic gold corpus. Его продолжение [P7b](../retrieval-comparison.md) зафиксировало отклонение lexical candidate. Эти проверки не оценивают стратегию или агентный цикл и не закрывают M6.
 
 1. Скопируйте бриф и исходный синтетический материал в новый чистый контекст.
 2. Для baseline используйте `evals/demo/baseline-prompt.md`; не показывайте ему `claims.jsonl`, вариант решения или стратегию workflow.

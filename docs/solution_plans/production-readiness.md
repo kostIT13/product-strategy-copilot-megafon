@@ -1,6 +1,6 @@
 # Полный рабочий план готовности к эксплуатации
 
-**Актуальный срез 17.11.2026 — P7a:** [inventory и offline retrieval baseline](../retrieval-evaluation.md) реализованы: 5 synthetic sources, 8 gold queries, видимые FP/FN, quote/hash checks и протокол сравнения расширений. Следующий независимый срез P7b — отдельный holdout и сравнение простого локального candidate с literal baseline до решения о RAG/provider. Это не независимая оценка агента; весь P7, P4/P5/P6 и R1/M6/M8 остаются открытыми.
+**Актуальный срез 17.11.2026 — P7b:** [сравнение retrieval](../retrieval-comparison.md) выполнено на заранее зафиксированных synthetic10 sources/16 queries. Token fallback повысил recall, но снизил precision, поэтому отклонён; production literal search сохранён. P7a inventory/baseline выполнен. Следующий независимый срез P7c — versioned registry существующих research tools с permissions/provenance/limits/offline fallback. Это не independent agent eval; весь P7, P4/P5/P6 и R1/M6/M8 открыты.
 
 Обновлён 17.11.2026 после функциональной приёмки R3 на синтетическом «Слот». Это план разработки и проверки, не заявление production-ready. Основной продукт остаётся IDE-native проектом: IDE ведёт цикл, CLI/FastMCP используют общее файловое ядро. PostgreSQL/Docker/SQLite/LangGraph и собственный обязательный LLM loop не добавляются.
 

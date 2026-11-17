@@ -1,0 +1,687 @@
+{
+  "schema_version": 1,
+  "scope": "synthetic_search_kernel_comparison_only",
+  "repeats": 5,
+  "baseline": {
+    "schema_version": 1,
+    "scope": "synthetic_search_kernel_only",
+    "method": "literal_ignore_case_v1",
+    "k": 3,
+    "sources": 10,
+    "queries": [
+      {
+        "id": "literal",
+        "category": "literal",
+        "precision": 1.0,
+        "recall": 1.0,
+        "true_positive": 1,
+        "false_positive": 0,
+        "false_negative": 0,
+        "retrieved": [
+          [
+            "S-H01",
+            "paragraph:1"
+          ]
+        ]
+      },
+      {
+        "id": "word-order",
+        "category": "token_gap",
+        "precision": null,
+        "recall": 0.0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 1,
+        "retrieved": []
+      },
+      {
+        "id": "separated",
+        "category": "token_gap",
+        "precision": null,
+        "recall": 0.0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 1,
+        "retrieved": []
+      },
+      {
+        "id": "actor",
+        "category": "role_ambiguity",
+        "precision": null,
+        "recall": null,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 0,
+        "retrieved": []
+      },
+      {
+        "id": "numeric-pdf",
+        "category": "pdf",
+        "precision": 1.0,
+        "recall": 1.0,
+        "true_positive": 1,
+        "false_positive": 0,
+        "false_negative": 0,
+        "retrieved": [
+          [
+            "S-H04",
+            "page:1"
+          ]
+        ]
+      },
+      {
+        "id": "reordered-cell",
+        "category": "xlsx",
+        "precision": null,
+        "recall": 0.0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 1,
+        "retrieved": []
+      },
+      {
+        "id": "negation",
+        "category": "negation",
+        "precision": 1.0,
+        "recall": 1.0,
+        "true_positive": 1,
+        "false_positive": 0,
+        "false_negative": 0,
+        "retrieved": [
+          [
+            "S-H06",
+            "paragraph:1"
+          ]
+        ]
+      },
+      {
+        "id": "source-instruction",
+        "category": "untrusted_text",
+        "precision": 1.0,
+        "recall": 1.0,
+        "true_positive": 1,
+        "false_positive": 0,
+        "false_negative": 0,
+        "retrieved": [
+          [
+            "S-H07",
+            "paragraph:1"
+          ]
+        ]
+      },
+      {
+        "id": "cross-scope",
+        "category": "scope_boundary",
+        "precision": null,
+        "recall": null,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 0,
+        "retrieved": []
+      },
+      {
+        "id": "metacharacter",
+        "category": "literal_punctuation",
+        "precision": null,
+        "recall": null,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 0,
+        "retrieved": []
+      },
+      {
+        "id": "synonym",
+        "category": "semantic_gap",
+        "precision": null,
+        "recall": 0.0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 1,
+        "retrieved": []
+      },
+      {
+        "id": "paraphrase",
+        "category": "semantic_gap",
+        "precision": null,
+        "recall": 0.0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 1,
+        "retrieved": []
+      },
+      {
+        "id": "absent",
+        "category": "unanswerable",
+        "precision": null,
+        "recall": null,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 0,
+        "retrieved": []
+      },
+      {
+        "id": "coordinate",
+        "category": "metadata_only",
+        "precision": null,
+        "recall": null,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 0,
+        "retrieved": []
+      },
+      {
+        "id": "number-tokens",
+        "category": "numeric_tokens",
+        "precision": null,
+        "recall": 0.0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 1,
+        "retrieved": []
+      },
+      {
+        "id": "literal-cell",
+        "category": "xlsx",
+        "precision": 1.0,
+        "recall": 1.0,
+        "true_positive": 1,
+        "false_positive": 0,
+        "false_negative": 0,
+        "retrieved": [
+          [
+            "S-H05",
+            "cell:'Cells'!B1"
+          ]
+        ]
+      }
+    ],
+    "micro_precision": 1.0,
+    "micro_recall": 0.45454545454545453,
+    "true_positive": 5,
+    "false_positive": 0,
+    "false_negative": 6,
+    "verified_quotes": 5,
+    "elapsed_seconds": 0.003105300012975931,
+    "model_calls": 0,
+    "external_requests": 0,
+    "provider_cost": null,
+    "independent_review": false,
+    "mean_loop_seconds": 0.0016227600048296154,
+    "category_metrics": {
+      "literal": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "token_gap": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 2,
+        "precision": null,
+        "recall": 0.0
+      },
+      "role_ambiguity": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": null,
+        "recall": null
+      },
+      "pdf": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "xlsx": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 1,
+        "precision": 1.0,
+        "recall": 0.5
+      },
+      "negation": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "untrusted_text": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "scope_boundary": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": null,
+        "recall": null
+      },
+      "literal_punctuation": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": null,
+        "recall": null
+      },
+      "semantic_gap": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 2,
+        "precision": null,
+        "recall": 0.0
+      },
+      "unanswerable": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": null,
+        "recall": null
+      },
+      "metadata_only": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": null,
+        "recall": null
+      },
+      "numeric_tokens": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 1,
+        "precision": null,
+        "recall": 0.0
+      }
+    }
+  },
+  "candidate": {
+    "schema_version": 1,
+    "scope": "synthetic_search_kernel_only",
+    "method": "literal_then_token_window_v1",
+    "k": 3,
+    "sources": 10,
+    "queries": [
+      {
+        "id": "literal",
+        "category": "literal",
+        "precision": 1.0,
+        "recall": 1.0,
+        "true_positive": 1,
+        "false_positive": 0,
+        "false_negative": 0,
+        "retrieved": [
+          [
+            "S-H01",
+            "paragraph:1"
+          ]
+        ]
+      },
+      {
+        "id": "word-order",
+        "category": "token_gap",
+        "precision": 1.0,
+        "recall": 1.0,
+        "true_positive": 1,
+        "false_positive": 0,
+        "false_negative": 0,
+        "retrieved": [
+          [
+            "S-H01",
+            "paragraph:1"
+          ]
+        ]
+      },
+      {
+        "id": "separated",
+        "category": "token_gap",
+        "precision": 1.0,
+        "recall": 1.0,
+        "true_positive": 1,
+        "false_positive": 0,
+        "false_negative": 0,
+        "retrieved": [
+          [
+            "S-H02",
+            "paragraph:1"
+          ]
+        ]
+      },
+      {
+        "id": "actor",
+        "category": "role_ambiguity",
+        "precision": 0.0,
+        "recall": null,
+        "true_positive": 0,
+        "false_positive": 1,
+        "false_negative": 0,
+        "retrieved": [
+          [
+            "S-H03",
+            "paragraph:1"
+          ]
+        ]
+      },
+      {
+        "id": "numeric-pdf",
+        "category": "pdf",
+        "precision": 1.0,
+        "recall": 1.0,
+        "true_positive": 1,
+        "false_positive": 0,
+        "false_negative": 0,
+        "retrieved": [
+          [
+            "S-H04",
+            "page:1"
+          ]
+        ]
+      },
+      {
+        "id": "reordered-cell",
+        "category": "xlsx",
+        "precision": 1.0,
+        "recall": 1.0,
+        "true_positive": 1,
+        "false_positive": 0,
+        "false_negative": 0,
+        "retrieved": [
+          [
+            "S-H05",
+            "cell:'Cells'!B1"
+          ]
+        ]
+      },
+      {
+        "id": "negation",
+        "category": "negation",
+        "precision": 1.0,
+        "recall": 1.0,
+        "true_positive": 1,
+        "false_positive": 0,
+        "false_negative": 0,
+        "retrieved": [
+          [
+            "S-H06",
+            "paragraph:1"
+          ]
+        ]
+      },
+      {
+        "id": "source-instruction",
+        "category": "untrusted_text",
+        "precision": 1.0,
+        "recall": 1.0,
+        "true_positive": 1,
+        "false_positive": 0,
+        "false_negative": 0,
+        "retrieved": [
+          [
+            "S-H07",
+            "paragraph:1"
+          ]
+        ]
+      },
+      {
+        "id": "cross-scope",
+        "category": "scope_boundary",
+        "precision": null,
+        "recall": null,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 0,
+        "retrieved": []
+      },
+      {
+        "id": "metacharacter",
+        "category": "literal_punctuation",
+        "precision": 0.0,
+        "recall": null,
+        "true_positive": 0,
+        "false_positive": 1,
+        "false_negative": 0,
+        "retrieved": [
+          [
+            "S-H09",
+            "paragraph:1"
+          ]
+        ]
+      },
+      {
+        "id": "synonym",
+        "category": "semantic_gap",
+        "precision": null,
+        "recall": 0.0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 1,
+        "retrieved": []
+      },
+      {
+        "id": "paraphrase",
+        "category": "semantic_gap",
+        "precision": null,
+        "recall": 0.0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 1,
+        "retrieved": []
+      },
+      {
+        "id": "absent",
+        "category": "unanswerable",
+        "precision": null,
+        "recall": null,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 0,
+        "retrieved": []
+      },
+      {
+        "id": "coordinate",
+        "category": "metadata_only",
+        "precision": null,
+        "recall": null,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 0,
+        "retrieved": []
+      },
+      {
+        "id": "number-tokens",
+        "category": "numeric_tokens",
+        "precision": 1.0,
+        "recall": 1.0,
+        "true_positive": 1,
+        "false_positive": 0,
+        "false_negative": 0,
+        "retrieved": [
+          [
+            "S-H04",
+            "page:1"
+          ]
+        ]
+      },
+      {
+        "id": "literal-cell",
+        "category": "xlsx",
+        "precision": 1.0,
+        "recall": 1.0,
+        "true_positive": 1,
+        "false_positive": 0,
+        "false_negative": 0,
+        "retrieved": [
+          [
+            "S-H05",
+            "cell:'Cells'!B1"
+          ]
+        ]
+      }
+    ],
+    "micro_precision": 0.8181818181818182,
+    "micro_recall": 0.8181818181818182,
+    "true_positive": 9,
+    "false_positive": 2,
+    "false_negative": 2,
+    "verified_quotes": 11,
+    "elapsed_seconds": 0.0029317000007722527,
+    "model_calls": 0,
+    "external_requests": 0,
+    "provider_cost": null,
+    "independent_review": false,
+    "mean_loop_seconds": 0.0033704400004353373,
+    "category_metrics": {
+      "literal": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "token_gap": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "role_ambiguity": {
+        "tp": 0,
+        "fp": 1,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": null
+      },
+      "pdf": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "xlsx": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "negation": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "untrusted_text": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "scope_boundary": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": null,
+        "recall": null
+      },
+      "literal_punctuation": {
+        "tp": 0,
+        "fp": 1,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": null
+      },
+      "semantic_gap": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 2,
+        "precision": null,
+        "recall": 0.0
+      },
+      "unanswerable": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": null,
+        "recall": null
+      },
+      "metadata_only": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": null,
+        "recall": null
+      },
+      "numeric_tokens": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    }
+  },
+  "assessment": {
+    "checks": {
+      "recall_gain_at_least_0_10": true,
+      "no_precision_loss": false,
+      "baseline_hit_references_preserved": true,
+      "mean_kernel_loop_within_budget": true
+    },
+    "kernel_criteria_passed": false,
+    "production_adoption": false,
+    "lifecycle_and_negative_checks": "separate_test_runs_required"
+  },
+  "unknown_measurements": {
+    "peak_memory": null,
+    "file_load_seconds": null,
+    "human_seconds": null,
+    "provider_cost": null
+  },
+  "independent_review": false,
+  "provenance": {
+    "fixture_sha256": "69a6d80581677517eae3ddfa16d5707b7a9cefeab3eeed11c9578e0bab0f78d1",
+    "fixture_content_sha256": "b117761b0a805ba8a16d97082005092d68c8d53b76014c98c86b6ad92033f9cf",
+    "protocol_sha256": "6f62c089cbf6758c7a67c31e90fb62d376c1fff6437face06f9fdcada6273511",
+    "source_sha256": [
+      {
+        "path": "src/product_strategy_agent/domain/projects/file_search.py",
+        "sha256": "befbd35a181772a0e31c11510d59187eb818df60d6e8baaf54aa9bbda246255f"
+      },
+      {
+        "path": "src/product_strategy_agent/domain/projects/file_documents.py",
+        "sha256": "7a69ffc5a7a696b595ee3f5f2737e8e74202fc51e3743d0ed59343b7dce0c76c"
+      },
+      {
+        "path": "scripts/evaluation/retrieval.py",
+        "sha256": "e4aa4f4a4f731a7bf6a3b47067e1a78399deb82be8ed3a515547256133189d8d"
+      },
+      {
+        "path": "scripts/evaluation/token_candidate.py",
+        "sha256": "94fa4f4b39956d2b4ff375d4b5d6dd8ae1001381a76f82f94e82cb90521b2387"
+      },
+      {
+        "path": "scripts/evaluation/retrieval_compare.py",
+        "sha256": "7f8e6d51c9cd85e1f4d0823290b9b60d3e18b0cf2d733c64ad3beaf74f083c24"
+      }
+    ],
+    "git_commit": "fa364061a741fec28efb39e817e877a5745071d9",
+    "working_tree_dirty": true,
+    "python": "3.12.7",
+    "os": "Windows",
+    "base_dependencies": {
+      "pydantic": "2.14.3",
+      "pydantic-settings": "2.16.2"
+    },
+    "candidate_is_production_backend": false
+  }
+}

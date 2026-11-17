@@ -44,4 +44,4 @@ JSON содержит fixture SHA-256. Время зависит от окруж
 5. Для внешнего provider дополнительно нужны явные permissions и расходы, provenance/version/limits, offline fallback и разрешённые данные. Сам eval не разрешает сетевые/платные вызовы. Без согласованного cost/resource budget candidate не становится default.
 6. Если улучшения нет, integrity нарушена или бюджет превышен — исключить расширение и оставить literal path. Успех на этом малом development corpus недостаточен для RAG/provider adoption.
 
-Следующий срез P7b: holdout и сравнение с простым локальным candidate по этому протоколу; сначала проверить необходимость усложнения. Независимая оценка полного IDE workflow, subagents/hooks и human time остаётся [P8/R5/M6](evaluation/README.md). Native P4, P5/P6 в целом и R1/M8 остаются открытыми.
+P7b завершён: [token candidate отклонён из-за precision loss](retrieval-comparison.md). Далее P7c — versioned registry существующих research tools; literal path сохранён. Независимая оценка полного IDE workflow, subagents/hooks и human time остаётся [P8/R5/M6](evaluation/README.md). Native P4, P5/P6 в целом и R1/M8 остаются открытыми.
