@@ -28,7 +28,7 @@ def score(retrieved, relevant):
     }
 
 
-def evaluate(data, retrieve=search_snapshot):
+def evaluate(data, retrieve=search_snapshot, *, method="literal_ignore_case_v1"):
     sources, scopes = [], {}
     for source in data["sources"]:
         identifier = source["id"]
@@ -97,7 +97,7 @@ def evaluate(data, retrieve=search_snapshot):
     return {
         "schema_version": 1,
         "scope": "synthetic_search_kernel_only",
-        "method": "literal_ignore_case_v1",
+        "method": method,
         "k": data["k"],
         "sources": len(sources),
         "queries": rows,
