@@ -33,4 +33,4 @@ Kernel eval использует заранее подготовленные cur
 
 Source-instruction fixture возвращается только как недоверенная quote. Это не проверка LLM injection resistance, human gate, native IDE или independent review. Новые case approvals/решения и private IDE config не менялись.
 
-Следующий срез P7c — versioned registry существующих research tools: permissions/provenance/limits/offline fallback и критерии выбора. Candidate отклонён, поэтому его включение и дальнейшая настройка не являются следующим обязательным шагом. P7 целиком и независимый [agent-level eval P8/R5/M6](evaluation/README.md) остаются открытыми.
+P7c выполнен: [versioned registry существующих research tools](research-tool-registry.md) с permissions/provenance/limits/offline fallback и критериями выбора. Далее P7d — offline research scenarios и сверка оставшихся criteria P7. Candidate отклонён, поэтому его включение и дальнейшая настройка не являются следующим обязательным шагом. P7 целиком и независимый [agent-level eval P8/R5/M6](evaluation/README.md) остаются открытыми.

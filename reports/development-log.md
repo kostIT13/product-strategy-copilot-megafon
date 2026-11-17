@@ -561,3 +561,10 @@ Candidate7 (1.889s), evaluator5 (0.010s), file-search11 (21.573s,1 Windows symli
 ## 17.11.2026 20:19 (Asia/Novosibirsk) — CI Windows oracle/encoding follow-up
 
 46dc863 remote Linux matrix/demo зелёные, Windows full620 выявил CRLF privacy oracle,3 short-name/canonical path assertions и cp1252 resume error. Локальный full620/1092.337s подтвердил только3 privacy subfailures (1 symlink skip). Test oracles приведены к raw UTF-8/canonical paths; CI/demo/release явно PYTHONUTF8=1. Runtime safety/gates и required checks сохранены. Повтор privacy5/workspace11/CI6 OK; отдельный cp1252 reproduction и UTF8 success. Всего31 различных targeted tests включая предыдущие. Повторная полная remote matrix ожидается после push. [Отчёт](2026-11-17-ci-portability-fixes.md).
+
+
+## 17.11.2026 20:46 (Asia/Novosibirsk) — P7c: versioned research-tool registry
+
+Typed schema/registry1.0.0 восьми existing research capabilities, read-only service и CLI tools list/describe + FastMCP psa_research_tools. Permissions/provenance/limits/offline fallback/choose-exclude и evaluation status — декларации, не ACL/authorization/dispatch. Availability/freshness not_checked, cost null, runtime effects false. Нельзя подставлять aggregate caps для legacy checks или hard watchdog для fetch. P7b candidate не включён.
+
+Коммиты468ef88/c0325ae/a07a8f2. Canon README/workflow/research skill и bundle1.1.2 обновлены,9 adapters пересобраны. Registry7 (10.569s),context10 (5.062s):17 tests OK. Clean base повтор7 (1.736s,1 expected MCP skip). Skill validators2/sync9/Ruff/docs256/diff/native secrets OK перед push. Full suite/release/native host не повторялись; прежний remote green179640d не объявляется результатом нового HEAD. Кейсы/решения/gates не создавались, model/fetch/roles не запускались. Далее P7d offline research scenarios/сверка P7; весь P7 и P4/P5/P6/R1/M6/M8 открыты. [Отчёт](2026-11-17-p7c-research-tool-registry.md).
