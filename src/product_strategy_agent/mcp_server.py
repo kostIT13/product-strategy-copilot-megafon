@@ -46,6 +46,8 @@ def create_server() -> Any:
     register_file_workflow_tools(server)
     from product_strategy_agent.interfaces.mcp.file_search_tools import register_file_search_tools
     register_file_search_tools(server)
+    from product_strategy_agent.interfaces.mcp.research_tool_tools import register_research_tool_registry
+    register_research_tool_registry(server)
     from product_strategy_agent.interfaces.mcp.file_promise_tools import register_file_promise_tools
     register_file_promise_tools(server)
     from product_strategy_agent.interfaces.mcp.strategy_structure_tools import register_strategy_structure_tools
@@ -78,6 +80,10 @@ def create_server() -> Any:
     register_host_acceptance_tools(server)
     from product_strategy_agent.interfaces.mcp.host_review_tools import register_host_review_tools
     register_host_review_tools(server)
+    from product_strategy_agent.interfaces.mcp.host_config_tools import register_host_config_tools
+    register_host_config_tools(server)
+    from product_strategy_agent.interfaces.mcp.diagnostic_tools import register_diagnostic_tools
+    register_diagnostic_tools(server)
     from product_strategy_agent.interfaces.mcp.semantic_review_tools import register_semantic_review_tools
     register_semantic_review_tools(server)
     from product_strategy_agent.interfaces.mcp.quality_policy_tools import register_quality_policy_tools

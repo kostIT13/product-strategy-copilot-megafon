@@ -1,4 +1,8 @@
 {
   "schema_version": 1,
-  "roles": {"research": "1.0.0", "evidence": "1.0.0", "critic": "1.0.0"}
+  "roles": {
+    "research": "1.1.0",
+    "evidence": "1.1.0",
+    "critic": "1.1.0"
+  }
 }

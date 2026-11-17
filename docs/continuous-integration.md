@@ -14,6 +14,8 @@
 
 Ruff пока проверяет E9/F63/F7/F82: синтаксис, некорректный control flow и неопределённые имена. Полный набор style/import rules и type checker остаются отдельным улучшением.
 
+Unit job timeout задаётся явно каждой matrix row: Ubuntu15 min, Windows25 min. Windows P7d run673d6a1 был отменён через15 min с GitHub annotation `The job has exceeded the maximum execution time of 15m0s`; ранее локальный Windows full suite занимал18.2 min. Увеличен только общий job budget Windows с headroom для setup/host variation; unit tests, их собственные deadlines, guard/refusal assertions и required checks не сокращены. Cancelled timeout run не считается прошедшим suite.
+
 ## Документация, секреты и демо
 
 Docs job использует Markdown parser: проверяются локальные inline/reference/image links, anchors и обязательные файлы. Примеры кода пропускаются; HTTP/app/plugin ссылки не открываются. Проверка исправила пять существовавших битых ссылок.
@@ -52,6 +54,16 @@ Remove-Item Env:UV_PROJECT_ENVIRONMENT
 ```
 
 Demo runner сам использует временные копии и не изменяет projects/. Secrets scanner не сканирует весь локальный каталог с .env/.venv; в экспорт попадают Git-tracked и новые неигнорируемые файлы.
+
+Тот же base-only demo job запускает `python -m scripts.ci.research_smoke`: [offline research contracts](offline-research-smoke.md) проверяются на собственном temporary synthetic case без DNS/socket/process dispatch. Registry/fallback, revision/hash/quote, draft replay, corrupt/invalid refusal и withdrawal проверяются отдельно от человеческих gates. Оба JSON выводятся в summary; failure runner возвращает nonzero. `ok` smoke не означает готовность кейса, полезность агента или human/native acceptance.
+
+## Переносимость checkout и TEMP
+
+Файлы кейсов содержат byte-level hashes sources/render/journals. `.gitattributes` задаёт `/projects/** -text`: Git сохраняет исходные байты независимо от `core.autocrlf` и ОС. Два synthetic demo содержат исторические generated Markdown с CRLF, соответствующие существующим manifest; исходные bytes сохранены в Git, manifests/gates не переписывались. Новые файлы сохраняют те окончания строк, которые записал штатный writer. Не нормализуйте сохранённый кейс и не регенерируйте hashes ради прохождения CI. Regression `test_demo_checkout.py` экспортирует реальные Git index bytes и проверяет оба autocrlf режима с точными source/render hashes.
+
+На Windows runner системный TEMP может иметь ancestor alias/short name (`RUNNER~1`). `confined` сравнивает resolved child с resolved root, сохраняя отдельный запрет symlink/junction на самом выбранном root и внутри него. Это разрешает системный alias выше root, сохраняя confinement, запрет traversal и existing link checks. Regression `test_store_paths.py` моделирует такой alias и проверяет сохранность отказов. Workspace tests сравнивают возвращённый canonical path с resolved expected path; privacy test читает доверенный role oracle как bytes, сохраняя CRLF так же, как service.
+
+CI/demo/release явно задают `PYTHONUTF8=1`. На Windows Python3.12 системная code page может не представлять кириллицу из `psa resume` при pipe capture; UTF-8 mode наследуется дочерними CLI и делает execution encoding одинаковой на runners. Это настройка test/build environment, а не разрешение на изменение содержимого кейса. Required checks, strict evidence policy и негативные security assertions сохранены.
 
 ## Дистрибутив
 

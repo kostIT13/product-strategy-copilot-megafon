@@ -1,6 +1,9 @@
 """Explicit task packet preparation through the same read-only service as CLI."""
 
 import json
+from product_strategy_agent.interfaces.automation_diagnostics import (
+    automation_diagnostic,
+)
 from product_strategy_agent.adapters.persistence.files.handoff_reader import (
     FileHandoffReader,
 )
@@ -47,7 +50,7 @@ def register_subagent_tools(server):
                 FileRoleInstructionReader(instructions_root),
             ).prepare(project_id, command)
         except ValueError as error:
-            raise ToolError(str(error)) from None
+            raise ToolError(automation_diagnostic(error)) from None
         except OSError:
             raise ToolError(
                 "handoff material or canonical role instructions unavailable; inspect local integrity"

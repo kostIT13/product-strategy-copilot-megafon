@@ -458,3 +458,134 @@ R4 начат техническим срезом; R3 новый разрешё�
 Добавлены exact report/evidence/checklist binding, immutable review journal/recovery и explicit preview-only adoption. Codex MCP renderer возвращает TOML enabled=false с existing absolute interpreter/fixed module/readonly tool allowlist; bootstrap и выбранный review отделены, native flags false, existing configs не читаются/не меняются. CLI/MCP parity проверена. Формат сверён с официальными OpenAI docs через openai-docs; native acceptance не выполнялась. Коммиты8827879 /987a58e /7df38bb /b7db5a7; итоговый docs commit обновляет планы.
 
 Проверки: review/preview9 (22.622 s), observation10 (21.980 s), P012 (0.048 s) — OK; clean base9 (11.663 s,1 MCP skip), base completed/copy/reopen/reapprove OK,model_calls0. Три kill/copy boundaries и parent validation проверены. Ruff/sync9/docs/native secrets/diff OK; full suite не повторялся. P4 открыт: далее config lifecycle и native acceptance; R3.1/R1/M6/M8 открыты, live IDE отсрочка сохранена. [Отчёт](2026-11-15-r31-host-review-preview.md).
+
+
+## 16.11.2026 16:53 (Asia/Novosibirsk) — R3.1/P4d: disabled config lifecycle завершён
+
+Доделаны controlled plan/apply/install/refresh/disable/restore с private before/after journal, exact hashes/scope, ownership markers, ACTIVE/receipt и explicit recovery. CLI/MCP parity проверена; mutating tools destructive=true. Foreign comments/settings сохраняются, restore active PSA запрещён, completed replay не трогает later edits. Коммиты7a616b4 /e8052c8 /d4ca057; итоговый docs commit обновляет runbook/план. Предыдущее ограничение automatic approval review по usage снялось; пропущенные regression команды выполнены.
+
+Проверки: config10 (18.309 s), review9 (12.714 s), P012 (0.051 s) — OK; clean base10 (8.564 s,1 MCP skip), base completed/copy/reopen/reapprove OK,model_calls0. Пять kill/copy boundaries и preservation conflict проверены. Ruff/sync9/docs/native secrets/diff OK; full suite не повторялся. Enable/native acceptance/cross-version migrations остаются открытыми. Реальный IDE config/рабочие данные не применялись, все mutations только synthetic temp fixtures. [Отчёт](2026-11-16-r31-host-config-lifecycle.md).
+
+
+## 16.11.2026 17:10 (Asia/Novosibirsk) — P5a: config journal integrity
+
+Завершён независимый hardening-срез: atomic ACTIVE/COMMITTED publication, preservation interrupted staging, explicit copy recovery и read-only audit CLI/FastMCP. Коммиты07338d7 /432a14c /ca405d9; итоговый docs commit фиксирует планы/runbook/отчёт.
+
+Проверены15 разных config tests (initial13 + final integrity5 с пересечением3), P0 contracts12; clean base13 с1 MCP skip и base completed/copy/resume/reopen/reapprove smoke, model_calls0. Ruff/sync9/docs/native Gitleaks/diff OK; full suite не повторялся. Все mutations только synthetic temp fixtures; real IDE config/рабочие данные не менялись. P4 live acceptance отложена, P5 частичный; далее P5b journal/path/resource hardening. R1/M6/M8 открыты. [Отчёт](2026-11-16-p5-host-config-integrity.md).
+
+
+## 16.11.2026 17:30 (Asia/Novosibirsk) — P5b: journal directory/path boundaries
+
+Общий streaming helper ограничивает исходную enumeration и проверяет confinement до skip/ignore. Применён к task/hook/host observation/review/config journals, config audit и interrupted staging. Коммиты4ce57e2 /f8a4915; итоговый docs commit фиксирует runbook и планы.
+
+Проверки: new4 (8.682 s), task12 (33.040 s), hook11 (55.778 s), host43 (53.303 s) —70 целевых tests OK. Реальные Windows junctions и lazy bound/closure проверены; clean base4 (9.456 s) и base completed/copy/resume/reopen/reapprove OK,model_calls0. Ruff/sync9/docs/native secrets/diff OK. Full suite не повторялся. Все mutations только temp synthetic fixtures; реальные settings/рабочие данные не менялись. P5 частичный; далее P5c compatibility/upgrade. Native/live P4 и R1/M6/M8 открыты. [Отчёт](2026-11-16-p5-journal-directory-boundaries.md).
+
+
+## 16.11.2026 17:39 (Asia/Novosibirsk) — P5c: journal namespace compatibility
+
+Общий guard блокирует unsupported/mixed namespace до v1 lookup в task/hook/host/config stores. Пустая история больше не выводится из отсутствия v1 при наличии v2. Published v1 schemas сохранены; compatible copy replay и read/write/recovery refusal проверены. Upgrade/rollback policy описан в runbook; cross-schema конвертер без целевой схемы не добавлен. Коммитыeadebaa /82d3a52; итоговый docs commit фиксирует планы/отчёт.
+
+Проверки: namespace/directory7 (14.354 s), task12 (39.541 s), hook11 (59.701 s), host43 (58.171 s) —73 tests OK; clean base7 (11.950 s) и base completed/copy/resume/reopen/reapprove OK,model_calls0. Ruff/sync9/docs/native secrets/diff OK; full suite не повторялся. Все mutations только temp synthetic fixtures; реальные settings/кейсы не менялись. P5 частичный, далее P5d privacy/injection diagnostics; live/native P4 и R1/M6/M8 открыты. [Отчёт](2026-11-16-p5-journal-version-compatibility.md).
+
+
+## 16.11.2026 17:48 (Asia/Novosibirsk) — P5d: automation privacy diagnostics
+
+Fixed runtime I/O/encoding/model diagnostics для host/hook/subagent CLI и subagent MCP исключают private details; domain refusals сохранены. Existing role-catalog sanitation закреплён regression. Selected-material injection corpus не меняет role instructions/goal/authority или canonical case bytes. Коммитыb5fff83 /c95202d; итоговый docs commit фиксирует планы/runbook/отчёт.
+
+Privacy5 (13.657 s), handoffs14 (16.170 s), task12 (38.229 s), hook11 (59.191 s), host43 (57.950 s) —85 tests OK. Clean base privacy5 (5.583 s,1 MCP skip). Ruff/sync9/docs/native secrets/diff OK; full suite/base workflow smoke не повторялись. Mutations только temp synthetic fixtures, моделей/native activation не было. P5 частичный; далее P5e dependency/artifact integrity и сверка рисков перед P6. P4/R1/M6/M8 открыты. [Отчёт](2026-11-16-p5-automation-privacy.md).
+
+
+## 16.11.2026 18:07 (Asia/Novosibirsk) — P5e: dependency/artifact integrity
+
+Backend setuptools82.0.1 закреплён в build-system/build group и uv.lock с hashes; runtime/extras версии не менялись. Package/verify проверяют stale lock offline до build/install, используют exported hash constraints. Verifier перешёл на общий bounded asset checker. Коммиты19b7232 /d06560f; итоговый docs commit фиксирует планы/runbook/отчёт.
+
+Release/dependency15 (30.453 s), distribution5 (1.459 s) —20 tests OK; clean base5+5 (2.454/1.345 s) OK. Реальные wheel/sdist установлены вне source, doctor/help/demo/base completed/copy/resume/reopen/reapprove OK,model_calls0/sql_dependenciesfalse. Development artifact dirty=true, не clean release candidate; теги/публикация не выполнялись. Ruff/sync9/docs/native secrets/diff OK; full suite не повторялся. Пять локальных P5 срезов выполнены, весь P5 остаётся открытым по risk ledger; далее независимый P6a diagnostics. Native/live P4 и R1/M6/M8 открыты. [Отчёт](2026-11-16-p5-dependency-artifact-integrity.md).
+
+
+## 16.11.2026 18:24 (Asia/Novosibirsk) — P6a: historical operation diagnostics
+
+Добавлены text-free metadata projection/service/reader и read-only CLI/FastMCP для task/result/review/hook. Publication отделён от outcome; captured snapshot freshness not_checked. Self-reported usage сохраняет нули и unknown basis, отсутствующий usage остаётся null. Recovery/checks/gates/native activation не выполняются; actor/source/goal/reason texts не выводятся. Коммиты745b0ce /980a9fb; итоговый docs commit фиксирует планы/runbook/отчёт.
+
+Projection6 (16.117 s), CLI/stdio2 (14.153 s), task12 (68.605 s), hook11 (104.286 s), privacy5 (21.216 s) —36 tests OK. Clean base8 (17.175 s,1 MCP skip). Ruff/sync9/docs/native secrets/diff OK; full suite/base completed smoke не повторялись. Mutations только synthetic temp fixtures; реальные данные/native settings не менялись. P6 частичный, далее P6b summaries/resume guidance; P4/P5/R1/M6/M8 открыты. [Отчёт](2026-11-16-p6-operation-diagnostics.md).
+
+
+## 16.11.2026 18:43 (Asia/Novosibirsk) — P6b: selected-operation summaries
+
+Strict 1–32 selection одного case, общий batch case lock, published/unpublished counts и прежние redacted packets. Guidance фиксирует только read-only status/pending argv и prerequisites; authorization/autorun false. Usage totals не вычисляются, zero/null/currencies сохранены. CLI/FastMCP parity проверена. Коммитыee179ff /a21be85; итоговый docs commit фиксирует планы/runbook/отчёт.
+
+Core5 (6.352 s), CLI/stdio3 (17.165 s), P6a8 (29.725 s), privacy5 (21.001 s) —21 целевой test OK. Clean base summary8 (9.972 s,1 MCP skip). Ruff/sync9/docs/native secrets/diff OK; full suite/execution suites/base completed smoke не повторялись. Mutations только temp synthetic fixtures; реальные данные/native settings не менялись. P6 частичный; далее P6c usage/cost provenance. Host/native cancel отдельно; P4/P5/R1/M6/M8 открыты. [Отчёт](2026-11-16-p6-operation-summaries.md).
+
+
+## 17.11.2026 01:24 (Asia/Novosibirsk) — P6c: usage declaration provenance
+
+Добавлен bounded read-only canonical usage ledger report с source/row/business hashes, redaction и declared measured/estimated/unknown basis без independent verification. Unknown/null/zero сохранены; totals/automatic automation binding отсутствуют. Старые ledger/receipts/usage_report не изменены. CLI/FastMCP parity проверена. Коммиты96317de /dc0cdb9; итоговый docs commit фиксирует планы/runbook/отчёт.
+
+Final provenance7 (13.601 s), P6a8 (18.118 s), P6b8 (14.630 s) —23 tests OK. Clean base7 (5.163 s,1 MCP skip). Ruff/sync9/docs/native secrets/diff OK; full suite/writer suites/base completed smoke не повторялись. Mutations только synthetic temp fixtures, реальные cases/native settings не менялись, моделей не было. P6 частичный; далее P6d capability-aware retry/cancel/resume policy. P4/P5/R1/M6/M8 открыты. [Отчёт](2026-11-17-p6-usage-provenance.md).
+
+
+## 17.11.2026 01:44 (Asia/Novosibirsk) — instruction bundle/profile refresh1.1.0
+
+Обновлены AGENTS/workflow/quality/safety, новый agent/automation router,4 canonical skills и3 role profiles. README/automation доставляются в context и входят в fingerprints; optional navigation поддерживает legacy manifests и запрещает role/host autoload/escape. Все9 generated adapters пересобраны. Human gates/opt-in/sequential fallback сохранены; native activation не включена. Коммиты52e1620 /4359353; итоговый docs commit фиксирует runbook/планы/отчёт.
+
+Context10 (5.130 s), handoffs14 (15.927 s), task12 (35.776 s), host9 (10.173 s) —45 tests OK; final base context10 (4.599 s) OK. Skill validator8 UTF-8 /CLI parser8/sync9/Ruff/docs/native secrets/diff OK; full suite/hook workers/base completed smoke не повторялись. Реальные configs/кейсы/согласования не менялись; модели/native dispatch не запускались. P6d остаётся следующим функциональным срезом, P4/P5/R1/M6/M8 открыты. [Отчёт](2026-11-17-instructions-refresh.md).
+
+
+## 17.11.2026 01:59 (Asia/Novosibirsk) — P6d: advisory controls policy
+
+CLI/FastMCP controls projection разделяет inspect/case resume, pending forward recovery, exact UUID replay и fresh-request new attempt. Generic cancel/checkpoint executor отсутствуют в CLI, native controls not_verified. Policy не исполняет действия и не оценивает/не предоставляет authorization. Канон/resume skill актуализированы, bundle1.1.1 и9 adapters пересобраны. Коммитыdbedee4 /bbdee60 /7c45fa6; итоговый docs commit фиксирует планы/отчёт.
+
+Controls8 (17.062 s), P6a8 (19.408 s), P6b8 (14.908 s), context10 (5.388 s) —34 tests OK; clean base8 (10.245 s,1 MCP skip). Skills validator2/sync9/Ruff/docs/native secrets/diff OK. Full suite/base completed/worker execution suites не повторялись. Explicit recovery только на temp synthetic fixtures, реальные кейсы/native settings не менялись. Локальные P6a–P6d выполнены, весь P6 и P4/P5/R1/M6/M8 открыты. Далее независимый P7a tools inventory/eval protocol. [Отчёт](2026-11-17-p6-operation-controls.md).
+
+
+## 17.11.2026 19:28 (Asia/Novosibirsk) — P7a: inventory и retrieval baseline
+
+Сверены research/knowledge/retrieval tools и границы permissions/provenance/limits/offline. Добавлен runnable synthetic kernel eval:5 sources/8 gold queries, TP5/FP1/FN1, precision=recall5/6;6 exact quotes. Размеченный semantic miss и неоднозначный FP сохранены. Cost unknown/null,0 model/external calls; это не agent-level benefit или independent review. Зафиксирован holdout/candidate protocol до RAG/provider. Код/tests commit aa5ce89; отдельный docs commit фиксирует inventory/планы/отчёт.
+
+Новые5 tests (0.012s), file search11 (22.179s,1 Windows symlink skip):16 различных tests. Clean base повтор5 (0.007s). Generator write/check9 без differences, docs/Ruff/native Gitleaks/diff OK. Full suite/web/binary parser suites/native host/final release не повторялись. P7a выполнен; далее P7b holdout и local candidate comparison. Весь P7, P4/P5/P6 и R1/M6/M8 открыты. [Отчёт](2026-11-17-p7-retrieval-baseline.md).
+
+
+## 17.11.2026 19:37 (Asia/Novosibirsk) — P7b: frozen retrieval comparison
+
+Holdout/protocol10 sources/16 queries до candidate:88960f1; isolated token-window candidate/comparison/tests:adae42f. Development run fa36406/dirty=true сохранён в JSON с commit/hashes/versions: baseline precision1/recall5/11, candidate precision9/11/recall9/11. Recall gain не компенсирует precision loss; candidate отклонён, production literal search сохранён. False positives и null/unknown оставлены видимыми, model/network calls0.
+
+Candidate7 (1.889s), evaluator5 (0.010s), file-search11 (21.573s,1 Windows symlink skip):23 различных tests. Clean base повтор12 (1.793s). Lifecycle/revision/withdrawal через real temp store и read-only bytes проверены. Sync/docs/Ruff/Gitleaks/diff OK; full suite/native host/independent review/final release не выполнялись. P7b завершён; далее P7c versioned registry existing tools, без adoption candidate. Весь P7, P4/P5/P6 и R1/M6/M8 открыты. [Отчёт](2026-11-17-p7b-retrieval-comparison.md).
+
+
+## 17.11.2026 19:57 (Asia/Novosibirsk) — GitHub Actions portability fixes
+
+По реальным remote logs найдены LF/CRLF drift generated demos и сравнение resolved child с unresolved Windows TEMP root.1189669 сохраняет manifest-matching bytes10 generated demo файлов и задаёт case -text policy;615d507 сравнивает canonical root/child с сохранением lexical symlink/junction/traversal отказов. Добавлены Git-index checkout true/false regression и path alias negatives; attributes включены в source archive allowlist. YAML/required checks/evidence policy/gates не ослаблялись.
+
+Целевые15 tests OK:paths3 (0.014s),checkout1 (1.065s),CI6 (10.937s),distribution5 (0.856s). Ruff/sync9/docs254/Gitleaks/diff OK; exact demo2 cases/14 paragraphs/model_calls0 OK. Полный local suite выполняется, remote verification следует после push. Эта timestamp-запись не утверждает заранее зелёный Actions run. [Отчёт](2026-11-17-ci-portability-fixes.md). После CI вернуться к P7c; R1/M6/M8 открыты.
+
+
+## 17.11.2026 20:19 (Asia/Novosibirsk) — CI Windows oracle/encoding follow-up
+
+46dc863 remote Linux matrix/demo зелёные, Windows full620 выявил CRLF privacy oracle,3 short-name/canonical path assertions и cp1252 resume error. Локальный full620/1092.337s подтвердил только3 privacy subfailures (1 symlink skip). Test oracles приведены к raw UTF-8/canonical paths; CI/demo/release явно PYTHONUTF8=1. Runtime safety/gates и required checks сохранены. Повтор privacy5/workspace11/CI6 OK; отдельный cp1252 reproduction и UTF8 success. Всего31 различных targeted tests включая предыдущие. Повторная полная remote matrix ожидается после push. [Отчёт](2026-11-17-ci-portability-fixes.md).
+
+
+## 17.11.2026 20:46 (Asia/Novosibirsk) — P7c: versioned research-tool registry
+
+Typed schema/registry1.0.0 восьми existing research capabilities, read-only service и CLI tools list/describe + FastMCP psa_research_tools. Permissions/provenance/limits/offline fallback/choose-exclude и evaluation status — декларации, не ACL/authorization/dispatch. Availability/freshness not_checked, cost null, runtime effects false. Нельзя подставлять aggregate caps для legacy checks или hard watchdog для fetch. P7b candidate не включён.
+
+Коммиты468ef88/c0325ae/a07a8f2. Canon README/workflow/research skill и bundle1.1.2 обновлены,9 adapters пересобраны. Registry7 (10.569s),context10 (5.062s):17 tests OK. Clean base повтор7 (1.736s,1 expected MCP skip). Skill validators2/sync9/Ruff/docs256/diff/native secrets OK перед push. Full suite/release/native host не повторялись; прежний remote green179640d не объявляется результатом нового HEAD. Кейсы/решения/gates не создавались, model/fetch/roles не запускались. Далее P7d offline research scenarios/сверка P7; весь P7 и P4/P5/P6/R1/M6/M8 открыты. [Отчёт](2026-11-17-p7c-research-tool-registry.md).
+
+
+## 17.11.2026 21:05 (Asia/Novosibirsk) — P7d: offline research contracts и сверка P7
+
+Frozen own synthetic fixture/protocol2e2216f; fixed offline runner/fault tests390db41; base demo CI step/summary и AGENTS/bundle1.1.3/adapters86b076c. Registry/local fallback/context → revision/search → synthetic exact quote/verify/coverage → draft UUID replay → invalid/corrupt refusal → withdrawal. DNS/socket/process guard,0 model/external requests; human status/stages/approvals/decision log сохранены. Нет permanent case, real fetch, gates или native activation. Actual base JSON11 checks/4.3602932s, code86b076c/dirty=true, cost/human null; final_case_ready=false после проверенного withdrawal blocker.
+
+Smoke7 (7.404s),context10 (4.414s),registry7 real stdio (8.558s):24 разных tests OK. Base повтор7 (8.513s) и CLI OK, optional extras absent проверены. YAML/Bash syntax, sync9/Ruff/docs259/diff/native secrets OK перед push. Предыдущие P7c CI/demo76be0c0 green подтверждены отдельно, новый HEAD ещё требует нового CI. Full suite/release/native host/independent review не выполнялись. P7 measured benefit не закрыт; далее независимая P8a prep при открытых P4–P6/R1/M6/M8. [Отчёт](2026-11-17-p7d-offline-research-smoke.md).
+
+
+## 17.11.2026 21:29 (Asia/Novosibirsk) — P8a paired IDE preparation
+
+Frozen own synthetic scenario/protocol99c7d2c; schema/payload + bounded new-directory publisher800a6ef; scope-aware rubric clarification72614da. Общие inputs sequential/opt-in automation, owner-only key и neutral reviewer templates, pending prerequisites/caps/authorization, null measurements/scores, outputs отсутствуют. Actual base CLI подготовил10 payload files+manifest в ignored каталоге, hashes verified; metadata72614da/dirty=true сохранены без owner key/ответов. Никаких case/role/model/native/gate/reviewer transmission действий. Bundle1.1.3/skills не менялись.
+
+9 tests OK dev1.611s/base1.748s: hashes, blank records, neutral labels, no dispatch, overwrite/case/link/bounds/input/partial-failure/CLI refusal. Full suite/release/independent eval не выполнялись. P7d remote Windows отменён по actual annotation15m timeout, остальные CI jobs/demo прошли;4232419 увеличивает только Windows unit job до25min, Ubuntu15/test deadlines/required suite сохранены. Новый CI ещё требует своего результата. Ruff/sync9/docs262/diff/native secrets OK перед push. Далее P8b readiness реального парного запуска, без вывода permissions из templates/budget. P7 benefit/M6/P8/R1/M8/P4–P6 открыты. [Отчёт](2026-11-17-p8a-paired-ide-preparation.md).
+
+
+## 17.11.2026 21:51 (Asia/Novosibirsk) — полный specs/implementation audit
+
+Прочитан specs/case.md §1–13 и сверены код, canonical instructions/knowledge, demos/evals, host catalog, release policy и доступные deliverables на e67bf3f. Полного соответствия пока нет: actual IDE/new-task/portability acceptance, measured full cost/benefit и комплект §11 не закрыты. Конкретные gaps: release ZIP исключает README-linked examples/slot-workshop; source published/reliability defaults/owner proxy; optional пустые option tradeoff fields; P8 C1↔C2 не заменяет manual/plain-chat C0 baseline; diagrams/mvp README содержит obsolete planned Postgres. Optional media/respondents/RAG/native5hosts не объявлены обязательными; новый autonomous runtime не нужен.
+
+Doctor ready; existing demo2 cases/2 citations/14 paragraphs OK, corpus preserved. Offline research11 checks/4.5305614s OK, no human gates/model/network. Sync9/docs/Ruff OK, archive predicates/option builder проверены без case writes. Remote e67 CI/demo completed/success подтверждены к завершению аудита; локальный full suite/release/native/independent eval не запускались. Итоговый audit export: sync9/docs263/Ruff/diff/native secrets OK. Code/plans/authorizations не изменялись; сохранён только audit/report log. [Полный отчёт](2026-11-17-specs-implementation-audit.md).

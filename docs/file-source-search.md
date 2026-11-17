@@ -34,3 +34,5 @@ Quote/locator можно передать штатной записи claim, з�
 
 
 [Source withdrawal](source-withdrawal.md) исключает источник из текущих hits/citation snapshots; physical current text по-прежнему проверяется на целостность и учитывается в corpus limits.
+
+[P7a inventory и retrieval eval](retrieval-evaluation.md) фиксирует synthetic literal baseline, известные FP/FN и протокол сравнения до добавления индекса/provider.

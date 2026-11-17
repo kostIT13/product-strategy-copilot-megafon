@@ -1,19 +1,23 @@
 """Check archive integrity, then install its wheel and sdist away from source imports."""
+
 import argparse
 import json
 import os
 from pathlib import Path, PurePosixPath
-import stat
 import subprocess
 from tempfile import TemporaryDirectory
 import zipfile
 
-from scripts.release.package import allowed, digest
+from scripts.release.dependencies import check_lock, export_build_constraints
+from product_strategy_agent.adapters.distribution.release_archive import inspect_release, digest
 
 
 def unpack_checked(archive, destination):
     from io import BytesIO
-    from product_strategy_agent.adapters.distribution.release_archive import checked_archive
+    from product_strategy_agent.adapters.distribution.release_archive import (
+        checked_archive,
+    )
+
     raw, _manifest_raw, _manifest, prefix, _distributions = checked_archive(archive)
     with zipfile.ZipFile(BytesIO(raw)) as bundle:
         for entry in bundle.infolist():
@@ -24,44 +28,96 @@ def unpack_checked(archive, destination):
 
 
 def verify(archive, python):
-    sums = (archive.parent / "SHA256SUMS").read_text(encoding="utf-8").splitlines()
-    checked = set()
-    for line in sums:
-        checksum, name = line.split("  ", 1)
-        if PurePosixPath(name).name != name or "\\" in name or ":" in name or name in checked:
-            raise ValueError("invalid external checksum list")
-        if digest((archive.parent / name).read_bytes()) != checksum:
-            raise ValueError("release asset checksum mismatch")
-        checked.add(name)
-    if archive.name not in checked or "release-manifest.json" not in checked or len(checked) != 4:
-        raise ValueError("incomplete external checksum list")
-    env = {key: value for key, value in os.environ.items()
-           if key not in {"PYTHONPATH", "PYTHONHOME", "VIRTUAL_ENV", "UV_PROJECT_ENVIRONMENT", "DATABASE_URL"}
-           and not key.startswith(("LLM_", "QWEN_"))}
+    inspect_release(archive)
+    env = {
+        key: value
+        for key, value in os.environ.items()
+        if key
+        not in {
+            "PYTHONPATH",
+            "PYTHONHOME",
+            "VIRTUAL_ENV",
+            "UV_PROJECT_ENVIRONMENT",
+            "DATABASE_URL",
+        }
+        and not key.startswith(("LLM_", "QWEN_"))
+    }
     env.update(LLM_API_KEY="", LLM_BASE_URL="https://provider.invalid/v1")
     with TemporaryDirectory(prefix="psa-install-") as folder:
         root = unpack_checked(archive, Path(folder))
-        assets = [root / "release-manifest.json", *list((root / "distributions").iterdir())]
-        if {archive.name, *[path.name for path in assets]} != checked:
-            raise ValueError("release asset list differs from archive")
-        if any(path.read_bytes() != (archive.parent / path.name).read_bytes() for path in assets):
-            raise ValueError("external assets differ from archived assets")
+        check_lock(root)
+        constraints = export_build_constraints(
+            root, Path(folder) / "build-constraints.txt"
+        )
+
         def run(*command, cwd=root):
             subprocess.run(command, cwd=cwd, env=env, check=True)
-        run("uv", "sync", "--frozen", "--no-default-groups", "--no-install-project", "--python", python)
-        interpreter = root / ".venv" / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+
+        run(
+            "uv",
+            "sync",
+            "--frozen",
+            "--no-default-groups",
+            "--no-install-project",
+            "--python",
+            python,
+        )
+        interpreter = (
+            root / ".venv" / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+        )
         distributions = root / "distributions"
         for pattern in ("*.whl", "*.tar.gz"):
             packages = list(distributions.glob(pattern))
             if len(packages) != 1:
                 raise ValueError("missing or ambiguous distribution")
-            run("uv", "pip", "install", "--python", str(interpreter), "--no-deps", "--reinstall", str(packages[0]))
-            run(str(interpreter), "-c", "import product_strategy_agent as p; from pathlib import Path; import sys; assert Path(p.__file__).is_relative_to(sys.prefix)", cwd=Path(folder))
-            run(str(interpreter), "-m", "product_strategy_agent.cli", "doctor", cwd=Path(folder))
-            run(str(interpreter), "-m", "product_strategy_agent.cli", "--help", cwd=Path(folder))
+            requirement = Path(folder) / "distribution.txt"
+            requirement.write_text(
+                f"{packages[0].resolve().as_uri()} --hash=sha256:{digest(packages[0].read_bytes())}\n",
+                encoding="utf-8",
+            )
+            run(
+                "uv",
+                "pip",
+                "install",
+                "--python",
+                str(interpreter),
+                "--no-deps",
+                "--reinstall",
+                "--build-constraints",
+                str(constraints),
+                "--require-hashes",
+                "--requirements",
+                str(requirement),
+            )
+            run(
+                str(interpreter),
+                "-c",
+                "import product_strategy_agent as p; from pathlib import Path; import sys; assert Path(p.__file__).is_relative_to(sys.prefix)",
+                cwd=Path(folder),
+            )
+            run(
+                str(interpreter),
+                "-m",
+                "product_strategy_agent.cli",
+                "doctor",
+                cwd=Path(folder),
+            )
+            run(
+                str(interpreter),
+                "-m",
+                "product_strategy_agent.cli",
+                "--help",
+                cwd=Path(folder),
+            )
             run(str(interpreter), "-m", "scripts.ci.demo")
             run(str(interpreter), "-m", "scripts.ci.base_smoke")
-    return {"ok": True, "wheel_installed": True, "sdist_installed": True, "source_imports": False, "model_calls": 0}
+    return {
+        "ok": True,
+        "wheel_installed": True,
+        "sdist_installed": True,
+        "source_imports": False,
+        "model_calls": 0,
+    }
 
 
 def main():

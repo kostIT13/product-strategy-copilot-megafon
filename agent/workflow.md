@@ -17,8 +17,14 @@
 
 Авторские стратегии: drafts/product-strategy.md, drafts/communication-strategy.md, drafts/validation-plan.md. После редактирования: `psa render ID`, `psa validate ID`, `psa verify ID`, `psa coverage ID`. Generated файлы не редактировать, флаги discard/adopt не использовать для скрытого обхода integrity.
 
-Critic: `psa critic-pack ID`; это пакет для отдельного review, не автоматический запуск модели. Usage: `psa usage report ID`; добавить реально доступную телеметрию через `psa usage add ID --provider PROVIDER --model MODEL --operation OP --stage STAGE`. Неизвестные tokens/cost не подменять нулём.
+Critic: `psa critic-pack ID` подготавливает review, не запускает модель. Для явной передачи research/evidence/critic используй [automation](automation.md): prepare/register, bound result и review основным агентом не заменяют выбор человека. Не делегируй автоматически по этапу.
+
+По согласованной задаче current preflight и bounded hook run доступны отдельно от gate; source notice показывает revisit, release check проверяет integrity без публикации. Прочитай соответствующий [runbook](automation.md), проверь historical/freshness/required_check_passed. Stored pass и actor attribution не подтверждают текущее согласование.
+
+Для разбора UUID используй diagnostics operation/summary, для provenance ledger — diagnostics usage; полные команды в [automation](automation.md). Summary не описывает весь кейс, guidance не разрешает mutating действия. Для legacy агрегатов остаётся `psa usage report ID`; запись доступных данных через `psa usage add` не выполняет модель. Unknown tokens/cost не подменять нулём; measured/estimated — записанная декларация, пока отсутствует независимая проверка.
 
 При паузе сохранить разрешённые author drafts, показать текущий этап/следующий шаг, незакрытые вопросы и ошибки. Не повторять paid/fetch/import действия только потому, что чат новый. Если входы изменились — использовать resume skill и revisit. Прерванные journal operations требуют pending и явного recover точного UUID; не исправлять state/events вручную.
 
 Если требуется вернуться к более раннему этапу активной работы, показать workflow review и дождаться явного указания человека на `psa workflow rollback`; для completed используется reopen. Материалы и прежние approvals сохраняются, затронутые gates/решение/reviews проходят заново. [Контракт возврата](../docs/workflow-rollback.md).
+
+Перед выбором research tool при неизвестных limits/permissions можно прочитать `psa tools describe TOOL-ID` из [реестра](../docs/research-tool-registry.md). Выбирай существующий инструмент по задаче и действующим разрешениям; metadata не запускают инструмент, не выдают permission и не подтверждают readiness. Fetch требует разрешённого сетевого сценария, при отказе используй разрешённый offline fallback или покажи blocker.

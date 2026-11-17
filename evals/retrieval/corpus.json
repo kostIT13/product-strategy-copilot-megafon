@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "synthetic": true,
+  "k": 3,
+  "sources": [
+    {
+      "id": "S-01",
+      "text": "Перенос записи позволяет выбрать другое время без платежей.\n",
+      "scopes": {"paragraph:1": "Перенос записи позволяет выбрать другое время без платежей."}
+    },
+    {
+      "id": "S-02",
+      "text": "Перенос данных между серверами выполняется ночью.\n",
+      "scopes": {"paragraph:1": "Перенос данных между серверами выполняется ночью."}
+    },
+    {
+      "id": "S-03",
+      "text": "Оплата в исследуемом сценарии не поддерживается.\n",
+      "scopes": {"paragraph:1": "Оплата в исследуемом сценарии не поддерживается."}
+    },
+    {
+      "id": "S-04",
+      "text": "[page:1]\nОкно наблюдения — 28 дней; эффект пока неизвестен.\n",
+      "metadata": {"document_format": "pdf", "locator": "pages:1-1"},
+      "scopes": {"page:1": "Окно наблюдения — 28 дней; эффект пока неизвестен."}
+    },
+    {
+      "id": "S-05",
+      "text": "'Metrics'!A1 [string] = \"База неизвестна\"\n",
+      "metadata": {"document_format": "xlsx"},
+      "scopes": {"cell:'Metrics'!A1": "База неизвестна"}
+    }
+  ],
+  "queries": [
+    {"id": "literal-case", "category": "literal", "query": "ПЕРЕНОС ЗАПИСИ", "relevant": [["S-01", "paragraph:1"]]},
+    {"id": "synonym", "category": "semantic_gap", "query": "смена времени", "relevant": [["S-01", "paragraph:1"]]},
+    {"id": "ambiguous", "category": "ambiguous", "query": "перенос", "relevant": [["S-01", "paragraph:1"]]},
+    {"id": "negation", "category": "negation", "query": "оплата", "relevant": [["S-03", "paragraph:1"]]},
+    {"id": "number", "category": "pdf", "query": "28 дней", "relevant": [["S-04", "page:1"]]},
+    {"id": "cell", "category": "xlsx", "query": "база неизвестна", "relevant": [["S-05", "cell:'Metrics'!A1"]]},
+    {"id": "absent", "category": "unanswerable", "query": "криптовалюта", "relevant": []},
+    {"id": "coordinate", "category": "metadata_only", "query": "Metrics", "relevant": []}
+  ]
+}

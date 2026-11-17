@@ -1,5 +1,7 @@
 # Качество результата
 
+Для явных subagent/hook задач используй [automation](automation.md). Ready-for-followup, historical passed и source notification не являются актуальным evidence proof, human semantic assessment или разрешением gate. Diagnostic metadata/summary имеют freshness not_checked; свежие обязательные проверки выполняются штатным путём. Отделяй declared measured/estimated cost от независимой verification и не выводи enforcement из budget.
+
 Сохраняй trace: тезис → claim → source revision/locator/точная цитата. Разделяй fact, interpretation, hypothesis, forecast и synthetic. Используй [каталог knowledge](../knowledge/catalog.json) по задаче; методика не доказывает потребность или эффект. В drafts отмечай тезисы существующим `[C-ID]` либо `[HYPOTHESIS]`, `[COMMITMENT]`, `[OPEN QUESTION]` согласно [coverage](../docs/coverage.md). Метка не исправляет ложный смысл.
 
 Отзыв claim выполняй `psa claim withdraw ID C-ID --by PERSON --reason REASON` только по явному указанию человека. Затем читай `psa claim impact ID`: effective inactive claims не используются как актуальные основания, зависимые capabilities/options/decisions требуют review. Исходные записи и старые approvals не переписываются; текущий выбор человека не меняй автоматически. Новый render показывает effective evidence и audit history; replay старого render не является новой генерацией. [Контракт](../docs/claim-withdrawal.md).
