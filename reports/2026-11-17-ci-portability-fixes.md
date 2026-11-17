@@ -21,3 +21,12 @@
 - Точная demo-команда завершилась OK:2 cases,14 covered paragraphs,2 citations,model_calls0; read-only bytes сохранены, render revalidated. Полный local suite на момент записи ещё выполняется. Отдельный push запускает новую Linux3.11/Linux3.12/Windows3.12 Actions matrix и demo; окончательный статус нужно читать на GitHub для исправленного HEAD. Эта запись не заявляет remote green до завершения jobs.
 
 Fix не закрывает native R1/M8, независимую оценку M6 или весь P7. После стабилизации CI возвращаемся к P7c — versioned registry существующих research tools. Новые paid/model calls и release publication не выполнялись.
+
+
+## 17.11.2026 20:19 — уточнение по полным suites
+
+Локальный full620 завершился за1092.337s с3 privacy subtest failures и1 Windows symlink skip: read_text oracle нормализовал CRLF, хотя service сохраняет bytes. На GitHub46dc863 Linux3.11/3.12 и demo прошли (Ubuntu3.12:620 tests,206.273s,OK), Windows620 за789.622s дал6 failures/1 error: тот же privacy oracle,3 canonical-vs-RUNNER~1 path assertions и demo CLI resume с непрезентабельной кириллицей в default pipe encoding.
+
+Исправлены только test oracles: trusted role читается bytes.decode UTF-8, expected workspace paths разрешаются canonical resolve. Privacy/security assertions остаются строгими. CI/demo/release теперь задают PYTHONUTF8=1 для одинакового subprocess encoding. Отдельно воспроизведён resume exit1 при cp1252 и exit0 с valid UTF-8 stdout в UTF8 mode. Runtime role content, human controls, CLI/MCP interfaces и timeout/required checks не менялись.
+
+Targeted повтор: privacy5 OK (11.663s), workspace11 OK (11.826s),CI6 OK (10.558s). С предыдущими path/checkout/distribution —31 различных targeted tests; R1/M6/M8 не закрыты. Повтор всей матрицы запускается новым push; full локально повторно не запускался, поскольку оставшиеся причины воспроизведены и проверены узкими suites, а удалённая полная матрица обязательна. Текущая запись не называет предыдущий failed Windows run зелёным.

@@ -556,3 +556,8 @@ Candidate7 (1.889s), evaluator5 (0.010s), file-search11 (21.573s,1 Windows symli
 По реальным remote logs найдены LF/CRLF drift generated demos и сравнение resolved child с unresolved Windows TEMP root.1189669 сохраняет manifest-matching bytes10 generated demo файлов и задаёт case -text policy;615d507 сравнивает canonical root/child с сохранением lexical symlink/junction/traversal отказов. Добавлены Git-index checkout true/false regression и path alias negatives; attributes включены в source archive allowlist. YAML/required checks/evidence policy/gates не ослаблялись.
 
 Целевые15 tests OK:paths3 (0.014s),checkout1 (1.065s),CI6 (10.937s),distribution5 (0.856s). Ruff/sync9/docs254/Gitleaks/diff OK; exact demo2 cases/14 paragraphs/model_calls0 OK. Полный local suite выполняется, remote verification следует после push. Эта timestamp-запись не утверждает заранее зелёный Actions run. [Отчёт](2026-11-17-ci-portability-fixes.md). После CI вернуться к P7c; R1/M6/M8 открыты.
+
+
+## 17.11.2026 20:19 (Asia/Novosibirsk) — CI Windows oracle/encoding follow-up
+
+46dc863 remote Linux matrix/demo зелёные, Windows full620 выявил CRLF privacy oracle,3 short-name/canonical path assertions и cp1252 resume error. Локальный full620/1092.337s подтвердил только3 privacy subfailures (1 symlink skip). Test oracles приведены к raw UTF-8/canonical paths; CI/demo/release явно PYTHONUTF8=1. Runtime safety/gates и required checks сохранены. Повтор privacy5/workspace11/CI6 OK; отдельный cp1252 reproduction и UTF8 success. Всего31 различных targeted tests включая предыдущие. Повторная полная remote matrix ожидается после push. [Отчёт](2026-11-17-ci-portability-fixes.md).
