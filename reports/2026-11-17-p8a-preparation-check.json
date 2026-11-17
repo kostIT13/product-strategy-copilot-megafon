@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "scope": "synthetic_preparation_only_not_experiment",
+  "scenario_id": "tetrad-synthetic-v1",
+  "payload_files": 10,
+  "manifest_sha256": "be56e3b904ff88827a576eafcdc1307f98544967e2c13fd6928c34253561804d",
+  "payload_hashes_checked": true,
+  "input_sha256": {
+    "scenario.json": "c1b3c1643b34d0218f908870af565795fbf4ecb33a0bccab3b5369e0efb97146",
+    "protocol.md": "518d95fac8ff2a41ab32a9a5042abb651a610802315d2ab21c73ecb94e5eb360"
+  },
+  "review_ready": false,
+  "outputs_received": false,
+  "experiment_started": false,
+  "authorization_granted": false,
+  "model_calls": 0,
+  "external_requests": 0,
+  "code_commit": "72614da12bedf39c0ac93f01bdadec9a989693fc",
+  "working_tree_dirty": true
+}

@@ -1,4 +1,10 @@
-# Оценка MVP
+# Оценка решения
+
+## Текущий P8a: IDE sequential / opt-in automation
+
+[Preparation protocol и offline builder](paired-ide-preparation.md) готовят общие synthetic inputs, отдельный operator key и нейтральный reviewer template без actual outputs/оценок. Это другой comparison, чем исторический обычный чат/CLI ниже. Подготовка не выполняет model/native run и не разрешает расходы/передачу данных; P4–P6 и independent M6 остаются открытыми. Далее P8b — фиксация и проверка readiness реального парного запуска.
+
+Ниже сохранены исторические MVP protocol/results; exploratory scores не являются результатами P8.
 
 ## Задача и границы
 
