@@ -1,5 +1,7 @@
 # Краткий roadmap основной разработки
 
+**Актуальный срез 17.11.2026 — P7a:** [inventory и offline retrieval baseline](../retrieval-evaluation.md) реализованы: 5 synthetic sources, 8 gold queries, видимые FP/FN, quote/hash checks и протокол сравнения расширений. Следующий независимый срез P7b — отдельный holdout и сравнение простого локального candidate с literal baseline до решения о RAG/provider. Это не независимая оценка агента; весь P7, P4/P5/P6 и R1/M6/M8 остаются открытыми.
+
 **Обновлён 17.11.2026 по полному [ТЗ](../../specs/case.md).** Рабочий план находится в [plan-main.md](plan-main.md). Ветка: `feature/main-solution-roadmap`.
 
 ## Принятое решение

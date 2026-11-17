@@ -535,3 +535,10 @@ Context10 (5.130 s), handoffs14 (15.927 s), task12 (35.776 s), host9 (10.173 s) 
 CLI/FastMCP controls projection разделяет inspect/case resume, pending forward recovery, exact UUID replay и fresh-request new attempt. Generic cancel/checkpoint executor отсутствуют в CLI, native controls not_verified. Policy не исполняет действия и не оценивает/не предоставляет authorization. Канон/resume skill актуализированы, bundle1.1.1 и9 adapters пересобраны. Коммитыdbedee4 /bbdee60 /7c45fa6; итоговый docs commit фиксирует планы/отчёт.
 
 Controls8 (17.062 s), P6a8 (19.408 s), P6b8 (14.908 s), context10 (5.388 s) —34 tests OK; clean base8 (10.245 s,1 MCP skip). Skills validator2/sync9/Ruff/docs/native secrets/diff OK. Full suite/base completed/worker execution suites не повторялись. Explicit recovery только на temp synthetic fixtures, реальные кейсы/native settings не менялись. Локальные P6a–P6d выполнены, весь P6 и P4/P5/R1/M6/M8 открыты. Далее независимый P7a tools inventory/eval protocol. [Отчёт](2026-11-17-p6-operation-controls.md).
+
+
+## 17.11.2026 19:28 (Asia/Novosibirsk) — P7a: inventory и retrieval baseline
+
+Сверены research/knowledge/retrieval tools и границы permissions/provenance/limits/offline. Добавлен runnable synthetic kernel eval:5 sources/8 gold queries, TP5/FP1/FN1, precision=recall5/6;6 exact quotes. Размеченный semantic miss и неоднозначный FP сохранены. Cost unknown/null,0 model/external calls; это не agent-level benefit или independent review. Зафиксирован holdout/candidate protocol до RAG/provider. Код/tests commit aa5ce89; отдельный docs commit фиксирует inventory/планы/отчёт.
+
+Новые5 tests (0.012s), file search11 (22.179s,1 Windows symlink skip):16 различных tests. Clean base повтор5 (0.007s). Generator write/check9 без differences, docs/Ruff/native Gitleaks/diff OK. Full suite/web/binary parser suites/native host/final release не повторялись. P7a выполнен; далее P7b holdout и local candidate comparison. Весь P7, P4/P5/P6 и R1/M6/M8 открыты. [Отчёт](2026-11-17-p7-retrieval-baseline.md).

@@ -8,6 +8,8 @@
 
 ## Протокол
 
+Отдельный [offline retrieval eval P7a](../retrieval-evaluation.md) измеряет поиск фрагментов на synthetic gold corpus. Он не оценивает стратегию или агентный цикл и не закрывает M6.
+
 1. Скопируйте бриф и исходный синтетический материал в новый чистый контекст.
 2. Для baseline используйте `evals/demo/baseline-prompt.md`; не показывайте ему `claims.jsonl`, вариант решения или стратегию workflow.
 3. Для workflow пройдите CLI-процесс по README и сохраните `psa critic-pack demo`.
