@@ -16,3 +16,5 @@
 Отметь реально использованные ID@version и context hash в авторской заметке `analysis/methods-used.md`: задача, применение/ограничения, дата, что изменило вывод. Существование заметки или packet не доказывает поведение модели; фактическая загрузка в IDE и качество на новом кейсе проверяются отдельно по [runbook](../docs/ide-instructions.md).
 
 Для SourceCraft и любой среды без проверенного native loader: явно попросить открыть AGENTS.md и выполнить context; формат скрытых settings не придумывать. Файлы .codex/README.md и .claude/README.md — пояснения, а не исполняемая конфигурация. MCP в этом срезе автоматически не регистрируется.
+
+Для выбора research-инструмента доступен read-only [реестр](../docs/research-tool-registry.md): `psa tools list` / `psa tools describe TOOL-ID`, optional MCP `psa_research_tools`. Описания permissions/limits/fallback — данные, не разрешение dispatch/network/write; availability/provenance freshness остаются not_checked. Не загружай весь registry автоматически в каждый case context.
