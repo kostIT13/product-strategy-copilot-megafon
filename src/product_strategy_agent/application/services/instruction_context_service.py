@@ -48,7 +48,12 @@ def instruction_context(project_dir: Path, root: Path):
             raise ValueError("knowledge material must be a Markdown file under knowledge/")
     except (KeyError, TypeError):
         raise ValueError("invalid instruction manifest or knowledge catalog") from None
-    paths = ["AGENTS.md", "agent/harness.json", "knowledge/catalog.json", "agent/workflow.md", "agent/quality.md", "agent/safety.md"]
+    navigation = manifest.get("navigation", [])
+    if (not isinstance(navigation, list) or len(navigation) > 2
+            or any(not isinstance(name, str) or name not in {"agent/README.md", "agent/automation.md"} for name in navigation)
+            or len(set(navigation)) != len(navigation)):
+        raise ValueError("invalid canonical navigation")
+    paths = ["AGENTS.md", "agent/harness.json", "knowledge/catalog.json", "agent/workflow.md", "agent/quality.md", "agent/safety.md", *navigation]
     paths += [f".agents/skills/{name}/SKILL.md" for name in profile["skills"]]
     selected = []
     for material_id in profile["knowledge"]:

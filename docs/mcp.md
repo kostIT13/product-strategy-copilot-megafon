@@ -100,3 +100,9 @@ P4d: [disabled config lifecycle](host-config-lifecycle.md): plan/show/pending re
 
 
 [P6b summaries](operation-summaries.md): read-only `psa_summarize_operations` принимает bounded explicit selection одного кейса и выдаёт counts/redacted diagnostics/fixed advisory guidance. Pending outcomes не считаются опубликованными; нет usage totals, autorun или разрешения recovery. CLI: `psa diagnostics summary --request summary.json --projects-dir PATH`.
+
+
+[P6c usage provenance](usage-provenance.md): read-only `psa_diagnose_usage` показывает bounded canonical ledger с source/row hashes и redacted declaration provenance. Cost basis measured/estimated не становится verified measurement; нет totals/автоматической привязки business ID к automation UUID. CLI: `psa diagnostics usage case --projects-dir PATH`.
+
+
+[P6d operation controls](operation-controls.md): read-only `psa_operation_controls` показывает advisory механизмы одного task/result/review/hook UUID. Availability не является authorization, native controls not_verified; cancel/checkpoint resume не выполняются. CLI: `psa diagnostics controls case UUID --kind task --projects-dir PATH`.

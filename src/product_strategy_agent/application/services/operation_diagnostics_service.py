@@ -1,6 +1,7 @@
 """Historical diagnostics from existing immutable journals, without execution."""
 
 from product_strategy_agent import __version__
+from product_strategy_agent.domain.automation.operation_controls import control_policy
 from product_strategy_agent.application.ports.operation_diagnostics import (
     OperationDiagnosticsReader,
 )
@@ -42,6 +43,9 @@ class OperationDiagnosticsService:
             for selection, fact in zip(selections, facts, strict=True)
         ]
         return summarize(request, packets, __version__)
+
+    def controls(self, request):
+        return control_policy(self.inspect(request))
 
     @staticmethod
     def _packet(request, facts):

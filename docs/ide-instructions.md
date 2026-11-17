@@ -1,6 +1,6 @@
 # Инструкции и контекст IDE-агента — R1
 
-Реализованы общий AGENTS.md, четыре canonical skills, тематические workflow/quality/safety, generated host adapters и read-only `psa context`. Это инфраструктура инструкций, не доказательство качества стратегии или фактической загрузки во всех IDE. R1 остаётся частичным до живого нового кейса и host acceptance; пользователь отложил эти проверки 09.11.2026, разработка продолжена в R2. M6/M8 автоматически не закрываются.
+Реализованы общий AGENTS.md, четыре canonical skills, тематические workflow/quality/safety/automation, generated host adapters и read-only `psa context`. Это инфраструктура инструкций, не доказательство качества стратегии или фактической загрузки во всех IDE. R1 остаётся частичным до живого нового кейса и host acceptance; пользователь отложил эти проверки 09.11.2026, разработка продолжена в R2. M6/M8 автоматически не закрываются.
 
 ## Запуск из репозитория
 
@@ -43,3 +43,12 @@ psa context research-case
 ## P4a: machine-readable profiles
 
 [Версионированная матрица и host plans](host-profiles.md) доступны через CLI/FastMCP. Файловое присутствие отделено от native acceptance; все capabilities пока not_verified. Plan scoped по host/version/OS и предлагает последовательный fallback без activation/config writes. Catalog входит в canon sync, не загружается автоматически в case context. P4/native integration и R1/M6/M8 остаются открытыми.
+
+
+## Refresh bundle1.1.0 от17.11.2026
+
+[Канон](../AGENTS.md), [навигация](../agent/README.md) и [automation](../agent/automation.md) отражают явные роли/journal, локальные hooks, P6 diagnostics и disabled-only host lifecycle. Четыре skills и три role profiles обновлены; role catalog version1.1.0 не меняет SubagentResult v1 или journal schemas.
+
+В harness navigation указаны agent/README.md и agent/automation.md: они доставляются в context и участвуют в его hash и generated canonical fingerprint. Разрешён только этот фиксированный набор; roles/hosts не загружаются через navigation. Legacy manifest без поля navigation сохраняет прежний context shape/выбор путей. После изменения policy/profile нужно перепроверить freshness старого handoff; historical receipts не переписываются, ready по старому scope не переносится на новую задачу.
+
+CLAUDE.md/QWEN.md/.cursor rule и .codex/.claude README остаются тонкими adapters; четыре Claude skills — generated copies. Они наследуют root canon и не создают независимых permissions или native callback/config settings. Sync check подтверждает соответствие generated files канону, а не фактическое поведение IDE. Обновление инструкций не включает native dispatch/hooks/FastMCP connection; R1/M6/M8/P4 live acceptance остаются открытыми.
