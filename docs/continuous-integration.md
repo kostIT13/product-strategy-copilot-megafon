@@ -14,6 +14,8 @@
 
 Ruff пока проверяет E9/F63/F7/F82: синтаксис, некорректный control flow и неопределённые имена. Полный набор style/import rules и type checker остаются отдельным улучшением.
 
+Unit job timeout задаётся явно каждой matrix row: Ubuntu15 min, Windows25 min. Windows P7d run673d6a1 был отменён через15 min с GitHub annotation `The job has exceeded the maximum execution time of 15m0s`; ранее локальный Windows full suite занимал18.2 min. Увеличен только общий job budget Windows с headroom для setup/host variation; unit tests, их собственные deadlines, guard/refusal assertions и required checks не сокращены. Cancelled timeout run не считается прошедшим suite.
+
 ## Документация, секреты и демо
 
 Docs job использует Markdown parser: проверяются локальные inline/reference/image links, anchors и обязательные файлы. Примеры кода пропускаются; HTTP/app/plugin ссылки не открываются. Проверка исправила пять существовавших битых ссылок.
