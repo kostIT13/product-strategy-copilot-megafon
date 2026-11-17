@@ -15,6 +15,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  PYTHONUTF8: '1'
   LLM_API_KEY: ''
   LLM_BASE_URL: https://provider.invalid/v1
 
