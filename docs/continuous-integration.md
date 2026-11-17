@@ -53,6 +53,12 @@ Remove-Item Env:UV_PROJECT_ENVIRONMENT
 
 Demo runner сам использует временные копии и не изменяет projects/. Secrets scanner не сканирует весь локальный каталог с .env/.venv; в экспорт попадают Git-tracked и новые неигнорируемые файлы.
 
+## Переносимость checkout и TEMP
+
+Файлы кейсов содержат byte-level hashes sources/render/journals. `.gitattributes` задаёт `/projects/** -text`: Git сохраняет исходные байты независимо от `core.autocrlf` и ОС. Два synthetic demo содержат исторические generated Markdown с CRLF, соответствующие существующим manifest; исходные bytes сохранены в Git, manifests/gates не переписывались. Новые файлы сохраняют те окончания строк, которые записал штатный writer. Не нормализуйте сохранённый кейс и не регенерируйте hashes ради прохождения CI. Regression `test_demo_checkout.py` экспортирует реальные Git index bytes и проверяет оба autocrlf режима с точными source/render hashes.
+
+На Windows runner системный TEMP может иметь ancestor alias/junction. `confined` сравнивает resolved child с resolved root, сохраняя отдельный запрет symlink/junction на самом выбранном root и внутри него. Это разрешает системный alias выше root, сохраняя confinement, запрет traversal и existing link checks. Regression `test_store_paths.py` моделирует такой alias и проверяет сохранность отказов. Actions YAML, required checks и strict evidence policy ради исправления не ослабляются.
+
 ## Дистрибутив
 
 Release job переиспользует CI/demo, собирает wheel/sdist/archive и проверяет установку вне исходников. PostgreSQL, Alembic и Docker больше не входят в runtime/package/required checks. Состояние локального прогона фиксируется в reports; remote Actions и реальные IDE проверяются отдельно.

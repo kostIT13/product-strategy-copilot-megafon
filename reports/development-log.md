@@ -549,3 +549,10 @@ Controls8 (17.062 s), P6a8 (19.408 s), P6b8 (14.908 s), context10 (5.388 s) —3
 Holdout/protocol10 sources/16 queries до candidate:88960f1; isolated token-window candidate/comparison/tests:adae42f. Development run fa36406/dirty=true сохранён в JSON с commit/hashes/versions: baseline precision1/recall5/11, candidate precision9/11/recall9/11. Recall gain не компенсирует precision loss; candidate отклонён, production literal search сохранён. False positives и null/unknown оставлены видимыми, model/network calls0.
 
 Candidate7 (1.889s), evaluator5 (0.010s), file-search11 (21.573s,1 Windows symlink skip):23 различных tests. Clean base повтор12 (1.793s). Lifecycle/revision/withdrawal через real temp store и read-only bytes проверены. Sync/docs/Ruff/Gitleaks/diff OK; full suite/native host/independent review/final release не выполнялись. P7b завершён; далее P7c versioned registry existing tools, без adoption candidate. Весь P7, P4/P5/P6 и R1/M6/M8 открыты. [Отчёт](2026-11-17-p7b-retrieval-comparison.md).
+
+
+## 17.11.2026 19:57 (Asia/Novosibirsk) — GitHub Actions portability fixes
+
+По реальным remote logs найдены LF/CRLF drift generated demos и сравнение resolved child с unresolved Windows TEMP root.1189669 сохраняет manifest-matching bytes10 generated demo файлов и задаёт case -text policy;615d507 сравнивает canonical root/child с сохранением lexical symlink/junction/traversal отказов. Добавлены Git-index checkout true/false regression и path alias negatives; attributes включены в source archive allowlist. YAML/required checks/evidence policy/gates не ослаблялись.
+
+Целевые15 tests OK:paths3 (0.014s),checkout1 (1.065s),CI6 (10.937s),distribution5 (0.856s). Ruff/sync9/docs254/Gitleaks/diff OK; exact demo2 cases/14 paragraphs/model_calls0 OK. Полный local suite выполняется, remote verification следует после push. Эта timestamp-запись не утверждает заранее зелёный Actions run. [Отчёт](2026-11-17-ci-portability-fixes.md). После CI вернуться к P7c; R1/M6/M8 открыты.
