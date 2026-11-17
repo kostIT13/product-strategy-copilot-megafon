@@ -53,6 +53,8 @@ Remove-Item Env:UV_PROJECT_ENVIRONMENT
 
 Demo runner сам использует временные копии и не изменяет projects/. Secrets scanner не сканирует весь локальный каталог с .env/.venv; в экспорт попадают Git-tracked и новые неигнорируемые файлы.
 
+Тот же base-only demo job запускает `python -m scripts.ci.research_smoke`: [offline research contracts](offline-research-smoke.md) проверяются на собственном temporary synthetic case без DNS/socket/process dispatch. Registry/fallback, revision/hash/quote, draft replay, corrupt/invalid refusal и withdrawal проверяются отдельно от человеческих gates. Оба JSON выводятся в summary; failure runner возвращает nonzero. `ok` smoke не означает готовность кейса, полезность агента или human/native acceptance.
+
 ## Переносимость checkout и TEMP
 
 Файлы кейсов содержат byte-level hashes sources/render/journals. `.gitattributes` задаёт `/projects/** -text`: Git сохраняет исходные байты независимо от `core.autocrlf` и ОС. Два synthetic demo содержат исторические generated Markdown с CRLF, соответствующие существующим manifest; исходные bytes сохранены в Git, manifests/gates не переписывались. Новые файлы сохраняют те окончания строк, которые записал штатный writer. Не нормализуйте сохранённый кейс и не регенерируйте hashes ради прохождения CI. Regression `test_demo_checkout.py` экспортирует реальные Git index bytes и проверяет оба autocrlf режима с точными source/render hashes.

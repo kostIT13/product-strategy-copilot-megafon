@@ -1,0 +1,61 @@
+{
+  "ok": true,
+  "scope": "fixed_synthetic_offline_research_contracts",
+  "fixture_content_sha256": "099af118bc8794d9451e4789343d76360a14d0f034998b09f96a759e599af50a",
+  "registry_version": "1.0.0",
+  "instruction_bundle_version": "1.1.3",
+  "selection_basis": "fixed_test_scenario_not_agent_choice",
+  "described_tools": [
+    "local-source-import",
+    "public-web-fetch",
+    "current-source-search",
+    "instruction-context",
+    "research-artifact-record",
+    "project-validate",
+    "evidence-verify",
+    "strategy-coverage"
+  ],
+  "tool_descriptor_versions": {
+    "local-source-import": "1.0.0",
+    "public-web-fetch": "1.0.0",
+    "current-source-search": "1.0.0",
+    "instruction-context": "1.0.0",
+    "research-artifact-record": "1.0.0",
+    "project-validate": "1.0.0",
+    "evidence-verify": "1.0.0",
+    "strategy-coverage": "1.0.0"
+  },
+  "not_executed_tools": [
+    "public-web-fetch"
+  ],
+  "fallback": "prepermitted_local_copy_no_network_authorization_in_scenario",
+  "checks": {
+    "current_revision_only": true,
+    "exact_quote_verified": true,
+    "nonempty_coverage_before_withdrawal": true,
+    "research_draft_exact_replay": true,
+    "untrusted_source_is_data": true,
+    "read_only_bytes_preserved": true,
+    "invalid_request_refused": true,
+    "corrupt_source_refused": true,
+    "withdrawn_source_excluded": true,
+    "withdrawal_preserved_claim_history": true,
+    "human_controls_unchanged": true
+  },
+  "temporary_case_writes": true,
+  "persistent_case_writes": false,
+  "human_gates_executed": false,
+  "decision_written": false,
+  "final_case_ready": false,
+  "external_requests": 0,
+  "model_calls": 0,
+  "provider_cost": null,
+  "human_seconds": null,
+  "independent_review": false,
+  "elapsed_seconds": 4.3602932000067085,
+  "run_provenance": {
+    "code_commit": "86b076cd4f4f298755825b90bf7945ec492b8709",
+    "working_tree_dirty": true,
+    "environment": "existing_clean_base_without_optional_extras"
+  }
+}
