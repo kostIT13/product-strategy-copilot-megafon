@@ -68,4 +68,24 @@ def render_documents_v2(state, inputs, events):
             + str(impact["current_decision_needs_review"]).lower()
             + ". No human decision was changed.\n"
         )
+    assessed = [row for row in rows("sources.jsonl") if isinstance(row.get("source_assessment"), dict)]
+    if assessed:
+        details = ["\n## Оценки источников — записанные суждения, не независимая проверка\n"]
+        for source in assessed:
+            assessment = source["source_assessment"]
+            if assessment.get("content_hash") != source.get("content_hash"):
+                raise ValueError("source assessment belongs to a different content revision")
+            details.extend([
+                f"### {source['source_id']} / {source['content_hash']}",
+                f"- Автор: {assessment.get('author') or 'неизвестен'}",
+                f"- Владелец/издатель: {assessment.get('publisher_or_owner') or 'неизвестен'}",
+                f"- Дата публикации: {assessment.get('published_at') or 'неизвестна'}",
+                f"- Оценка: {assessment['reliability']}; записал: {assessment['assessed_by']}; {assessment['assessed_at']}",
+                f"- Основание оценки: {assessment['basis']}",
+                "- Неизвестное: " + ("; ".join(assessment['unknowns']) or 'нет заявленных неизвестных'),
+                "- Ограничения оценки: " + ("; ".join(assessment['limitations']) or 'не заявлены'),
+                "- Технические ограничения extraction: " + ("; ".join(source.get('limitations', [])) or 'не заявлены'),
+                "",
+            ])
+        output["03_evidence.md"] += "\n".join(details)
     return output

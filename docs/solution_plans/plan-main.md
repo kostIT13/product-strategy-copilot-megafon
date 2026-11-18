@@ -987,3 +987,6 @@ M0–M10 ниже — история MVP, не следующий порядок
 
 
 17.11.2026: [P6d advisory controls](../operation-controls.md) реализован: read-only CLI/FastMCP policy различает inspect/case resume, forward recovery, exact UUID replay и новый request; generic cancel/checkpoint execution не поддержаны CLI, native host controls not_verified. Policy не оценивает/не даёт authorization и не исполняет действия. Канон/resume skill обновлены, bundle1.1.1 и9 adapters синхронизированы. Локальные P6a–P6d срезы выполнены, весь P6 и P4/P5/R1/M6/M8 открыты. Далее независимый P7a — inventory research/knowledge/retrieval и baseline/eval protocol до расширений; RAG/provider только при измеримой пользе.
+
+
+18.11.2026: приоритет разработки — закрыть содержательные пробелы ТЗ до подготовки сдачи. Реализована [snapshot-bound оценка источника](../source-assessment.md): author/owner/publication date, reliability, rationale, limitations/unknowns, CLI/FastMCP и journal/replay/recovery. Новые импорты не выводят owner из папки/hostname и сбрасывают прежнюю оценку. Следующий срез — полнота альтернатив (польза, стоимость, риски, возражение, допущения/проверка). Native acceptance и отложенные M6/M8 не закрыты.

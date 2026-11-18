@@ -19,6 +19,8 @@ from product_strategy_agent.domain.projects.semantic_review import SemanticRevie
 from product_strategy_agent.domain.projects.gate_approval import GateApproval
 from product_strategy_agent.adapters.persistence.files import semantic_review_bundle
 from product_strategy_agent.domain.projects.quality_policy import EnableQualityPolicy, plan_enable, validate_policy
+from product_strategy_agent.domain.projects.source_assessment import SourceAssessment
+from product_strategy_agent.adapters.persistence.files import source_assessment_bundle
 
 FILES = {"request.json", "event.json", "state.before.json", "state.after.json", "events.before.jsonl", "events.after.jsonl", "inputs.json"}
 
@@ -32,7 +34,7 @@ def payload(project_id, command, before_state, after_state, before_events, event
         raise ValueError("workflow bundle exceeds its 512000 byte per-file limit")
     if extra_files is not None:
         files.update(extra_files)
-    version = 7 if isinstance(command, SemanticReview) else 6 if isinstance(command, SourceWithdrawal) else 5 if isinstance(command, ClaimCorrection) else 4 if isinstance(command, LedgerAppend) else 3 if isinstance(command, RenderRequest) else 2 if extra_files is not None else 1
+    version = 8 if isinstance(command, SourceAssessment) else 7 if isinstance(command, SemanticReview) else 6 if isinstance(command, SourceWithdrawal) else 5 if isinstance(command, ClaimCorrection) else 4 if isinstance(command, LedgerAppend) else 3 if isinstance(command, RenderRequest) else 2 if extra_files is not None else 1
     manifest = {"format_version": version, "project_id": project_id, "operation_id": str(command.operation_id),
                 "files": {key: digest(value) for key, value in files.items()}}
     return files, manifest
@@ -49,11 +51,11 @@ def load(folder, project_id, operation_id, manifest_hash=None):
         if manifest_hash is not None and digest(raw) != manifest_hash:
             raise ValueError("workflow manifest hash mismatch")
         if (set(manifest) != {"format_version", "project_id", "operation_id", "files"}
-                or type(manifest["format_version"]) is not int or manifest["format_version"] not in {1, 2, 3, 4, 5, 6, 7}
+                or type(manifest["format_version"]) is not int or manifest["format_version"] not in {1, 2, 3, 4, 5, 6, 7, 8}
                 or manifest["project_id"] != project_id or manifest["operation_id"] != str(operation_id)
-                or set(manifest["files"]) != (FILES | {1: set(), 2: EXTRA_FILES, 3: render_bundle.EXTRA_FILES, 4: ledger_bundle.EXTRA_FILES, 5: correction_bundle.EXTRA_FILES, 6: source_withdrawal_bundle.EXTRA_FILES, 7: semantic_review_bundle.EXTRA_FILES}[manifest["format_version"]])):
+                or set(manifest["files"]) != (FILES | {1: set(), 2: EXTRA_FILES, 3: render_bundle.EXTRA_FILES, 4: ledger_bundle.EXTRA_FILES, 5: correction_bundle.EXTRA_FILES, 6: source_withdrawal_bundle.EXTRA_FILES, 7: semantic_review_bundle.EXTRA_FILES, 8: source_assessment_bundle.EXTRA_FILES}[manifest["format_version"]])):
             raise ValueError("invalid workflow manifest scope/layout")
-        files = {name: (semantic_review_bundle.read_payload(folder, name) if name in semantic_review_bundle.EXTRA_FILES else source_withdrawal_bundle.read_payload(folder, name) if name in source_withdrawal_bundle.EXTRA_FILES else correction_bundle.read_payload(folder, name) if name in correction_bundle.EXTRA_FILES else ledger_bundle.read_payload(folder, name) if name in ledger_bundle.EXTRA_FILES else
+        files = {name: (source_assessment_bundle.read_payload(folder, name) if name in source_assessment_bundle.EXTRA_FILES else semantic_review_bundle.read_payload(folder, name) if name in semantic_review_bundle.EXTRA_FILES else source_withdrawal_bundle.read_payload(folder, name) if name in source_withdrawal_bundle.EXTRA_FILES else correction_bundle.read_payload(folder, name) if name in correction_bundle.EXTRA_FILES else ledger_bundle.read_payload(folder, name) if name in ledger_bundle.EXTRA_FILES else
                         render_bundle.read_payload(folder, name) if name in render_bundle.EXTRA_FILES else read_payload(folder, name)) for name in manifest["files"]}
         if any(digest(value) != manifest["files"][name] for name, value in files.items()):
             raise ValueError("workflow bundle hash mismatch")
@@ -68,6 +70,8 @@ def load(folder, project_id, operation_id, manifest_hash=None):
             raise ValueError("claim correction requires workflow format v5")
         if isinstance(command, SourceWithdrawal) != (manifest["format_version"] == 6):
             raise ValueError("source withdrawal requires workflow format v6")
+        if isinstance(command, SourceAssessment) != (manifest["format_version"] == 8):
+            raise ValueError("source assessment requires workflow format v8")
         if isinstance(command, SemanticReview) != (manifest["format_version"] == 7):
             raise ValueError("semantic review requires workflow format v7")
         event = json.loads(files["event.json"])
@@ -127,6 +131,9 @@ def load(folder, project_id, operation_id, manifest_hash=None):
                     raise ValueError("gate semantic review reference mismatch")
         if isinstance(command, SourceWithdrawal):
             source_withdrawal_bundle.validate_extra(command, files, before, after, event)
+        if isinstance(command, SourceAssessment):
+            extra_targets, result = source_assessment_bundle.validate_extra(command, files, before, after, event, inputs)
+            targets = {**extra_targets, **targets}
         if isinstance(command, SourceImport):
             extra_targets, result = validate_extra(command, files, before, after, event)
             targets = {**extra_targets, **targets}

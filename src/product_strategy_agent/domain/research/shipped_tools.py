@@ -14,8 +14,30 @@ def limit(name, value, unit, scope, enforcement="input_validation"):
 
 TOOLS = (
     ResearchTool(
+        tool_id="source-assessment",
+        implementation_contract="snapshot_bound_source_assessment_v1",
+        cli=("source assessment", "source assess"),
+        mcp=("psa_source_assessment", "psa_assess_source"),
+        writes_case=True,
+        choose_when="After reading the current material, record attributed source quality and unknowns.",
+        exclude_when="Source is withdrawn, text is corrupt, or request snapshot is stale.",
+        permission_requirements=("case.sources.read", "case.source_assessment.write"),
+        provenance=(
+            "source_id",
+            "content_hash",
+            "source_record_before_hash",
+            "assessed_by",
+            "assessed_at",
+        ),
+        limits=(limit("cli_request_bytes", 16384, "bytes", "CLI JSON request"),),
+        limits_note="No fetch/model/gate. Judgements are recorded declarations, never independently verified. New import invalidates assessment.",
+        offline_fallback="Keep unknowns explicit; do not infer owner from a folder or hostname.",
+        evidence_refs=("docs/source-assessment.md", "tests/test_source_assessment.py"),
+    ),
+    ResearchTool(
         tool_id="local-source-import",
-        implementation_contract="file_source_import_v1",
+        descriptor_version="1.1.0",
+        implementation_contract="file_source_import_metadata_v2",
         cli=("source add",),
         mcp=("psa_add_source",),
         writes_case=True,
@@ -34,7 +56,7 @@ TOOLS = (
             limit("input_bytes", 10485760, "bytes", "local document reader"),
             limit("extracted_text_bytes", 10485760, "bytes", "file import service"),
         ),
-        limits_note="PDF/DOCX/XLSX require optional documents extras; no OCR or formula execution.",
+        limits_note="PDF/DOCX/XLSX require optional documents extras; no OCR or formula execution. Owner starts unknown; every new import resets assessment.",
         offline_fallback="Use a permitted local plain-text extraction and record its limitations.",
         evidence_refs=(
             "src/product_strategy_agent/adapters/persistence/files/source_reader.py",
@@ -43,6 +65,7 @@ TOOLS = (
     ),
     ResearchTool(
         tool_id="public-web-fetch",
+        descriptor_version="1.1.0",
         implementation_contract="bounded_public_http_v1",
         cli=("source fetch",),
         mcp=("psa_fetch_source",),

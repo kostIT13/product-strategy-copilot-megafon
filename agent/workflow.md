@@ -6,7 +6,7 @@
 | --- | --- |
 | intake | В 01_brief.md: вопрос решения, критерии успеха, владелец/срок, ограничения и доступные данные. Задавай вопросы, способные изменить следующий шаг |
 | research_plan | В 02_research-plan.md: вопросы, влияние на выбор, источники/методы, достаточность и лимиты. Показать план человеку |
-| source_collection | `psa source add ID FILE` или явный `psa source fetch ID URL`; `psa source list ID`; прочитать извлечённый текст, сохранить происхождение/ограничения |
+| source_collection | `psa source add ID FILE` или явный `psa source fetch ID URL`; `psa source list ID`; прочитать извлечённый текст, сохранить происхождение/ограничения; `psa source assessment ID S-ID` и `psa source assess ID --input JSON` для [оценки текущего источника](../docs/source-assessment.md) |
 | evidence_review | `psa claim add ID --type fact --text TEXT --source S-ID --locator LOCATOR --quote EXACT_QUOTE`; для неизвестного `psa gap add ID --question TEXT --priority high`; fact не используется без проверяемой цитаты |
 | options | `psa option add ID --name NAME --role status_quo --description TEXT`; аналогично stop и change. Сравнить стоимость, пользу, риск, возражение, допущение и проверку |
 | strategy | После указания человека `psa decision add ID --option NAME --option-id O-ID --owner OWNER --rationale TEXT --revisit-when TRIGGER`; затем `psa render ID` создаёт недостающие author drafts, их нужно содержательно заполнить |

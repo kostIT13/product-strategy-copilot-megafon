@@ -31,7 +31,8 @@ class FileWebSourceReader:
                 raise ValueError(f"Unsupported file type '{suffix}'")
             with path.open("rb") as stream:
                 data = stream.read(MAX_TEXT_BYTES + 1)
-            uri, publisher = command.locator, path.parent.name or None
+            uri = command.locator
+            publisher = None if command.metadata_policy_version == 2 else (path.parent.name or None)
             content_type = "text/html" if suffix in {".html", ".htm"} else "text/plain"
         else:
             from product_strategy_agent.adapters.persistence.files.web_reader import read_web_source

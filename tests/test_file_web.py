@@ -69,7 +69,7 @@ class FileWebTests(unittest.TestCase):
                 result = fetch_web_source(case, URL + "#section")
             self.assertEqual(transport.call_count, 2)
             self.assertEqual(result["uri_or_path"], FINAL)
-            self.assertEqual(result["publisher_or_owner"], "example.org")
+            self.assertIsNone(result["publisher_or_owner"])
             self.assertEqual(result["title"], "Fixture")
             provenance = result["provenance"]
             self.assertEqual(provenance["requested_url"], URL)
