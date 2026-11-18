@@ -17,13 +17,14 @@ from product_strategy_agent.adapters.persistence.files.workspace_repository impo
 from product_strategy_agent.domain.projects.workspace import validate_workspace_id
 from product_strategy_agent.adapters.persistence.files.revision_review_reader import review_inputs
 from product_strategy_agent.adapters.persistence.files.source_bundle import extra_payload
-from product_strategy_agent.domain.projects.source_import import MAX_TEXT_BYTES, source_id
+from product_strategy_agent.domain.projects.source_import import MAX_TEXT_BYTES, source_id, SourceImport
 from product_strategy_agent.domain.projects.render_plan import RenderRequest, INPUTS as RENDER_INPUTS, TARGETS as RENDER_TARGETS
 from product_strategy_agent.adapters.persistence.files.render_bundle import extra_payload as render_payload
 from product_strategy_agent.domain.projects.ledger_append import INPUTS as LEDGER_INPUTS, PAYLOADS
 from product_strategy_agent.adapters.persistence.files.ledger_bundle import extra_payload as ledger_payload
 from product_strategy_agent.adapters.persistence.files.correction_bundle import extra_payload as correction_payload
 from product_strategy_agent.adapters.persistence.files.source_withdrawal_bundle import extra_payload as source_withdrawal_payload
+from product_strategy_agent.adapters.persistence.files.source_assessment_bundle import extra_payload as source_assessment_payload
 
 
 class FileWorkflowStore:
@@ -187,6 +188,8 @@ class FileWorkflowStore:
             return None
         item = load(folder, project_id, command.operation_id)
         matches = item["command"] == command
+        if isinstance(command, SourceImport) and isinstance(item["command"], SourceImport) and command.metadata_policy_version is None:
+            matches = item["command"].model_dump(exclude={"metadata_policy_version"}) == command.model_dump(exclude={"metadata_policy_version"})
         if isinstance(command, RenderRequest) and command.builder_version is None and isinstance(item["command"], RenderRequest):
             matches = item["command"].model_dump(exclude={"builder_version"}) == command.model_dump(exclude={"builder_version"})
         if not matches:
@@ -208,6 +211,16 @@ class FileWorkflowStore:
     def commit_correction(self, project_id, command, snapshot, timestamp):
         case = self._case(project_id)
         extras, targets, event, _ = correction_payload(command, snapshot, timestamp)
+        state = json.loads(snapshot["state"])
+        state.update(updated_at=timestamp, workflow_version=state.get("workflow_version", 0) + 1)
+        inputs = {name: value for name, value in snapshot["inputs"].items() if name not in targets}
+        files, manifest = payload(project_id, command, snapshot["state"], state, snapshot["events"], event, inputs, extras)
+        return self._publish(case, command, files, manifest)
+
+    @locked_store_method()
+    def commit_source_assessment(self, project_id, command, snapshot, timestamp):
+        case = self._case(project_id)
+        extras, targets, event, _ = source_assessment_payload(command, snapshot, timestamp)
         state = json.loads(snapshot["state"])
         state.update(updated_at=timestamp, workflow_version=state.get("workflow_version", 0) + 1)
         inputs = {name: value for name, value in snapshot["inputs"].items() if name not in targets}
