@@ -596,3 +596,8 @@ Doctor ready; existing demo2 cases/2 citations/14 paragraphs OK, corpus preserve
 Добавлены snapshot-bound author/owner/publication date, reliability, rationale, limitations/unknowns; CLI source assessment/assess и optional FastMCP на общем service. Journal v8 сохраняет before/after и deterministic recovery; UUID replay не перезаписывает текущую оценку. Новые imports используют metadata policy2 без owner из папки/hostname и сбрасывают прежнюю оценку даже для тех же bytes; старые format2 receipts воспроизводятся с прежней политикой. Технические extraction limitations/accessed_at и человеческие decisions/gates сохраняются. Render показывает attribution и границы оценки, изменение metadata обновляет review fingerprint.
 
 Registry1.1.0, bundle1.1.4, canonical workflow/research skill и9 generated adapters обновлены. Проверены 11 source-assessment tests с real local stdio, CLI, stale/corrupt/withdrawn отказами, tampered bundle, crash/recovery и legacy replay; связанные import/render/lifecycle/registry/smoke suites. Offline research smoke без сети/моделей/gates успешен. Native IDE acceptance и M6/M8 не закрывались; следующий срез — полнота альтернатив.
+
+
+## 18.11.2026 20:22 (Asia/Novosibirsk) — сравнение альтернатив
+
+Добавлены psa option check, FastMCP psa_option_check и проверка на этапе options. Для каждой обязательной роли нужен вариант с описанием, пользой, издержками, рисками и сильнейшим возражением. Проверка показывает затронутые основания и пропуски по ID. Обновлены основной план и инструкции. Проверены base smoke, offline research smoke, локальный CLI/FastMCP stdio и тесты отзыва оснований и повторного открытия workflow.

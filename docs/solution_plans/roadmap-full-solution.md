@@ -104,3 +104,6 @@ Release собирает allowlisted ZIP/wheel/sdist с manifest/SHA-256, про
 
 
 18.11.2026: source assessment реализован как файловый service с тонкими CLI/MCP adapters и revision-bound journal. См. [контракт](../source-assessment.md). Далее — содержательная полнота сравнения альтернатив; оценка источника не означает независимую проверку фактов или native acceptance.
+
+
+18.11.2026: реализована [проверка полноты вариантов](../option-comparison.md) в CLI, FastMCP и на этапе options. Для утверждения сравнения нужен заполненный вариант каждой обязательной роли.
