@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from product_strategy_agent.adapters.persistence.files.workflow_repository import FileWorkflowStore
+from product_strategy_agent.application.services.option_comparison_service import inspect_option_comparison
 from typing import Any
 
 from product_strategy_agent import __version__
@@ -228,6 +230,16 @@ def create_server() -> Any:
         """Append an open research gap."""
         return add_gap(workspace(project_id, projects_dir), question, why_it_matters, resolution_method, priority,
                        operation_id=operation_id, expected_workflow_version=expected_workflow_version)
+
+    @server.tool(annotations=READ_LOCAL)
+    def psa_option_check(project_id: str, projects_dir: str = "projects") -> dict[str, Any]:
+        """Report comparison readiness, missing fields and affected evidence for recorded options."""
+        from fastmcp.exceptions import ToolError
+
+        try:
+            return inspect_option_comparison(FileWorkflowStore(projects_dir), project_id)
+        except (ValueError, OSError):
+            raise ToolError("Option comparison unavailable. Check case ID, integrity and pending operations.") from None
 
     @server.tool()
     def psa_add_option(project_id: str, name: str, role: str, description: str, benefits: str = "", costs: str = "",

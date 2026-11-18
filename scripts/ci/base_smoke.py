@@ -36,6 +36,9 @@ from product_strategy_agent.domain.projects.claim_correction import ClaimCorrect
 from product_strategy_agent.application.services.claim_correction_service import (
     ClaimCorrectionService,
 )
+from product_strategy_agent.application.services.option_comparison_service import (
+    inspect_option_comparison,
+)
 from product_strategy_agent.adapters.persistence.files.workflow_repository import (
     FileWorkflowStore,
 )
@@ -158,12 +161,32 @@ def run():
             ),
         )
         approve_stage(case, "evidence_review", "Synthetic test actor")
+        draft = add_option(case, "Draft", "change", "Synthetic incomplete option")
+        store = FileWorkflowStore(case.parent)
+        comparison = inspect_option_comparison(store, case.name)
+        assert not comparison["ready"]
+        assert comparison["options"][0]["option_id"] == draft["option_id"]
+        assert set(comparison["options"][0]["missing_fields"]) == {
+            "benefits",
+            "costs",
+            "risks",
+            "strongest_objection",
+        }
+        try:
+            approve_stage(case, "options", "Synthetic test actor")
+        except ValueError as error:
+            assert "psa option check" in str(error)
+        else:
+            raise AssertionError("Incomplete option comparison passed the gate")
         options = [
             add_option(
                 case,
                 role,
                 role,
                 "Synthetic option for mechanical workflow testing",
+                benefits="Potential reduction in fixture handling time",
+                costs="Reviewer time to inspect the fixture",
+                risks="Fixture behavior may differ from production",
                 strongest_objection="Fixture evidence cannot justify a real product decision",
                 claim_ids=[claim["claim_id"]],
             )

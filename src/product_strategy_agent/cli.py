@@ -43,6 +43,7 @@ from product_strategy_agent.interfaces.cli.validation_plan_commands import add_v
 from product_strategy_agent.interfaces.cli.claim_lifecycle_commands import add_claim_lifecycle_commands, handle_claim_lifecycle_command
 from product_strategy_agent.application.services.claim_lifecycle_service import ClaimLifecycleService
 from product_strategy_agent.adapters.persistence.files.workflow_repository import FileWorkflowStore
+from product_strategy_agent.application.services.option_comparison_service import inspect_option_comparison
 from product_strategy_agent.interfaces.cli.claim_correction_commands import add_claim_correction_command, handle_claim_correction_command
 from product_strategy_agent.interfaces.cli.subagent_commands import add_subagent_commands, handle_subagent_command
 from product_strategy_agent.interfaces.cli.hook_commands import add_hook_commands, handle_hook_command
@@ -173,7 +174,11 @@ def build_parser() -> argparse.ArgumentParser:
     gap_add.add_argument("--projects-dir", type=Path, default=Path("projects"))
 
     option = commands.add_parser("option", help="record a decision option")
-    option_add = option.add_subparsers(dest="option_command", required=True).add_parser("add", help="append an option")
+    option_commands = option.add_subparsers(dest="option_command", required=True)
+    option_check = option_commands.add_parser("check", help="check comparison readiness and missing details")
+    option_check.add_argument("project_id")
+    option_check.add_argument("--projects-dir", type=Path, default=Path("projects"))
+    option_add = option_commands.add_parser("add", help="append an option")
     option_add.add_argument("project_id")
     option_add.add_argument("--name", required=True)
     option_add.add_argument("--role", required=True, choices=("status_quo", "stop", "change"))
@@ -447,6 +452,10 @@ def main() -> None:
             return
 
         if args.command == "option":
+            if args.option_command == "check":
+                report = inspect_option_comparison(FileWorkflowStore(args.projects_dir), args.project_id)
+                print(json.dumps(report, ensure_ascii=True, indent=2))
+                return
             project_dir = project_path(args.project_id, args.projects_dir)
             if not (project_dir / "state.json").is_file():
                 raise FileNotFoundError(f"Project '{args.project_id}' was not found at {project_dir}")
