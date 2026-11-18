@@ -3,8 +3,10 @@ from tempfile import TemporaryDirectory
 import unittest
 
 from product_strategy_agent.adapters.persistence.files.revision_context_reader import (
+    inspect_revision_proposal,
     revision_context,
 )
+from product_strategy_agent.domain.projects.revision_proposal import RevisionProposal
 from product_strategy_agent.cli import init_project
 from product_strategy_agent.ledger import add_claim, add_decision
 from product_strategy_agent.sources import add_local_source
@@ -36,8 +38,60 @@ class RevisionContextTests(unittest.TestCase):
             revision = add_local_source(case, material)["source_revision_event"]
             latest = revision_context(case, revision["event_id"])
             self.assertTrue(latest["latest_revision"])
+            keep = {"action": "keep", "rationale": "Fixture scope unchanged"}
+            payload = {
+                "context_sha256": latest["context_sha256"],
+                "change_summary": "Source corrected the value from 12 to 8",
+                "claims": {
+                    claim["claim_id"]: {
+                        "action": "revise",
+                        "rationale": "Value corrected in source",
+                        "next_step": "Draft a corrected claim backed by the new quote",
+                    }
+                },
+                "decisions": {decision["decision_id"]: keep},
+                "product_strategy": keep,
+                "communication_strategy": keep,
+                "validation_plan": keep,
+            }
+            draft = RevisionProposal.model_validate(payload)
+            before = (case / "events.jsonl").read_bytes()
+            checked = inspect_revision_proposal(case, revision["event_id"], draft)
+            self.assertTrue(checked["complete_dependency_coverage"])
+            self.assertEqual(checked["status"], "draft")
+            self.assertEqual((case / "events.jsonl").read_bytes(), before)
+            incomplete = RevisionProposal.model_validate({**payload, "claims": {}})
+            self.assertEqual(
+                inspect_revision_proposal(case, revision["event_id"], incomplete)[
+                    "unaddressed_counts"
+                ],
+                {"claims": 1, "decisions": 0},
+            )
+            unrelated = RevisionProposal.model_validate(
+                {**payload, "claims": {"C-999": keep}}
+            )
+            with self.assertRaisesRegex(ValueError, "outside"):
+                inspect_revision_proposal(case, revision["event_id"], unrelated)
+            with self.assertRaises(ValueError):
+                RevisionProposal.model_validate(
+                    {
+                        **payload,
+                        "product_strategy": {
+                            "action": "revise",
+                            "rationale": "Needs edit",
+                        },
+                    }
+                )
+            (case / "drafts").mkdir(exist_ok=True)
+            (case / "drafts/product-strategy.md").write_text(
+                "New author notes", encoding="utf-8"
+            )
+            with self.assertRaisesRegex(ValueError, "context changed"):
+                inspect_revision_proposal(case, revision["event_id"], draft)
             material.write_text("Corrected result: 7.", encoding="utf-8")
             add_local_source(case, material)
+            with self.assertRaisesRegex(ValueError, "latest revision"):
+                inspect_revision_proposal(case, revision["event_id"], draft)
             before = (case / "events.jsonl").read_bytes()
             packet = revision_context(case, revision["event_id"])
             self.assertFalse(packet["latest_revision"])

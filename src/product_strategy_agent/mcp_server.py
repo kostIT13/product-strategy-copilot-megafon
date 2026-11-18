@@ -19,7 +19,8 @@ from product_strategy_agent.sources import add_local_source, fetch_web_source
 from product_strategy_agent.validation import validate_project, verify_project
 from product_strategy_agent.workflow import MODE_PROFILES, approve_stage, set_project_mode
 from product_strategy_agent.usage import add_usage, usage_report
-from product_strategy_agent.adapters.persistence.files.revision_context_reader import revision_context
+from product_strategy_agent.adapters.persistence.files.revision_context_reader import revision_context, inspect_revision_proposal
+from product_strategy_agent.domain.projects.revision_proposal import RevisionProposal
 from product_strategy_agent.revisit import build_revisit_report, resolve_source_revision
 from product_strategy_agent.adapters.persistence.files.workflow_guard import require_workflow_ready
 from product_strategy_agent.adapters.persistence.files.case_access import case_access
@@ -166,6 +167,17 @@ def create_server() -> Any:
             return revision_context(workspace(project_id, projects_dir), revision_event_id)
         except (ValueError, OSError):
             raise ToolError("Revision context unavailable. Check the revision ID and case integrity.") from None
+
+    @server.tool(annotations=READ_LOCAL)
+    def psa_revisit_check_draft(project_id: str, revision_event_id: str, draft: RevisionProposal,
+                                projects_dir: str = "projects") -> dict[str, Any]:
+        """Check staleness, dependency coverage and structure of an authored revision proposal."""
+        from fastmcp.exceptions import ToolError
+
+        try:
+            return inspect_revision_proposal(workspace(project_id, projects_dir), revision_event_id, draft)
+        except (ValueError, OSError):
+            raise ToolError("Revision draft refused. Refresh the context and check affected IDs or case integrity.") from None
 
     @server.tool()
     def psa_revisit_resolve(project_id: str, revision_event_id: str, reviewed_by: str, reason: str,

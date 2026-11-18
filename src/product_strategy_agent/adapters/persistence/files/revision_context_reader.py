@@ -12,6 +12,8 @@ from product_strategy_agent.application.services.claim_lifecycle_service import 
     impact_from_snapshot,
     rows,
 )
+from product_strategy_agent.domain.projects.claim_lifecycle import fingerprint
+from product_strategy_agent.domain.projects.revision_proposal import check_proposal
 from product_strategy_agent.domain.projects.revision_context import change_excerpt
 from product_strategy_agent.domain.projects.revision_review import revision_dependencies
 from product_strategy_agent.domain.projects.source_import import MAX_TEXT_BYTES
@@ -84,7 +86,20 @@ def revision_context(project_dir, event_id):
     )
     claim_set, decision_set = set(claim_ids), set(decision_ids)
     impact = impact_from_snapshot(case.name, snapshot)
-    return {
+    draft_hashes = {}
+    for name in (
+        "product-strategy.md",
+        "communication-strategy.md",
+        "validation-plan.md",
+    ):
+        path = confined(case, f"drafts/{name}")
+        if path.is_file():
+            with path.open("rb") as stream:
+                data = stream.read(MAX_TEXT_BYTES + 1)
+            if len(data) > MAX_TEXT_BYTES:
+                raise ValueError("Strategy draft exceeds revision context size limit")
+            draft_hashes[name] = sha256(data).hexdigest()
+    packet = {
         "project_id": case.name,
         "workflow_version": impact["workflow_version"],
         "revision_event_id": event_id,
@@ -116,3 +131,18 @@ def revision_context(project_dir, event_id):
         "affected_claim_count": len(claim_ids),
         "affected_decision_count": len(decision_ids),
     }
+
+    packet["context_sha256"] = fingerprint(
+        {
+            "context": packet,
+            "inputs": {
+                name: sha256(data).hexdigest() for name, data in snapshot.items()
+            },
+            "strategy_drafts": draft_hashes,
+        }
+    )
+    return packet
+
+
+def inspect_revision_proposal(project_dir, event_id, draft):
+    return check_proposal(revision_context(project_dir, event_id), draft)

@@ -24,7 +24,8 @@ from product_strategy_agent.sources import add_local_source, fetch_web_source
 from product_strategy_agent.validation import validate_project, verify_project
 from product_strategy_agent.usage import add_usage, usage_report
 from product_strategy_agent.workflow import MODE_PROFILES, NEXT_ACTIONS, WORK_STAGES, approve_stage, set_project_mode
-from product_strategy_agent.adapters.persistence.files.revision_context_reader import revision_context
+from product_strategy_agent.adapters.persistence.files.revision_context_reader import revision_context, inspect_revision_proposal
+from product_strategy_agent.domain.projects.revision_proposal import RevisionProposal
 from product_strategy_agent.revisit import build_revisit_report, resolve_source_revision
 from product_strategy_agent.application.services.instruction_context_service import instruction_context
 from product_strategy_agent.application.services.workspace_service import WorkspaceService
@@ -297,6 +298,11 @@ def build_parser() -> argparse.ArgumentParser:
     revisit_context.add_argument("project_id")
     revisit_context.add_argument("revision_event_id")
     revisit_context.add_argument("--projects-dir", type=Path, default=Path("projects"))
+    revisit_proposal = revisit_commands.add_parser("check-draft", help="check an authored revision proposal against the current context")
+    revisit_proposal.add_argument("project_id")
+    revisit_proposal.add_argument("revision_event_id")
+    revisit_proposal.add_argument("--input", type=Path, required=True)
+    revisit_proposal.add_argument("--projects-dir", type=Path, default=Path("projects"))
     revisit_resolve = revisit_commands.add_parser("resolve", help="record that all dependent claims and decisions were reviewed")
     revisit_resolve.add_argument("project_id")
     revisit_resolve.add_argument("revision_event_id")
@@ -582,6 +588,17 @@ def main() -> None:
                 print(json.dumps(build_revisit_report(project_dir), ensure_ascii=False, indent=2))
             elif args.revisit_command == "context":
                 print(json.dumps(revision_context(project_dir, args.revision_event_id), ensure_ascii=True, indent=2))
+            elif args.revisit_command == "check-draft":
+                with args.input.open("rb") as stream:
+                    data = stream.read(1048577)
+                if len(data) > 1048576:
+                    raise ValueError("Revision proposal JSON exceeds 1 MiB")
+                try:
+                    draft = RevisionProposal.model_validate_json(data)
+                except ValueError as error:
+                    raise ValueError("Invalid revision proposal JSON. Check the schema in docs/revisit.md") from error
+                result = inspect_revision_proposal(project_dir, args.revision_event_id, draft)
+                print(json.dumps(result, ensure_ascii=True, indent=2))
             else:
                 event = resolve_source_revision(project_dir, args.revision_event_id, args.by, args.reason,
                                                 args.reviewed_claim, args.reviewed_decision,
