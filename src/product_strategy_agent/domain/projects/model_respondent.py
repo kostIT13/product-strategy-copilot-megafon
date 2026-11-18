@@ -64,6 +64,17 @@ class RespondentCapture(RespondentModel):
         return self
 
 
+class SyntheticFactError(ValueError):
+    def __init__(self):
+        super().__init__(
+            "Model respondent transcripts cannot support facts. Record a synthetic claim"
+        )
+
+
+def is_respondent_transcript(text: str) -> bool:
+    return text.partition("\n")[0].removesuffix("\r") == SYNTHETIC_TRANSCRIPT_HEADER
+
+
 def prepare_respondent(brief):
     return {
         "format_version": 1,

@@ -5,6 +5,7 @@ from __future__ import annotations
 from product_strategy_agent.adapters.persistence.files.workflow_guard import require_workflow_ready
 from product_strategy_agent.adapters.persistence.files.case_access import locked_case
 from product_strategy_agent.domain.projects.file_documents import document_excerpt
+from product_strategy_agent.domain.projects.model_respondent import is_respondent_transcript
 from product_strategy_agent.domain.projects.claim_lifecycle import claim_statuses
 from product_strategy_agent.domain.projects.source_lifecycle import source_statuses
 
@@ -293,6 +294,9 @@ def verify_project(project_dir: Path) -> tuple[list[str], list[str]]:
         locators = claim.get("source_locators", [])
         quotes = claim.get("quotes", [])
         for index, source_id in enumerate(source_ids):
+            if claim.get("type") == "fact" and is_respondent_transcript(source_texts.get(source_id, "")):
+                errors.append(f"{claim_id}: model respondent source {source_id} cannot support a fact")
+                continue
             if index >= len(locators) or index >= len(quotes):
                 continue
             if source_id not in source_texts:

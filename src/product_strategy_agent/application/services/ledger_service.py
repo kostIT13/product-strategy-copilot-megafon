@@ -5,8 +5,16 @@ import json
 from product_strategy_agent.application.ports.ledger_store import LedgerStore
 from product_strategy_agent.domain.projects.ledger_append import LedgerAppend
 from product_strategy_agent.domain.projects.workspace import validate_workspace_id
-from product_strategy_agent.domain.projects.claim_lifecycle import require_active_support
-from product_strategy_agent.domain.projects.source_lifecycle import require_current_sources
+from product_strategy_agent.domain.projects.claim_lifecycle import (
+    require_active_support,
+)
+from product_strategy_agent.domain.projects.source_lifecycle import (
+    require_current_sources,
+)
+from product_strategy_agent.domain.projects.model_respondent import (
+    SyntheticFactError,
+    is_respondent_transcript,
+)
 
 
 class LedgerService:
@@ -37,11 +45,29 @@ class LedgerService:
                 raise ValueError(
                     "expected_workflow_version conflict; review the current ledgers"
                 )
-            require_active_support(command.ledger, command.payload, snapshot["ledger_inputs"],
-                                   [json.loads(line) for line in snapshot["events"].splitlines() if line.strip()])
+            events = [
+                json.loads(line)
+                for line in snapshot["events"].splitlines()
+                if line.strip()
+            ]
+            require_active_support(
+                command.ledger, command.payload, snapshot["ledger_inputs"], events
+            )
             if command.ledger == "claims":
-                require_current_sources(command.payload, [json.loads(line) for line in snapshot["ledger_inputs"]["sources.jsonl"].splitlines() if line.strip()],
-                                        [json.loads(line) for line in snapshot["events"].splitlines() if line.strip()])
+                sources = [
+                    json.loads(line)
+                    for line in snapshot["ledger_inputs"]["sources.jsonl"].splitlines()
+                    if line.strip()
+                ]
+                require_current_sources(command.payload, sources, events)
+                if command.payload["claim_type"] == "fact":
+                    by_id = {row["source_id"]: row for row in sources}
+                    for source_id in set(command.payload["source_ids"]):
+                        text = self.store.claim_source_text(
+                            project_id, by_id[source_id], snapshot["inputs"]
+                        )
+                        if is_respondent_transcript(text):
+                            raise SyntheticFactError()
             now = (
                 datetime.now(timezone.utc)
                 .isoformat(timespec="seconds")

@@ -17,7 +17,7 @@ from product_strategy_agent.application.services.claim_lifecycle_service import 
 )
 from product_strategy_agent.domain.projects.interview_analysis import analyze_interviews
 from product_strategy_agent.domain.projects.model_respondent import (
-    SYNTHETIC_TRANSCRIPT_HEADER,
+    is_respondent_transcript,
 )
 
 
@@ -51,10 +51,9 @@ def interview_report(projects_dir, project_id, request):
             ):
                 raise ValueError("Transcript revision hash mismatch")
             text = data.decode("utf-8")
-            first_line = text.partition("\n")[0].removesuffix("\r")
             if (
                 request.material_kind == "consented_interviews"
-                and first_line == SYNTHETIC_TRANSCRIPT_HEADER
+                and is_respondent_transcript(text)
             ):
                 raise ValueError(
                     "A generated synthetic transcript must use synthetic_dialogues"

@@ -97,6 +97,16 @@ class FileWorkflowStore:
         return snapshot
 
     @locked_store_method()
+    def claim_source_text(self, project_id, source, inputs):
+        path = source.get("extracted_text_path")
+        if not isinstance(path, str) or not path.startswith("sources/"):
+            raise ValueError("Fact source text path is invalid")
+        raw = self._target(self._case(project_id), path)
+        if raw is None or digest(raw) != source.get("content_hash") or inputs.get(path) != source.get("content_hash"):
+            raise ValueError("Fact source text does not match the current captured revision")
+        return raw.decode("utf-8")
+
+    @locked_store_method()
     def capture_source(self, project_id, snapshot, material, text):
         case = self._case(project_id)
         identifier = source_id(material["uri"])

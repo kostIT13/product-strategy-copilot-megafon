@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from product_strategy_agent.domain.projects.model_respondent import SyntheticFactError
 from product_strategy_agent.application.services.decision_summary_service import inspect_decision_summary
 from product_strategy_agent.application.services.validation_plan_service import ValidationPlanService
 from product_strategy_agent.adapters.persistence.files.validation_plan_store import FileValidationPlanStore
@@ -242,9 +243,14 @@ def create_server() -> Any:
         expected_workflow_version: int | None = None,
     ) -> dict[str, Any]:
         """Append a typed claim; factual claims require a source, locator, and exact quote."""
-        return add_claim(workspace(project_id, projects_dir), text, claim_type, source_ids, source_locators, quotes,
-                         confidence, reasoning_note, contradicts, decision_impact, supersedes or None,
-                         operation_id=operation_id, expected_workflow_version=expected_workflow_version)
+        from fastmcp.exceptions import ToolError
+
+        try:
+            return add_claim(workspace(project_id, projects_dir), text, claim_type, source_ids, source_locators, quotes,
+                             confidence, reasoning_note, contradicts, decision_impact, supersedes or None,
+                             operation_id=operation_id, expected_workflow_version=expected_workflow_version)
+        except SyntheticFactError as error:
+            raise ToolError(str(error)) from None
 
     @server.tool()
     def psa_add_capability(project_id: str, name: str, status: str, claim_ids: list[str] | None = None,
