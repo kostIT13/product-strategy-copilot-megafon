@@ -21,3 +21,5 @@ description: Prepare a product decision brief, research questions and sourced ev
 После чтения источника запиши оценку через `psa source assessment ID S-ID`, затем `psa source assess ID --input JSON` по docs/source-assessment.md. Сохрани author/owner/publication date либо null с unknowns, reliability и основания/ограничения. Не выводи owner из папки/hostname; accessed_at не дата публикации. Это recorded judgement, не independent verification или gate. Новый импорт сбрасывает оценку; получи свежие workflow/content/record hashes перед новой записью.
 
 Для таблицы примени `psa source table ID --input JSON` по docs/table-analysis.md. В выводе укажи хеш, выбранный лист или разделитель, фильтры, единицу, период, знаменатель и исключённые строки. Единицу и период сверяй с источником, а неизвестное явно обозначай.
+
+Для интервью прочитай docs/interview-analysis.md: подготовь гайд под решение и используй разрешённые обезличенные транскрипты. Сохрани тему, интерпретацию, ограничение, способ проверки и цитаты с локаторами. Выполни `psa interview check ID --input JSON`. Синтетические диалоги разбирай отдельно с evidence_scope=hypothesis_only.
