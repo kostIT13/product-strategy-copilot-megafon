@@ -33,7 +33,7 @@ Complete a row only after a live connection and the parity scenario have been ob
 | Host | Host version | Environment | Connection | Parity | Evidence / limitation |
 |---|---|---|---|---|---|
 | Local MCP SDK client (not an IDE host) | MCP Python SDK 2.3.0 | Windows; Python 3.12; FastMCP 4.1.6 | Pass; 20 tools discovered over stdio | Partial: revisit mutation via MCP; validate, verify, and revisit readout matched through CLI | `projects/mcp-host-smoke-20261106/`; 2026-11-06. Does not establish Codex UI integration |
-| Codex App Server | 0.169.0-alpha.11.1 | Windows 10.0.26200 x86_64; Python 3.12; FastMCP 4.1.6 | Pass; discovered four allowlisted tools over stdio | Read-only pass: status, validate, verify, coverage | 2026-11-18. Separate local process with per-process configuration and an ephemeral session. The desktop chat path and mutation scenario remain open. |
+| Codex App Server | 0.169.0-alpha.11.1 | Windows 10.0.26200 x86_64; Python 3.12; FastMCP 4.1.6 | Pass; discovered separate allowlists of four and eleven tools over stdio | Read-only and mutation scenarios passed | 2026-11-18. Separate local process with per-process configuration and an ephemeral session. The desktop chat path remains open. |
 | Qwen Code | 0.25.2 | Windows; launcher confirmed on 2026-11-18 | Out of scope | Out of scope | Launcher version only. Connection guidance is available. |
 | SourceCraft / Claude Code / Cursor / other IDEs | — | Connection guidance | Out of scope | Out of scope | Use the relevant instructions in [IDE instructions](ide-instructions.md). |
 
@@ -43,6 +43,8 @@ On 2026-11-18, a fresh synthetic pickup-window case was prepared in the active C
 
 ## Completion rule
 
-M8 remains open until Codex has a live stdio connection and matching CLI/MCP results for the parity scenario. Package installation and local SDK checks are preflights.
+Codex App Server has a live stdio connection and matching CLI/MCP results for the parity scenario. Full M8 acceptance for the team's desktop workflow remains open until a regular Codex chat discovers and calls the configured project tools.
 
 The 2026-11-18 App Server run used the installed Codex binary's generated protocol schema. The client called `mcpServerStatus/list` and `mcpServer/tool/call` directly, with no model turn. Codex started `python -m product_strategy_agent.mcp_server` over stdio. The project ID, status, mode and workflow version matched the CLI. Validate and verify passed in both interfaces, and the complete coverage JSON matched, including nine checked paragraphs and the promise preflight hash. All 282 files in the synthetic case copy retained their SHA-256 hashes. Cyrillic was intact in the returned JSON despite garbled terminal display. The application's persistent MCP settings were untouched.
+
+The write comparison used separate CLI and MCP roots with identical CSV fixtures. Both interfaces produced source ID `S-D6F59B3DB4CD`, claim `C-001` at `line:2` with the quote `renewed,10`, options `O-001` through `O-003`, and fixture decision `D-001`. On the second pair, both interfaces recorded revision `SRC-REV-0001` and identified the same affected claim and fixture decision. The pending count went from one to zero after the fixture review. Validate and verify passed on both pairs. Comparison excluded timestamps. CLI stores the revision event separately while the FastMCP import response also includes it. Test actors were labelled as fixtures and no workflow gates were run.
