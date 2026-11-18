@@ -54,6 +54,7 @@ from product_strategy_agent.interfaces.cli.subagent_commands import add_subagent
 from product_strategy_agent.interfaces.cli.hook_commands import add_hook_commands, handle_hook_command
 from product_strategy_agent.interfaces.cli.host_commands import add_host_commands, handle_host_command
 from product_strategy_agent.interfaces.cli.research_tool_commands import add_research_tool_commands, handle_research_tool_command
+from product_strategy_agent.interfaces.cli.table_commands import add_table_commands, handle_table_command
 from product_strategy_agent.interfaces.cli.source_assessment_commands import add_source_assessment_commands, handle_source_assessment_command
 
 STAGES = (
@@ -139,6 +140,7 @@ def build_parser() -> argparse.ArgumentParser:
     add_file_search_command(source_commands)
     add_source_lifecycle_commands(source_commands)
     add_source_assessment_commands(source_commands)
+    add_table_commands(source_commands)
     for action, help_text in (("add", "import local text/HTML or optional PDF/DOCX/XLSX"), ("fetch", "fetch a web page and extract its text")):
         sub = source_commands.add_parser(action, help=help_text)
         sub.add_argument("project_id")
@@ -376,6 +378,9 @@ def main() -> None:
             return
         if args.command == "claim" and args.claim_command == "correct":
             handle_claim_correction_command(args)
+            return
+        if args.command == "source" and args.source_command == "table":
+            handle_table_command(args)
             return
         if args.command == "source" and args.source_command == "search":
             handle_file_search_command(args)
