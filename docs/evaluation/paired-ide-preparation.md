@@ -40,4 +40,14 @@ Root manifest записывается последним. При I/O failure о
 
 Следующий шаг — явная фиксация и проверка readiness реального парного запуска: host/model/settings, закрытые либо честно scoped prerequisites, authorization/action scope, одинаковые caps, order/familiarity, hashes и preregistered success/exclusion rules. Для strategy phase человек должен действительно выбрать общий вариант и разрешить требуемые gates; до этого сравнивается только brief/research/evidence/options. Передача reviewer требует отдельного разрешения и actual outputs с hashes. Сборщик ничего из этого не предоставляет.
 
+### Read-only проверка owner record
+
+```powershell
+python -m scripts.evaluation.check_pair_record --package .venv-ci/p8-preparation-01
+```
+
+Команда сверяет сохранённые исходные материалы с подготовительными SHA-256, а также проверяет наличие host/model/settings, ссылок на подтверждения prerequisites, отдельной декларации authorization, общих конечных лимитов, preregistered порядка и критериев допуска/исключения. В шаблоне prerequisites имеют статус и evidence_ref; заполнять `verified` можно только по фактическому свидетельству.
+
+Pass означает только внутреннюю согласованность заявлений и файлов пакета. Evidence refs и authorization не аутентифицируются; команда не проверяет Codex host, лимиты во время исполнения или актуальность разрешения. Она не запускает IDE/модель, не выполняет gates и всегда возвращает `execution_authorized=false`, `experiment_started=false`, `review_ready=false`. Пустой шаблон ожидаемо даёт список незаполненных полей и exit code 1. Human choice/gates, run, actual outputs и передача reviewer остаются отдельными действиями.
+
 Measured/estimated/unknown, human active/wait time, help/retries/errors и harm записываются раздельно. Для непроведённого review/criteria вне завершённой фазы остаётся null с reason. Отсутствующие основания в завершённом согласованном scope получают0; пустой template не становится14/14. Технический pass и пустой template не доказывают groundedness, causal effect или преимущество automation. Один известный synthetic pair остаётся exploratory. Измеренная польза P7 и независимый M6 не закрываются подготовкой P8a.
