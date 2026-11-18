@@ -28,3 +28,5 @@ Critic: `psa critic-pack ID` подготавливает review, не запу�
 Если требуется вернуться к более раннему этапу активной работы, показать workflow review и дождаться явного указания человека на `psa workflow rollback`; для completed используется reopen. Материалы и прежние approvals сохраняются, затронутые gates/решение/reviews проходят заново. [Контракт возврата](../docs/workflow-rollback.md).
 
 Перед выбором research tool при неизвестных limits/permissions можно прочитать `psa tools describe TOOL-ID` из [реестра](../docs/research-tool-registry.md). Выбирай существующий инструмент по задаче и действующим разрешениям; metadata не запускают инструмент, не выдают permission и не подтверждают readiness. Fetch требует разрешённого сетевого сценария, при отказе используй разрешённый offline fallback или покажи blocker.
+
+Для пересмотра выбранной ревизии используй [`psa revisit context ID SRC-REV-NNNN`](../docs/revisit.md). Сопоставь обе версии и предложи, что проверить или изменить в утверждениях, решении и стратегии. При partial дочитай нужные фрагменты по связанным источникам.
