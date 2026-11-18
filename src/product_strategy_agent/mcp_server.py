@@ -103,6 +103,8 @@ def create_server() -> Any:
     register_source_assessment_tools(server)
     from product_strategy_agent.interfaces.mcp.table_tools import register_table_tools
     register_table_tools(server)
+    from product_strategy_agent.interfaces.mcp.interview_tools import register_interview_tools
+    register_interview_tools(server)
     from product_strategy_agent.interfaces.mcp.claim_correction_tools import register_claim_correction_tools
     register_claim_correction_tools(server)
 
