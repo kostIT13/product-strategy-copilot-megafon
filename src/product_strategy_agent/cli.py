@@ -54,6 +54,7 @@ from product_strategy_agent.interfaces.cli.subagent_commands import add_subagent
 from product_strategy_agent.interfaces.cli.hook_commands import add_hook_commands, handle_hook_command
 from product_strategy_agent.interfaces.cli.host_commands import add_host_commands, handle_host_command
 from product_strategy_agent.interfaces.cli.research_tool_commands import add_research_tool_commands, handle_research_tool_command
+from product_strategy_agent.interfaces.cli.media_commands import add_media_commands, handle_media_command
 from product_strategy_agent.interfaces.cli.ux_commands import add_ux_commands, handle_ux_command
 from product_strategy_agent.interfaces.cli.interview_commands import add_interview_commands, handle_interview_command
 from product_strategy_agent.interfaces.cli.table_commands import add_table_commands, handle_table_command
@@ -109,6 +110,7 @@ def build_parser() -> argparse.ArgumentParser:
     add_validation_plan_commands(commands)
     add_interview_commands(commands)
     add_ux_commands(commands)
+    add_media_commands(commands)
     add_workspace_commands(commands)
     add_research_artifact_commands(commands)
     add_workflow_commands(commands)
@@ -382,6 +384,9 @@ def main() -> None:
             return
         if args.command == "claim" and args.claim_command == "correct":
             handle_claim_correction_command(args)
+            return
+        if args.command == "media":
+            handle_media_command(args)
             return
         if args.command == "ux":
             handle_ux_command(args)

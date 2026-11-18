@@ -107,6 +107,8 @@ def create_server() -> Any:
     register_interview_tools(server)
     from product_strategy_agent.interfaces.mcp.ux_tools import register_ux_tools
     register_ux_tools(server)
+    from product_strategy_agent.interfaces.mcp.media_tools import register_media_tools
+    register_media_tools(server)
     from product_strategy_agent.interfaces.mcp.claim_correction_tools import register_claim_correction_tools
     register_claim_correction_tools(server)
 
