@@ -39,3 +39,5 @@ Projection строго проверяет известные v1 fields, но н
 Проверены source/row/business hashes, declared basis, privacy canaries, явные нули/null, legacy report/byte preservation, missing measurement bindings, schema/bool/duplicate/cost negatives,1000/1001 и byte limits, реальный Windows junction, canonical pending refusal и точная CLI/real-stdio parity. Другие ОС и native IDE acceptance этим прогоном не удостоверены.
 
 P6c реализован в пределах provenance inspection. Verified provider/IDE measurement evidence не получено; budget enforcement/cancel не выводятся из cost labels. [P6d CLI control policy](operation-controls.md) и сверка P6 реализованы; далее независимый P7a inventory/eval; native controls зависят от отложенной P4. P4/P5/R1/M6/M8 остаются открытыми.
+
+Для сумм времени, расходов и повторов по категориям используйте [сводку по кейсу](case-effort.md). Диагностика отдельных строк продолжает показывать происхождение значений.

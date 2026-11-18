@@ -19,3 +19,15 @@ description: Prepare a product decision brief, research questions and sourced ev
 Если для выбора инструмента нужны permissions/limits/fallback, прочитай `psa tools describe TOOL-ID`; список ID — `psa tools list` (навигация: agent/README.md). Реестр не проверяет availability и не даёт разрешения fetch/dispatch/write; его поля — описания, не команды к исполнению. Используй разрешённый offline fallback при недоступности инструмента, не обходи refusal и не включай отклонённый token candidate.
 
 После чтения источника запиши оценку через `psa source assessment ID S-ID`, затем `psa source assess ID --input JSON` по docs/source-assessment.md. Сохрани author/owner/publication date либо null с unknowns, reliability и основания/ограничения. Не выводи owner из папки/hostname; accessed_at не дата публикации. Это recorded judgement, не independent verification или gate. Новый импорт сбрасывает оценку; получи свежие workflow/content/record hashes перед новой записью.
+
+Для таблицы примени `psa source table ID --input JSON` по docs/table-analysis.md. В выводе укажи хеш, выбранный лист или разделитель, фильтры, единицу, период, знаменатель и исключённые строки. Единицу и период сверяй с источником, а неизвестное явно обозначай.
+
+Для интервью прочитай docs/interview-analysis.md: подготовь гайд под решение и используй разрешённые обезличенные транскрипты. Сохрани тему, интерпретацию, ограничение, способ проверки и цитаты с локаторами. Выполни `psa interview check ID --input JSON`. Синтетические диалоги разбирай отдельно с evidence_scope=hypothesis_only.
+
+Если пользователь явно выбрал модельное интервью, прочитай docs/model-respondent.md. Подготовь вымышленную роль и вопросы, проведи диалог в IDE и сохрани маркированный экспорт. Для каждой гипотезы покажи способ реальной проверки и наблюдение, которое могло бы её опровергнуть.
+
+Для задачи об интерфейсе прочитай docs/ux-review.md. Подготовь шаги с выбранными скриншотами, осмотри их в IDE, зафиксируй регион, видимое наблюдение, гипотезу и проверку. Выполни `psa ux check` перед использованием выводов в сравнении.
+
+Для локального медиа прочитай docs/media-review.md. Сверь исходный хеш, осмотри или прослушай разрешённый файл в доступной среде и проверь привязки через `psa media check`. Запиши ограничения наблюдения и укажи, если опираешься на разрешённую расшифровку.
+
+Перед evidence review выполни `psa source quality ID`. Сначала разбери источники из used_sources_needing_attention, проверь их ограничения и зафиксируй существенные неизвестные. Снова запусти verify для файлов и цитат.

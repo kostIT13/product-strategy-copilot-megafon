@@ -12,6 +12,9 @@ from typing import Any
 from uuid import UUID
 
 from product_strategy_agent import __version__
+from product_strategy_agent.application.services.decision_summary_service import inspect_decision_summary
+from product_strategy_agent.application.services.validation_plan_service import ValidationPlanService
+from product_strategy_agent.adapters.persistence.files.validation_plan_store import FileValidationPlanStore
 from product_strategy_agent.interfaces.automation_diagnostics import automation_diagnostic
 from product_strategy_agent.interfaces.cli.diagnostic_commands import add_diagnostic_commands, handle_diagnostic_command
 from product_strategy_agent.critic import write_critic_pack
@@ -23,7 +26,10 @@ from product_strategy_agent.doctor import doctor_report, format_doctor_report
 from product_strategy_agent.sources import add_local_source, fetch_web_source
 from product_strategy_agent.validation import validate_project, verify_project
 from product_strategy_agent.usage import add_usage, usage_report
+from product_strategy_agent.interfaces.usage_provenance import usage_effort
 from product_strategy_agent.workflow import MODE_PROFILES, NEXT_ACTIONS, WORK_STAGES, approve_stage, set_project_mode
+from product_strategy_agent.adapters.persistence.files.revision_context_reader import revision_context, inspect_revision_proposal
+from product_strategy_agent.domain.projects.revision_proposal import RevisionProposal
 from product_strategy_agent.revisit import build_revisit_report, resolve_source_revision
 from product_strategy_agent.application.services.instruction_context_service import instruction_context
 from product_strategy_agent.application.services.workspace_service import WorkspaceService
@@ -43,11 +49,16 @@ from product_strategy_agent.interfaces.cli.validation_plan_commands import add_v
 from product_strategy_agent.interfaces.cli.claim_lifecycle_commands import add_claim_lifecycle_commands, handle_claim_lifecycle_command
 from product_strategy_agent.application.services.claim_lifecycle_service import ClaimLifecycleService
 from product_strategy_agent.adapters.persistence.files.workflow_repository import FileWorkflowStore
+from product_strategy_agent.application.services.option_comparison_service import inspect_option_comparison
 from product_strategy_agent.interfaces.cli.claim_correction_commands import add_claim_correction_command, handle_claim_correction_command
 from product_strategy_agent.interfaces.cli.subagent_commands import add_subagent_commands, handle_subagent_command
 from product_strategy_agent.interfaces.cli.hook_commands import add_hook_commands, handle_hook_command
 from product_strategy_agent.interfaces.cli.host_commands import add_host_commands, handle_host_command
 from product_strategy_agent.interfaces.cli.research_tool_commands import add_research_tool_commands, handle_research_tool_command
+from product_strategy_agent.interfaces.cli.media_commands import add_media_commands, handle_media_command
+from product_strategy_agent.interfaces.cli.ux_commands import add_ux_commands, handle_ux_command
+from product_strategy_agent.interfaces.cli.interview_commands import add_interview_commands, handle_interview_command
+from product_strategy_agent.interfaces.cli.table_commands import add_table_commands, handle_table_command
 from product_strategy_agent.interfaces.cli.source_assessment_commands import add_source_assessment_commands, handle_source_assessment_command
 
 STAGES = (
@@ -98,6 +109,9 @@ def build_parser() -> argparse.ArgumentParser:
     add_file_promise_commands(commands)
     add_strategy_structure_commands(commands)
     add_validation_plan_commands(commands)
+    add_interview_commands(commands)
+    add_ux_commands(commands)
+    add_media_commands(commands)
     add_workspace_commands(commands)
     add_research_artifact_commands(commands)
     add_workflow_commands(commands)
@@ -133,6 +147,7 @@ def build_parser() -> argparse.ArgumentParser:
     add_file_search_command(source_commands)
     add_source_lifecycle_commands(source_commands)
     add_source_assessment_commands(source_commands)
+    add_table_commands(source_commands)
     for action, help_text in (("add", "import local text/HTML or optional PDF/DOCX/XLSX"), ("fetch", "fetch a web page and extract its text")):
         sub = source_commands.add_parser(action, help=help_text)
         sub.add_argument("project_id")
@@ -173,7 +188,11 @@ def build_parser() -> argparse.ArgumentParser:
     gap_add.add_argument("--projects-dir", type=Path, default=Path("projects"))
 
     option = commands.add_parser("option", help="record a decision option")
-    option_add = option.add_subparsers(dest="option_command", required=True).add_parser("add", help="append an option")
+    option_commands = option.add_subparsers(dest="option_command", required=True)
+    option_check = option_commands.add_parser("check", help="check comparison readiness and missing details")
+    option_check.add_argument("project_id")
+    option_check.add_argument("--projects-dir", type=Path, default=Path("projects"))
+    option_add = option_commands.add_parser("add", help="append an option")
     option_add.add_argument("project_id")
     option_add.add_argument("--name", required=True)
     option_add.add_argument("--role", required=True, choices=("status_quo", "stop", "change"))
@@ -199,7 +218,11 @@ def build_parser() -> argparse.ArgumentParser:
     coverage.add_argument("--projects-dir", type=Path, default=Path("projects"))
 
     decision = commands.add_parser("decision", help="append a human-owned decision")
-    decision_add = decision.add_subparsers(dest="decision_command", required=True).add_parser("add", help="record a decision")
+    decision_commands = decision.add_subparsers(dest="decision_command", required=True)
+    decision_summary = decision_commands.add_parser("summary", help="show the latest decision and follow-up signals")
+    decision_summary.add_argument("project_id")
+    decision_summary.add_argument("--projects-dir", type=Path, default=Path("projects"))
+    decision_add = decision_commands.add_parser("add", help="record a decision")
     decision_add.add_argument("project_id")
     decision_add.add_argument("--option", required=True)
     decision_add.add_argument("--option-id")
@@ -242,6 +265,8 @@ def build_parser() -> argparse.ArgumentParser:
     usage_add.add_argument("--input-tokens", type=int)
     usage_add.add_argument("--output-tokens", type=int)
     usage_add.add_argument("--duration-ms", type=int)
+    usage_add.add_argument("--category", choices=("model", "search", "tool", "retry", "human"))
+    usage_add.add_argument("--duration-certainty", choices=("measured", "estimated"))
     usage_add.add_argument("--retry-count", type=int, default=0)
     usage_add.add_argument("--cost-amount")
     usage_add.add_argument("--currency", default="RUB")
@@ -253,6 +278,9 @@ def build_parser() -> argparse.ArgumentParser:
     usage_report_parser = usage_commands.add_parser("report", help="aggregate recorded usage without mixing estimates and measured costs")
     usage_report_parser.add_argument("project_id")
     usage_report_parser.add_argument("--projects-dir", type=Path, default=Path("projects"))
+    usage_summary_parser = usage_commands.add_parser("summary", help="summarize case time and costs by activity and basis")
+    usage_summary_parser.add_argument("project_id")
+    usage_summary_parser.add_argument("--projects-dir", type=Path, default=Path("projects"))
 
     gate = commands.add_parser("gate", help="approve a workflow stage and advance the project")
     gate_commands = gate.add_subparsers(dest="gate_command", required=True)
@@ -287,6 +315,15 @@ def build_parser() -> argparse.ArgumentParser:
     revisit_list = revisit_commands.add_parser("list", help="list source changes and dependent work")
     revisit_list.add_argument("project_id")
     revisit_list.add_argument("--projects-dir", type=Path, default=Path("projects"))
+    revisit_context = revisit_commands.add_parser("context", help="show before/after evidence for one revision")
+    revisit_context.add_argument("project_id")
+    revisit_context.add_argument("revision_event_id")
+    revisit_context.add_argument("--projects-dir", type=Path, default=Path("projects"))
+    revisit_proposal = revisit_commands.add_parser("check-draft", help="check an authored revision proposal against the current context")
+    revisit_proposal.add_argument("project_id")
+    revisit_proposal.add_argument("revision_event_id")
+    revisit_proposal.add_argument("--input", type=Path, required=True)
+    revisit_proposal.add_argument("--projects-dir", type=Path, default=Path("projects"))
     revisit_resolve = revisit_commands.add_parser("resolve", help="record that all dependent claims and decisions were reviewed")
     revisit_resolve.add_argument("project_id")
     revisit_resolve.add_argument("revision_event_id")
@@ -354,10 +391,22 @@ def main() -> None:
         if args.command == "claim" and args.claim_command == "correct":
             handle_claim_correction_command(args)
             return
+        if args.command == "media":
+            handle_media_command(args)
+            return
+        if args.command == "ux":
+            handle_ux_command(args)
+            return
+        if args.command == "interview":
+            handle_interview_command(args)
+            return
+        if args.command == "source" and args.source_command == "table":
+            handle_table_command(args)
+            return
         if args.command == "source" and args.source_command == "search":
             handle_file_search_command(args)
             return
-        if args.command == "source" and args.source_command in {"assess", "assessment"}:
+        if args.command == "source" and args.source_command in {"assess", "assessment", "quality"}:
             handle_source_assessment_command(args)
             return
         if args.command == "source" and args.source_command in {"withdraw", "impact"}:
@@ -415,6 +464,15 @@ def main() -> None:
                         print(f"{record['source_id']} [{statuses[record['source_id']]}] {record['title']} — {record['uri_or_path']}")
             return
 
+        if args.command == "decision" and args.decision_command == "summary":
+            report = inspect_decision_summary(
+                FileWorkflowStore(args.projects_dir),
+                ValidationPlanService(FileValidationPlanStore(args.projects_dir)),
+                args.project_id,
+            )
+            print(json.dumps(report, ensure_ascii=True, indent=2))
+            return
+
         if args.command in {"claim", "gap", "decision"}:
             project_dir = project_path(args.project_id, args.projects_dir)
             if not (project_dir / "state.json").is_file():
@@ -447,6 +505,10 @@ def main() -> None:
             return
 
         if args.command == "option":
+            if args.option_command == "check":
+                report = inspect_option_comparison(FileWorkflowStore(args.projects_dir), args.project_id)
+                print(json.dumps(report, ensure_ascii=True, indent=2))
+                return
             project_dir = project_path(args.project_id, args.projects_dir)
             if not (project_dir / "state.json").is_file():
                 raise FileNotFoundError(f"Project '{args.project_id}' was not found at {project_dir}")
@@ -529,8 +591,11 @@ def main() -> None:
                                    args.input_tokens, args.output_tokens, args.duration_ms, args.retry_count,
                                    args.cost_amount, args.currency, args.cost_certainty, args.pricing_as_of,
                                    args.cost_note, args.operation_id, journal_operation_id=args.journal_operation,
-                                   expected_workflow_version=args.expected_workflow_version)
+                                   expected_workflow_version=args.expected_workflow_version, category=args.category,
+                                   duration_certainty=args.duration_certainty)
                 print(f"Recorded {record['event_id']} ({record['operation_id']})")
+            elif args.usage_command == "summary":
+                print(json.dumps(usage_effort(args.projects_dir, args.project_id), ensure_ascii=True, indent=2))
             else:
                 print(json.dumps(usage_report(project_dir), ensure_ascii=False, indent=2))
             return
@@ -566,6 +631,19 @@ def main() -> None:
                 raise FileNotFoundError(f"Project '{args.project_id}' was not found at {project_dir}")
             if args.revisit_command == "list":
                 print(json.dumps(build_revisit_report(project_dir), ensure_ascii=False, indent=2))
+            elif args.revisit_command == "context":
+                print(json.dumps(revision_context(project_dir, args.revision_event_id), ensure_ascii=True, indent=2))
+            elif args.revisit_command == "check-draft":
+                with args.input.open("rb") as stream:
+                    data = stream.read(1048577)
+                if len(data) > 1048576:
+                    raise ValueError("Revision proposal JSON exceeds 1 MiB")
+                try:
+                    draft = RevisionProposal.model_validate_json(data)
+                except ValueError as error:
+                    raise ValueError("Invalid revision proposal JSON. Check the schema in docs/revisit.md") from error
+                result = inspect_revision_proposal(project_dir, args.revision_event_id, draft)
+                print(json.dumps(result, ensure_ascii=True, indent=2))
             else:
                 event = resolve_source_revision(project_dir, args.revision_event_id, args.by, args.reason,
                                                 args.reviewed_claim, args.reviewed_decision,
@@ -581,6 +659,8 @@ def main() -> None:
                 print("Inactive claim history: " + ", ".join(impact["inactive_claim_ids"]))
             if impact["current_decision_needs_review"]:
                 print("Current decision needs human review; inspect: psa claim impact " + args.project_id)
+        if args.command in {"status", "resume"} and stage == "evidence_review":
+            print(f"Source quality: psa source quality {args.project_id} (pass --projects-dir for a custom case root)")
         if args.command == "status":
             mode_name = state.get("mode", "decision_grade")
             if not isinstance(mode_name, str) or mode_name not in MODE_PROFILES:

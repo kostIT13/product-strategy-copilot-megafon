@@ -7,8 +7,8 @@
 | intake | В 01_brief.md: вопрос решения, критерии успеха, владелец/срок, ограничения и доступные данные. Задавай вопросы, способные изменить следующий шаг |
 | research_plan | В 02_research-plan.md: вопросы, влияние на выбор, источники/методы, достаточность и лимиты. Показать план человеку |
 | source_collection | `psa source add ID FILE` или явный `psa source fetch ID URL`; `psa source list ID`; прочитать извлечённый текст, сохранить происхождение/ограничения; `psa source assessment ID S-ID` и `psa source assess ID --input JSON` для [оценки текущего источника](../docs/source-assessment.md) |
-| evidence_review | `psa claim add ID --type fact --text TEXT --source S-ID --locator LOCATOR --quote EXACT_QUOTE`; для неизвестного `psa gap add ID --question TEXT --priority high`; fact не используется без проверяемой цитаты |
-| options | `psa option add ID --name NAME --role status_quo --description TEXT`; аналогично stop и change. Сравнить стоимость, пользу, риск, возражение, допущение и проверку |
+| evidence_review | Перед обзором выполни `psa source quality ID` и разбери источники в `used_sources_needing_attention`. `psa claim add ID --type fact --text TEXT --source S-ID --locator LOCATOR --quote EXACT_QUOTE`; для неизвестного `psa gap add ID --question TEXT --priority high`; fact не используется без проверяемой цитаты |
+| options | Записать status_quo, stop и change через `psa option add` с `--benefits`, `--costs`, `--risks`, `--objection`. Выполнить [`psa option check ID`](../docs/option-comparison.md), сравнить допущения и способы проверки, показать варианты человеку |
 | strategy | После указания человека `psa decision add ID --option NAME --option-id O-ID --owner OWNER --rationale TEXT --revisit-when TRIGGER`; затем `psa render ID` создаёт недостающие author drafts, их нужно содержательно заполнить |
 | validation | Заполнить drafts/validation-plan.md; validate/verify/coverage, render и review читаемых результатов |
 | completed | Показать решение, основание, ограничения и условие пересмотра; не начинать новое исследование без задачи |
@@ -28,3 +28,23 @@ Critic: `psa critic-pack ID` подготавливает review, не запу�
 Если требуется вернуться к более раннему этапу активной работы, показать workflow review и дождаться явного указания человека на `psa workflow rollback`; для completed используется reopen. Материалы и прежние approvals сохраняются, затронутые gates/решение/reviews проходят заново. [Контракт возврата](../docs/workflow-rollback.md).
 
 Перед выбором research tool при неизвестных limits/permissions можно прочитать `psa tools describe TOOL-ID` из [реестра](../docs/research-tool-registry.md). Выбирай существующий инструмент по задаче и действующим разрешениям; metadata не запускают инструмент, не выдают permission и не подтверждают readiness. Fetch требует разрешённого сетевого сценария, при отказе используй разрешённый offline fallback или покажи blocker.
+
+Для пересмотра выбранной ревизии используй [`psa revisit context ID SRC-REV-NNNN`](../docs/revisit.md). Сопоставь обе версии и предложи, что проверить или изменить в утверждениях, решении и стратегии. При partial дочитай нужные фрагменты по связанным источникам.
+
+Сохрани предложения в авторском JSON и проверь его через `psa revisit check-draft ID SRC-REV-NNNN --input JSON`. Покажи человеку выводы и действия отдельно от результатов проверки структуры.
+
+Для сопровождения принятого решения используй [`psa decision summary ID`](../docs/decision-summary.md). Сверь ответственного, метрики текущего плана и сигналы пересмотра. Уточни у владельца, наступило ли текстовое условие пересмотра.
+
+Для импортированной таблицы используй [`psa source table ID --input JSON`](../docs/table-analysis.md). Сохрани SHA-256, фильтры, единицу, период, число числовых строк и число исключений рядом с выводом.
+
+Для интервью используй [гайд и тематический разбор](../docs/interview-analysis.md), затем проверь привязки через `psa interview check ID --input JSON`. Разделяй реальные интервью и синтетические диалоги.
+
+Для явно выбранного [модельного интервью](../docs/model-respondent.md) сформируй бриф через `psa interview prepare-respondent`, проведи диалог в IDE и проверь экспорт через `psa interview export-respondent`. Каждый вывод синтетики свяжи со способом реальной проверки.
+
+Для [разбора UX](../docs/ux-review.md) привяжи шаги к разрешённым PNG через `psa ux prepare`. Осмотри их в IDE, отдели видимое наблюдение от гипотезы и проверь координаты через `psa ux check`.
+
+Для отдельного [изображения, аудио или видео](../docs/media-review.md) используй `psa media prepare`, прочитай или воспроизведи материал в разрешённой среде, затем сверяй SHA-256 и область или таймкод через `psa media check`.
+
+Для [сводки времени и расходов](../docs/case-effort.md) записывай доступные значения через `psa usage add` с категорией и основанием оценки. Перед сдачей результата выполни `psa usage summary ID`, отдели неизвестные значения и учитывай каждую попытку только один раз.
+
+При работе с модельным респондентом записывай утверждения как `synthetic`. CLI и MCP отклоняют факты со ссылками на маркированные экспорты. При обнаружении такой ссылки в существующем факте используй штатный пересмотр и независимый источник.

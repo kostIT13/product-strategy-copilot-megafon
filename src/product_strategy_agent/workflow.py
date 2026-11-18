@@ -25,6 +25,7 @@ from product_strategy_agent.adapters.persistence.files.validation_plan_store imp
 from product_strategy_agent.application.services.claim_lifecycle_service import ClaimLifecycleService
 from product_strategy_agent.adapters.persistence.files.decision_review_reader import decision_recorded_after
 from product_strategy_agent.domain.projects.source_lifecycle import source_statuses
+from product_strategy_agent.application.services.option_comparison_service import inspect_option_comparison
 
 WORK_STAGES = ("intake", "research_plan", "source_collection", "evidence_review", "options", "strategy", "validation")
 NEXT_ACTIONS = {
@@ -94,12 +95,10 @@ def _check_stage(project_dir: Path, stage: str, mode: str) -> dict | None:
         if not any(status == "active" for status in effective.values()):
             raise ValueError("Record at least one effective active claim before approving evidence_review")
     elif stage == "options":
-        options = _load_records(project_dir / "options.jsonl")
-        affected = set(ClaimLifecycleService(FileWorkflowStore(project_dir.parent)).impact(project_dir.name)["affected_option_ids"])
-        options = [row for row in options if row["option_id"] not in affected]
-        roles = {option.get("role") for option in options}
-        if len(options) < 3 or not {"status_quo", "stop", "change"}.issubset(roles):
-            raise ValueError("Record at least three options with roles status_quo, stop, and change")
+        report = inspect_option_comparison(FileWorkflowStore(project_dir.parent), project_dir.name)
+        if not report["ready"]:
+            missing = ", ".join(report["missing_roles"])
+            raise ValueError(f"Complete options for roles {missing}. Run psa option check for missing fields and affected evidence.")
     elif stage == "strategy":
         if not _load_records(project_dir / "decision-log.jsonl"):
             raise ValueError("Record the human decision before approving strategy")

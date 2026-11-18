@@ -4,6 +4,9 @@ from dataclasses import dataclass
 import hashlib
 import json
 import re
+from product_strategy_agent.domain.projects.model_respondent import (
+    is_respondent_transcript,
+)
 from product_strategy_agent.domain.projects.file_documents import document_excerpt
 from product_strategy_agent.domain.projects.claim_lifecycle import claim_statuses
 from product_strategy_agent.domain.projects.strategy_paragraphs import (
@@ -96,7 +99,9 @@ def check_claim(claim_id, snapshot):
         return {"claim_id": claim_id, "blockers": ["claim_missing"], "evidence": []}
     if claim.get("type") != "fact" or claim.get("status") != "active":
         errors.append("claim_not_active_fact")
-    status = claim_statuses(list(snapshot.claims.values()), snapshot.events).get(claim_id)
+    status = claim_statuses(list(snapshot.claims.values()), snapshot.events).get(
+        claim_id
+    )
     if status == "withdrawn":
         errors.append("claim_withdrawn")
     if status == "source_withdrawn":
@@ -126,6 +131,8 @@ def check_claim(claim_id, snapshot):
                 issues.append("source_missing")
             else:
                 record, text = source.record, source.text
+                if is_respondent_transcript(text):
+                    issues.append("source_is_model_respondent")
                 baseline = binding["sources"].get(source_id) if binding else None
                 if baseline is None or baseline != {
                     "content_hash": record["content_hash"],

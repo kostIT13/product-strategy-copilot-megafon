@@ -13,6 +13,10 @@ from product_strategy_agent.domain.projects.claim_lifecycle import (
 from product_strategy_agent.domain.projects.ledger_append import ClaimPayload, INPUTS
 from product_strategy_agent.domain.projects.ledger_records import build_claim
 from product_strategy_agent.domain.projects.file_promises import citation_excerpt
+from product_strategy_agent.domain.projects.model_respondent import (
+    SyntheticFactError,
+    is_respondent_transcript,
+)
 
 
 class ClaimCorrection(BaseModel):
@@ -72,9 +76,11 @@ def plan_correction(command, state, inputs, before, events, timestamp):
         raise ValueError("invalid correction input layout")
     claims = records(inputs, "claims.jsonl")
     statuses = claim_statuses(claims, events)
-    if statuses.get(command.claim_id) not in {"active", "withdrawn", "source_withdrawn"} or any(
-        row.get("supersedes") == command.claim_id for row in claims
-    ):
+    if statuses.get(command.claim_id) not in {
+        "active",
+        "withdrawn",
+        "source_withdrawn",
+    } or any(row.get("supersedes") == command.claim_id for row in claims):
         raise ValueError(
             "correction requires an active/withdrawn claim with no existing replacement"
         )
@@ -131,6 +137,8 @@ def require_correction_citations(replacement, snapshot):
         source = sources.get(source_id)
         if source is None:
             raise ValueError("correction source is missing")
+        if replacement["type"] == "fact" and is_respondent_transcript(source.text):
+            raise SyntheticFactError()
         if not quote or quote not in citation_excerpt(
             source.record, source.text, locator
         ):

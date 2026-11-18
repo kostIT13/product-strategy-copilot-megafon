@@ -10,6 +10,9 @@ from product_strategy_agent.application.services.source_assessment_service impor
     SourceAssessmentService,
 )
 from product_strategy_agent.domain.projects.source_assessment import SourceAssessment
+from product_strategy_agent.application.services.source_quality_service import (
+    inspect_source_quality,
+)
 
 
 def add_source_assessment_commands(commands):
@@ -20,7 +23,10 @@ def add_source_assessment_commands(commands):
         "assess",
         help="record an attributed assessment against the current source snapshot",
     )
-    for parser in (inspect, assess):
+    quality = commands.add_parser(
+        "quality", help="show assessment coverage for sources used by active claims"
+    )
+    for parser in (inspect, assess, quality):
         parser.add_argument("project_id")
         parser.add_argument("--projects-dir", type=Path, default=Path("projects"))
     inspect.add_argument("source_id")
@@ -28,9 +34,11 @@ def add_source_assessment_commands(commands):
 
 
 def handle_source_assessment_command(args):
-    service = SourceAssessmentService(FileWorkflowStore(args.projects_dir))
-    if args.source_command == "assessment":
-        result = service.inspect(args.project_id, args.source_id)
+    store = FileWorkflowStore(args.projects_dir)
+    if args.source_command == "quality":
+        result = inspect_source_quality(store, args.project_id)
+    elif args.source_command == "assessment":
+        result = SourceAssessmentService(store).inspect(args.project_id, args.source_id)
     else:
         with args.input.open("rb") as stream:
             data = stream.read(16385)
@@ -42,5 +50,5 @@ def handle_source_assessment_command(args):
             raise ValueError(
                 "invalid source assessment fields; check types, date and unknowns"
             ) from None
-        result = service.record(args.project_id, command)
+        result = SourceAssessmentService(store).record(args.project_id, command)
     print(json.dumps(result, ensure_ascii=True, indent=2))

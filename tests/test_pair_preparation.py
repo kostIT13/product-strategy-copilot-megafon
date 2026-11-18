@@ -117,7 +117,10 @@ class PairPreparationTests(unittest.TestCase):
             self.assertIsNone(owner["common_caps"]["tokens"])
             self.assertFalse(owner["authorization"]["granted"])
             self.assertEqual(owner["authorization"]["allowed_actions"], [])
-            self.assertEqual(owner["prerequisites"]["P4_host"], "not_verified")
+            self.assertEqual(
+                owner["prerequisites"]["P4_host"],
+                {"status": "not_verified", "evidence_ref": None},
+            )
             self.assertFalse(owner["phase_two_choice_and_gates"]["available"])
             for condition in owner["conditions"].values():
                 self.assertEqual(condition["status"], "not_started")

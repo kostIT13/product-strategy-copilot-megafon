@@ -12,6 +12,10 @@ from unittest.mock import patch
 from uuid import uuid4
 
 from product_strategy_agent.cli import init_project, main
+from product_strategy_agent.ledger import add_claim
+from product_strategy_agent.application.services.source_quality_service import (
+    inspect_source_quality,
+)
 from product_strategy_agent.sources import add_local_source
 from product_strategy_agent.rendering import render_project
 from product_strategy_agent.adapters.persistence.files.workflow_repository import (
@@ -67,6 +71,45 @@ class SourceAssessmentTests(unittest.TestCase):
             unknowns=["Author and date unknown"],
             **changes,
         )
+
+    def test_quality_tracks_used_sources_and_same_content_invalidation(self):
+        identifier = self.source["source_id"]
+        unused_file = self.file.with_name("unused.txt")
+        unused_file.write_text("Unused fixture.", encoding="utf-8")
+        unused = add_local_source(self.case, unused_file)
+        claim = add_claim(
+            self.case,
+            "Fixture contains notes.",
+            "fact",
+            [identifier],
+            ["line:1"],
+            ["Synthetic interview notes."],
+        )
+
+        def report():
+            return inspect_source_quality(self.store, "case")
+
+        self.assertEqual(report()["used_sources_needing_attention"], [identifier])
+        self.service.record("case", self.request())
+        quality = report()
+        self.assertEqual(quality["sources"][0]["active_claim_ids"], [claim["claim_id"]])
+        self.assertEqual(quality["sources"][0]["assessment_status"], "recorded")
+        self.assertEqual(
+            quality["sources"][0]["unknown_metadata"],
+            ["author", "publisher_or_owner", "published_at"],
+        )
+        self.assertEqual(quality["sources"][1]["source_id"], unused["source_id"])
+        self.assertEqual(quality["used_sources_needing_attention"], [])
+        add_local_source(self.case, self.file)
+        add_local_source(self.case, self.file)
+        before = (self.case / "events.jsonl").read_bytes()
+        pending = report()
+        self.assertEqual(pending["sources"][0]["assessment_status"], "invalidated")
+        self.assertEqual(pending["used_sources_needing_attention"], [identifier])
+        self.assertIsNotNone(pending["sources"][0]["invalidated_by_revision_or_import"])
+        self.assertEqual((self.case / "events.jsonl").read_bytes(), before)
+        self.service.record("case", self.request())
+        self.assertEqual(report()["used_sources_needing_attention"], [])
 
     def test_record_inspect_replay_and_render_preserve_evidence_and_human_state(self):
         command = self.request()
@@ -375,6 +418,18 @@ class SourceAssessmentMCPTests(unittest.IsolatedAsyncioTestCase):
                     )
                 ).data
                 self.assertEqual(result, service.record("case", request))
+                quality_args = dict(project_id="case", projects_dir=str(root))
+                quality = (
+                    await client.call_tool("psa_source_quality", quality_args)
+                ).data
+                self.assertEqual(
+                    quality, inspect_source_quality(FileWorkflowStore(root), "case")
+                )
+                self.assertTrue(
+                    tools["psa_source_quality"].annotations.model_dump(by_alias=True)[
+                        "readOnlyHint"
+                    ]
+                )
                 failure = await client.call_tool(
                     "psa_assess_source",
                     dict(

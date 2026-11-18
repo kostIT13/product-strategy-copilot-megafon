@@ -4,6 +4,12 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from product_strategy_agent.domain.projects.model_respondent import SyntheticFactError
+from product_strategy_agent.application.services.decision_summary_service import inspect_decision_summary
+from product_strategy_agent.application.services.validation_plan_service import ValidationPlanService
+from product_strategy_agent.adapters.persistence.files.validation_plan_store import FileValidationPlanStore
+from product_strategy_agent.adapters.persistence.files.workflow_repository import FileWorkflowStore
+from product_strategy_agent.application.services.option_comparison_service import inspect_option_comparison
 from typing import Any
 
 from product_strategy_agent import __version__
@@ -17,6 +23,10 @@ from product_strategy_agent.sources import add_local_source, fetch_web_source
 from product_strategy_agent.validation import validate_project, verify_project
 from product_strategy_agent.workflow import MODE_PROFILES, approve_stage, set_project_mode
 from product_strategy_agent.usage import add_usage, usage_report
+from product_strategy_agent.interfaces.usage_provenance import usage_effort
+from product_strategy_agent.domain.projects.usage_record import DurationCertainty, UsageCategory
+from product_strategy_agent.adapters.persistence.files.revision_context_reader import revision_context, inspect_revision_proposal
+from product_strategy_agent.domain.projects.revision_proposal import RevisionProposal
 from product_strategy_agent.revisit import build_revisit_report, resolve_source_revision
 from product_strategy_agent.adapters.persistence.files.workflow_guard import require_workflow_ready
 from product_strategy_agent.adapters.persistence.files.case_access import case_access
@@ -94,6 +104,14 @@ def create_server() -> Any:
     register_source_lifecycle_tools(server)
     from product_strategy_agent.interfaces.mcp.source_assessment_tools import register_source_assessment_tools
     register_source_assessment_tools(server)
+    from product_strategy_agent.interfaces.mcp.table_tools import register_table_tools
+    register_table_tools(server)
+    from product_strategy_agent.interfaces.mcp.interview_tools import register_interview_tools
+    register_interview_tools(server)
+    from product_strategy_agent.interfaces.mcp.ux_tools import register_ux_tools
+    register_ux_tools(server)
+    from product_strategy_agent.interfaces.mcp.media_tools import register_media_tools
+    register_media_tools(server)
     from product_strategy_agent.interfaces.mcp.claim_correction_tools import register_claim_correction_tools
     register_claim_correction_tools(server)
 
@@ -154,6 +172,27 @@ def create_server() -> Any:
         """List revised sources and dependent claims/decisions that need human review."""
         return build_revisit_report(workspace(project_id, projects_dir))
 
+    @server.tool(annotations=READ_LOCAL)
+    def psa_revisit_context(project_id: str, revision_event_id: str, projects_dir: str = "projects") -> dict[str, Any]:
+        """Read verified before/after excerpts and affected records for one source revision."""
+        from fastmcp.exceptions import ToolError
+
+        try:
+            return revision_context(workspace(project_id, projects_dir), revision_event_id)
+        except (ValueError, OSError):
+            raise ToolError("Revision context unavailable. Check the revision ID and case integrity.") from None
+
+    @server.tool(annotations=READ_LOCAL)
+    def psa_revisit_check_draft(project_id: str, revision_event_id: str, draft: RevisionProposal,
+                                projects_dir: str = "projects") -> dict[str, Any]:
+        """Check staleness, dependency coverage and structure of an authored revision proposal."""
+        from fastmcp.exceptions import ToolError
+
+        try:
+            return inspect_revision_proposal(workspace(project_id, projects_dir), revision_event_id, draft)
+        except (ValueError, OSError):
+            raise ToolError("Revision draft refused. Refresh the context and check affected IDs or case integrity.") from None
+
     @server.tool()
     def psa_revisit_resolve(project_id: str, revision_event_id: str, reviewed_by: str, reason: str,
                             reviewed_claim_ids: list[str] | None = None,
@@ -204,9 +243,14 @@ def create_server() -> Any:
         expected_workflow_version: int | None = None,
     ) -> dict[str, Any]:
         """Append a typed claim; factual claims require a source, locator, and exact quote."""
-        return add_claim(workspace(project_id, projects_dir), text, claim_type, source_ids, source_locators, quotes,
-                         confidence, reasoning_note, contradicts, decision_impact, supersedes or None,
-                         operation_id=operation_id, expected_workflow_version=expected_workflow_version)
+        from fastmcp.exceptions import ToolError
+
+        try:
+            return add_claim(workspace(project_id, projects_dir), text, claim_type, source_ids, source_locators, quotes,
+                             confidence, reasoning_note, contradicts, decision_impact, supersedes or None,
+                             operation_id=operation_id, expected_workflow_version=expected_workflow_version)
+        except SyntheticFactError as error:
+            raise ToolError(str(error)) from None
 
     @server.tool()
     def psa_add_capability(project_id: str, name: str, status: str, claim_ids: list[str] | None = None,
@@ -229,6 +273,16 @@ def create_server() -> Any:
         return add_gap(workspace(project_id, projects_dir), question, why_it_matters, resolution_method, priority,
                        operation_id=operation_id, expected_workflow_version=expected_workflow_version)
 
+    @server.tool(annotations=READ_LOCAL)
+    def psa_option_check(project_id: str, projects_dir: str = "projects") -> dict[str, Any]:
+        """Report comparison readiness, missing fields and affected evidence for recorded options."""
+        from fastmcp.exceptions import ToolError
+
+        try:
+            return inspect_option_comparison(FileWorkflowStore(projects_dir), project_id)
+        except (ValueError, OSError):
+            raise ToolError("Option comparison unavailable. Check case ID, integrity and pending operations.") from None
+
     @server.tool()
     def psa_add_option(project_id: str, name: str, role: str, description: str, benefits: str = "", costs: str = "",
                        risks: str = "", strongest_objection: str = "", assumptions: list[str] | None = None,
@@ -238,6 +292,20 @@ def create_server() -> Any:
         return add_option(workspace(project_id, projects_dir), name, role, description, benefits, costs, risks,
                           strongest_objection, assumptions, claim_ids, operation_id=operation_id,
                           expected_workflow_version=expected_workflow_version)
+
+    @server.tool(annotations=READ_LOCAL)
+    def psa_decision_summary(project_id: str, projects_dir: str = "projects") -> dict[str, Any]:
+        """Show the latest recorded decision, current measurement draft and follow-up signals."""
+        from fastmcp.exceptions import ToolError
+
+        try:
+            return inspect_decision_summary(
+                FileWorkflowStore(projects_dir),
+                ValidationPlanService(FileValidationPlanStore(projects_dir)),
+                project_id,
+            )
+        except (ValueError, OSError):
+            raise ToolError("Decision summary unavailable. Check case ID, integrity and pending operations.") from None
 
     @server.tool()
     def psa_add_decision(project_id: str, chosen_option: str, owner: str, rationale: str = "",
@@ -303,13 +371,25 @@ def create_server() -> Any:
                       duration_ms: int | None = None, cost_amount: str = "", currency: str = "RUB",
                       retry_count: int = 0, cost_certainty: str = "unknown", pricing_as_of: str = "", cost_note: str = "",
                       projects_dir: str = "projects", operation_id: str | None = None,
-                      journal_operation_id: str | None = None, expected_workflow_version: int | None = None) -> dict[str, Any]:
+                      journal_operation_id: str | None = None, expected_workflow_version: int | None = None,
+                      category: UsageCategory | None = None, duration_certainty: DurationCertainty | None = None) -> dict[str, Any]:
         """Append usage without logging request text; unknown values stay unknown."""
         return add_usage(workspace(project_id, projects_dir), provider, model, operation, stage,
                          input_tokens, output_tokens, duration_ms, retry_count, cost_amount=cost_amount or None,
                          currency=currency, cost_certainty=cost_certainty,
                          pricing_as_of=pricing_as_of or None, cost_note=cost_note, operation_id=operation_id,
-                         journal_operation_id=journal_operation_id, expected_workflow_version=expected_workflow_version)
+                         journal_operation_id=journal_operation_id, expected_workflow_version=expected_workflow_version,
+                         category=category, duration_certainty=duration_certainty)
+
+    @server.tool(annotations=READ_LOCAL)
+    def psa_usage_summary(project_id: str, projects_dir: str = "projects") -> dict[str, Any]:
+        """Summarize time and money by reported activity, certainty and currency."""
+        from fastmcp.exceptions import ToolError
+
+        try:
+            return usage_effort(projects_dir, project_id)
+        except (ValueError, OSError):
+            raise ToolError("Usage summary unavailable. Check the case ledger and pending operations.") from None
 
     @server.tool()
     def psa_usage_report(project_id: str, projects_dir: str = "projects") -> dict[str, Any]:

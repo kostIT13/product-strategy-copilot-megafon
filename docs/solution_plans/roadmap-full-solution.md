@@ -1,6 +1,6 @@
 # Краткий roadmap основной разработки
 
-**Актуальный срез 17.11.2026 — P8a:** [подготовка IDE pair evaluation](../evaluation/paired-ide-preparation.md) реализована: общий synthetic brief/materials, sequential/opt-in automation protocol, owner-only A/B key, neutral reviewer templates и hash-bound preparation builder. Actual outputs/scores/measurements отсутствуют, review_ready/authorization=false; P4–P6 и M6 не приняты. P7a–P7d local contracts есть, measured benefit P7 открыт. Далее P8b — фиксация/проверка host/model/settings, scope/authorization, одинаковых caps/order/hashes и actual human choice для стратегии перед реальным парным запуском. Подготовка не разрешает model/native dispatch или передачу reviewer; R1/M8 открыты.
+**Актуальный срез 18.11.2026 — P8b (проверка owner record):** [P8a preparation](../evaluation/paired-ide-preparation.md) дополнена read-only consistency check заполненной записи владельца. Проверяются хеши synthetic inputs и полнота ключевых host/model/settings, prerequisite evidence refs, authorization declaration, общих конечных caps, order и preregistered criteria. Pass не проверяет реальность host/evidence/authorization, не запускает модель, не принимает gates и не разрешает передачу reviewer. R4, R1/M8, P4–P6 и M6 остаются открытыми. Следующий срез — ручная оценка владельцем freshness/scope перед реальным запуском; любые реальные actions и gates потребуют отдельного явного решения.
 
 **Обновлён 17.11.2026 по полному [ТЗ](../../specs/case.md).** Рабочий план находится в [plan-main.md](plan-main.md). Ветка: `feature/main-solution-roadmap`.
 
@@ -26,11 +26,11 @@
 
 | Этап | Что делаем | Критерий готовности |
 |---|---|---|
-| **R1 — IDE-агент и знания** | Канонический AGENTS.md, minimal workflow/quality/safety и skills, реальные адаптеры Cursor/Claude/Codex, навигация Qwen/SourceCraft; применение версий knowledge/ на существующем файловом CLI | По новому запросу агент строит brief/research plan, изучает материал, сохраняет проверяемый прогресс и показывает следующий шаг без нашего LLM API/БД |
+| **R1 — IDE-агент и знания** | Канонический AGENTS.md, minimal workflow/quality/safety и skills, реальные адаптеры Cursor/Claude/Codex, навигация Qwen/SourceCraft; применение версий knowledge/ на существующем файловом CLI | По новому запросу агент в Codex строит brief/research plan, изучает материал, сохраняет проверяемый прогресс и показывает следующий шаг без нашего LLM API/БД |
 | **R2 — файловое ядро / runtime выведен** | Один канон JSON/JSONL, отдельные filesystem adapters и direct IDE-authored artifact input; operation journal/commit/recovery; перенос полезных PG-функций и нужных данных; retire старой цепочки | Clean install без SQL/контейнерных dependencies; CLI/MCP parity, crash/replay/conflict и перенос каталога с продолжением без БД |
 | **R3 — полный результат ТЗ** | Обязательные status_quo/stop/change; полные product/communication sections; baseline/metric definitions/window/guardrails; evidence, semantic review, corrections/withdrawal/revisit; проверка обещаний внутри quality gate | Читаемые стратегии на новом кейсе, проверяемые основания и план измерения, существенный выбор человека; unknown не выдаётся за факт |
 | **R3.1 — субагенты и хуки после R3** | Opt-in research/evidence/critic, hooks validation/revisit/release, изоляция/provenance/budgets, host adapters и последовательный fallback | Контракты и negative/replay/failure tests; подтверждённая нативная интеграция в заявленных hosts, измерение пользы и сохранение human gates |
-| **R4 — переносимость и надёжность** | Stop/correct/resume, второй IDE host и тип кейса, safe paths/injection, понятный запуск без скрытого состояния | Сквозной IDE-native путь после паузы и в другой среде без потери происхождения/истории и скрытого повторения действий |
+| **R4 — переносимость и надёжность** | Stop/correct/resume, новая сессия Codex и второй тип кейса, safe paths/injection, понятный запуск без скрытого состояния | Сквозной путь в Codex после паузы и переноса кейса в другой каталог без потери происхождения/истории и скрытого повторения действий |
 | **R5 — оценка пользы** | Сопоставимый baseline, независимый review, реальные время/расходы и помощь человека | Измеренный выигрыш/компромиссы на разрешённых материалах; synthetic fixtures не считаются рыночным доказательством |
 | **R6 — сдача** | README/архив, демонстрационный проект, обязательное видео до 10 минут, PDF/документ со скриншотами и расходами/ограничениями | Полный комплект §11 ТЗ и воспроизводимый clean-checkout запуск |
 
@@ -104,3 +104,20 @@ Release собирает allowlisted ZIP/wheel/sdist с manifest/SHA-256, про
 
 
 18.11.2026: source assessment реализован как файловый service с тонкими CLI/MCP adapters и revision-bound journal. См. [контракт](../source-assessment.md). Далее — содержательная полнота сравнения альтернатив; оценка источника не означает независимую проверку фактов или native acceptance.
+
+
+18.11.2026: реализована [проверка полноты вариантов](../option-comparison.md) в CLI, FastMCP и на этапе options. Для утверждения сравнения нужен заполненный вариант каждой обязательной роли.
+
+
+## Развитие дополнительных возможностей
+
+| Направление | Объём реализации и критерий готовности |
+| --- | --- |
+| Пересмотр при новых данных | Реализованы контекст старой и новой ревизий и проверка структурированного черновика изменений по хешу и зависимостям. Применение остаётся в существующем человеческом workflow. Далее проверить удобство на задаче в IDE. |
+| Поддержка решений | Реализована [сводка](../decision-summary.md) последнего выбора, ответственного, метрик, условий пересмотра, сроков и устаревших оснований. Проверена на синтетическом кейсе с изменившимся источником и неизвестной базой. |
+| Анализ данных | Реализованы [профиль CSV/XLSX и точные агрегаты](../table-analysis.md) с фильтрами, единицей, периодом и знаменателем. Качественное кодирование материалов с привязкой к фрагментам реализовано для транскриптов. |
+| Интервью и модельные респонденты | Реализованы [гайд и проверка разбора обезличенных транскриптов](../interview-analysis.md). Добавлены [подготовка модельного диалога и проверка экспорта](../model-respondent.md) с меткой синтетики и планом проверки гипотез. Диалог ведёт IDE. |
+| Анализ UX | Реализован [разбор пользовательского пути по PNG](../ux-review.md) с привязкой шагов, координат, наблюдений и гипотез. Визуальный разбор выполняется в IDE. |
+| Изображения, аудио и видео | Реализованы [локальные PNG, PCM WAV и нефрагментированный MP4](../media-review.md) с хешем файла и проверкой области или таймкода. Содержательный просмотр проводится в IDE или локальном плеере. |
+
+18.11.2026: свежий синтетический кейс прошёл файловый [preflight переносимости](../mcp-host-acceptance.md#file-portability-preflight). CLI возобновлён из копии, local stdio дал те же результаты. Qwen Code 0.25.2 обнаружен локально. По решению команды живые прогоны R1/M6/M8 планируются в Codex. Инструкции подключения для остальных IDE сохранены.

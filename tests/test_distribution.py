@@ -8,9 +8,29 @@ import zipfile
 
 from scripts.release.package import allowed, digest, version_for
 from scripts.release.verify import unpack_checked, verify
+from product_strategy_agent.domain.release_policy import SLOT_EXAMPLE_FILES
 
 
 class DistributionChecks(unittest.TestCase):
+    def test_slot_archive_accepts_complete_example_and_refuses_partial_or_private_data(self):
+        from test_release_hooks import fixture
+
+        root = Path(__file__).resolve().parents[1]
+        files = {name: (root / name).read_bytes() for name in SLOT_EXAMPLE_FILES}
+        with TemporaryDirectory() as folder:
+            output = Path(folder)
+            archive = fixture(output / "complete", extra=files)
+            extracted = unpack_checked(archive, output / "extracted")
+            for name, data in files.items():
+                self.assertEqual((extracted / name).read_bytes(), data)
+            partial = fixture(output / "partial", extra={"examples/slot-workshop/README.md": b"only the readme"})
+            with self.assertRaisesRegex(ValueError, "incomplete Slot"):
+                unpack_checked(partial, output / "rejected")
+            for name in ("examples/private/notes.md", "examples/slot-workshop/notes.txt",
+                         "examples/slot-workshop/materials/.env",
+                         "projects/slot-workshop-synthetic/state.json"):
+                self.assertFalse(allowed(name), name)
+
     def test_allowlist_excludes_runtime_and_unrelated_projects(self):
         for name in ('.env', 'src/.env.local', 'knowledge/.env.local', 'backups/db.sql', '.venv/config', 'projects/private/data.md', '../README.md', 'src/__pycache__/cache.pyc'):
             self.assertFalse(allowed(name), name)

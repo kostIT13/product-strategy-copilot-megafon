@@ -3,6 +3,10 @@
 from typing import Any, Literal
 from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+from product_strategy_agent.domain.projects.usage_record import (
+    DurationCertainty,
+    UsageCategory,
+)
 
 
 class Payload(BaseModel):
@@ -91,6 +95,8 @@ class UsagePayload(Payload):
     pricing_as_of: str | None = None
     cost_note: str = ""
     operation_id: str
+    category: UsageCategory | None = None
+    duration_certainty: DurationCertainty | None = None
 
 
 PAYLOADS = {

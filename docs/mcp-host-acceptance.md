@@ -1,6 +1,6 @@
 # FastMCP host acceptance
 
-This checklist records the live stdio connection and CLI/MCP parity required by MVP item M8. The adapter is implemented in `src/product_strategy_agent/mcp_server.py`; implementation alone does not count as host acceptance.
+This checklist records the live Codex stdio connection and CLI/MCP parity required by MVP item M8. Codex is the team’s primary IDE and the only host in the current acceptance scope. Connection instructions remain available for other IDEs as compatibility guidance. The adapter is implemented in `src/product_strategy_agent/mcp_server.py`; implementation alone does not count as host acceptance.
 
 ## Common setup
 
@@ -15,7 +15,7 @@ Configure the host to start `python -m product_strategy_agent.mcp_server` with t
 
 ## Parity scenario
 
-Use a fresh disposable project ID per host and run the same operations through both CLI and MCP. Compare returned IDs, status, and validation outcomes; timestamps and JSON key order may differ.
+Use fresh disposable project IDs in Codex and run the same operations through both CLI and MCP. Compare returned IDs, status, and validation outcomes; timestamps and JSON key order may differ.
 
 1. Initialize a project (`psa init` / `psa_init`) and read its status (`status` / `psa_status`).
 2. Import the same synthetic source and add an evidence-linked claim; compare source/claim IDs and stored locator/quote.
@@ -33,10 +33,18 @@ Complete a row only after a live connection and the parity scenario have been ob
 | Host | Host version | Environment | Connection | Parity | Evidence / limitation |
 |---|---|---|---|---|---|
 | Local MCP SDK client (not an IDE host) | MCP Python SDK 2.3.0 | Windows; Python 3.12; FastMCP 4.1.6 | Pass; 20 tools discovered over stdio | Partial: revisit mutation via MCP; validate, verify, and revisit readout matched through CLI | `projects/mcp-host-smoke-20261106/`; 2026-11-06. Does not establish Codex UI integration |
-| Codex | — | Current workspace; FastMCP 4.1.6 installed in local `.venv` | Not run | Not run | Requires a live configured Codex host session |
-| Qwen Coder | — | Not available in this workspace | Not run | Not run | Requires access to target host |
-| SourceCraft | — | Not available in this workspace | Not run | Not run | Requires access to target host |
+| Codex App Server | 0.169.0-alpha.11.1 | Windows 10.0.26200 x86_64; Python 3.12; FastMCP 4.1.6 | Pass; discovered separate allowlists of four and eleven tools over stdio | Read-only and mutation scenarios passed | 2026-11-18. Separate local process with per-process configuration and an ephemeral session. The desktop chat path remains open. |
+| Qwen Code | 0.25.2 | Windows; launcher confirmed on 2026-11-18 | Out of scope | Out of scope | Launcher version only. Connection guidance is available. |
+| SourceCraft / Claude Code / Cursor / other IDEs | — | Connection guidance | Out of scope | Out of scope | Use the relevant instructions in [IDE instructions](ide-instructions.md). |
+
+## File portability preflight
+
+On 2026-11-18, a fresh synthetic pickup-window case was prepared in the active Codex session and copied to another project root. Separate CLI processes resumed at the same stage, loaded instruction bundle 1.1.13, and reproduced the verified quotes, option readiness and CSV sum. An exact import UUID replay and the read-only commands preserved every case file byte for byte. A local FastMCP SDK connection returned matching table and option JSON from the copy. Live host parity and actual human gates remain separate checks.
 
 ## Completion rule
 
-M8 remains open until the required target hosts have live stdio connections and matching results for the common scenario, or the MVP plan explicitly narrows its target-host scope. A successful import or package installation alone is not a pass.
+Codex App Server has a live stdio connection and matching CLI/MCP results for the parity scenario. Full M8 acceptance for the team's desktop workflow remains open until a regular Codex chat discovers and calls the configured project tools.
+
+The 2026-11-18 App Server run used the installed Codex binary's generated protocol schema. The client called `mcpServerStatus/list` and `mcpServer/tool/call` directly, with no model turn. Codex started `python -m product_strategy_agent.mcp_server` over stdio. The project ID, status, mode and workflow version matched the CLI. Validate and verify passed in both interfaces, and the complete coverage JSON matched, including nine checked paragraphs and the promise preflight hash. All 282 files in the synthetic case copy retained their SHA-256 hashes. Cyrillic was intact in the returned JSON despite garbled terminal display. The application's persistent MCP settings were untouched.
+
+The write comparison used separate CLI and MCP roots with identical CSV fixtures. Both interfaces produced source ID `S-D6F59B3DB4CD`, claim `C-001` at `line:2` with the quote `renewed,10`, options `O-001` through `O-003`, and fixture decision `D-001`. On the second pair, both interfaces recorded revision `SRC-REV-0001` and identified the same affected claim and fixture decision. The pending count went from one to zero after the fixture review. Validate and verify passed on both pairs. Comparison excluded timestamps. CLI stores the revision event separately while the FastMCP import response also includes it. Test actors were labelled as fixtures and no workflow gates were run.

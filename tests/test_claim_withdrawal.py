@@ -72,6 +72,10 @@ def dependencies(case, claim_id="C-001", prefix="old"):
             prefix + " " + role,
             role,
             "Synthetic comparison only",
+            benefits="Potentially clearer review flow",
+            costs="Reviewer time",
+            risks="Synthetic evidence may not generalize",
+            strongest_objection="No measured impact in a real case",
             claim_ids=[claim_id],
         )
         for role in ("status_quo", "stop", "change")
