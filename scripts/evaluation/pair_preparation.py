@@ -175,7 +175,7 @@ def payload(
             "ide_model_version_settings": None,
             "operator_prior_familiarity": None,
             "prerequisites": {
-                key: "not_verified"
+                key: {"status": "not_verified", "evidence_ref": None}
                 for key in ("P4_host", "P5_lifecycle", "P6_controls")
             },
             "authorization": {

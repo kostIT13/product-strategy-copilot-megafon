@@ -51,6 +51,23 @@ TREES = {
     "agent",
 }
 
+SLOT_EXAMPLE_FILES = frozenset(
+    "examples/slot-workshop/" + name
+    for name in (
+        "README.md",
+        "brief.md",
+        "build_case.py",
+        "communication-strategy.md",
+        "materials/capabilities.txt",
+        "materials/constraints.txt",
+        "materials/operations.txt",
+        "methods-used.md",
+        "options-comparison.md",
+        "product-strategy.md",
+        "research-plan.md",
+    )
+)
+
 
 def allowed(name):
     path = PurePosixPath(name)
@@ -64,6 +81,7 @@ def allowed(name):
         and not any(part.endswith(".egg-info") for part in path.parts)
         and (
             name in ROOT_FILES
+            or name in SLOT_EXAMPLE_FILES
             or path.parts[0] in TREES
             or harness_file(path)
             or path.parts[:2] in {("projects", "demo"), ("projects", "table-demo")}

@@ -3,12 +3,25 @@
 from __future__ import annotations
 import re
 from decimal import Decimal, InvalidOperation
-from typing import Any
+from typing import Any, Literal
 from product_strategy_agent.domain.workflow.entities import WORKFLOW_STAGES
 from product_strategy_agent.domain.projects.ledger_records import _records
 
 WORK_STAGES = WORKFLOW_STAGES[:-1]
 CERTAINTIES = {"measured", "estimated", "unknown"}
+UsageCategory = Literal["model", "search", "tool", "retry", "human"]
+DurationCertainty = Literal["measured", "estimated"]
+
+
+def validate_usage_classification(category, duration_ms, duration_certainty):
+    if category not in {None, "model", "search", "tool", "retry", "human"}:
+        raise ValueError("Invalid usage category")
+    if duration_certainty not in {None, "measured", "estimated"} or (
+        duration_certainty is not None and duration_ms is None
+    ):
+        raise ValueError(
+            "Duration certainty requires a duration and measured or estimated basis"
+        )
 
 
 def build_usage(
@@ -28,6 +41,8 @@ def build_usage(
     pricing_as_of: str | None = None,
     cost_note: str = "",
     operation_id: str | None = None,
+    category: UsageCategory | None = None,
+    duration_certainty: DurationCertainty | None = None,
 ) -> dict[str, Any]:
     """Record provider-reported or explicitly estimated usage; never logs request text."""
     for label, value in (
@@ -39,6 +54,7 @@ def build_usage(
             raise ValueError(f"{label} cannot be empty")
     if stage not in WORK_STAGES:
         raise ValueError(f"stage must be one of: {', '.join(WORK_STAGES)}")
+    validate_usage_classification(category, duration_ms, duration_certainty)
     for label, value in (
         ("input_tokens", input_tokens),
         ("output_tokens", output_tokens),
@@ -101,4 +117,8 @@ def build_usage(
         },
         "request_content_logged": False,
     }
+    if category is not None:
+        record["category"] = category
+    if duration_certainty is not None:
+        record["duration_certainty"] = duration_certainty
     return record

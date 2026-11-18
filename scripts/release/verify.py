@@ -66,7 +66,9 @@ def verify(archive, python):
             root / ".venv" / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
         )
         distributions = root / "distributions"
-        for pattern in ("*.whl", "*.tar.gz"):
+        example = root / "examples/slot-workshop/build_case.py"
+        slot_example_present = example.is_file()
+        for kind, pattern in (("wheel", "*.whl"), ("sdist", "*.tar.gz")):
             packages = list(distributions.glob(pattern))
             if len(packages) != 1:
                 raise ValueError("missing or ambiguous distribution")
@@ -111,11 +113,18 @@ def verify(archive, python):
             )
             run(str(interpreter), "-m", "scripts.ci.demo")
             run(str(interpreter), "-m", "scripts.ci.base_smoke")
+            if slot_example_present:
+                projects_dir = str(Path(folder) / f"slot-{kind}")
+                run(str(interpreter), str(example), "--project-id", "slot-release-smoke",
+                    "--projects-dir", projects_dir)
+                run(str(interpreter), "-m", "product_strategy_agent.cli", "verify",
+                    "slot-release-smoke", "--projects-dir", projects_dir)
     return {
         "ok": True,
         "wheel_installed": True,
         "sdist_installed": True,
         "source_imports": False,
+        "slot_example_replayed": slot_example_present,
         "model_calls": 0,
     }
 
