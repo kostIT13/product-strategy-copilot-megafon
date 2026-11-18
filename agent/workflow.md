@@ -40,3 +40,5 @@ Critic: `psa critic-pack ID` подготавливает review, не запу�
 Для интервью используй [гайд и тематический разбор](../docs/interview-analysis.md), затем проверь привязки через `psa interview check ID --input JSON`. Разделяй реальные интервью и синтетические диалоги.
 
 Для явно выбранного [модельного интервью](../docs/model-respondent.md) сформируй бриф через `psa interview prepare-respondent`, проведи диалог в IDE и проверь экспорт через `psa interview export-respondent`. Каждый вывод синтетики свяжи со способом реальной проверки.
+
+Для [разбора UX](../docs/ux-review.md) привяжи шаги к разрешённым PNG через `psa ux prepare`. Осмотри их в IDE, отдели видимое наблюдение от гипотезы и проверь координаты через `psa ux check`.
