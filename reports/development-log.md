@@ -616,3 +616,8 @@ Registry1.1.0, bundle1.1.4, canonical workflow/research skill и9 generated adap
 ## 18.11.2026 20:38 (Asia/Novosibirsk) — поддержка решений
 
 Добавлены CLI decision summary и FastMCP psa_decision_summary. Сводка объединяет последнее решение, текущий план измерений и сигналы внимания. Проверены отсутствие решения и плана, неизвестная база с просроченным измерением, ревизия связанного источника и снятие сигнала после review. CLI/MCP stdio и offline research smoke прошли.
+
+
+## 18.11.2026 20:44 (Asia/Novosibirsk) — анализ таблиц
+
+Добавлены CLI source table и FastMCP psa_analyze_table. Профиль CSV/XLSX показывает пропуски, дубликаты и типы, расчёт — точные дроби, фильтры, единицу, период, числитель и знаменатель. Результат привязан к SHA-256 сохранённой ревизии. Проверены реальные временные CSV/XLSX, формулы, скрытый лист, отказ на старом хеше, parity CLI/MCP и offline research smoke.
