@@ -34,8 +34,12 @@ Complete a row only after a live connection and the parity scenario have been ob
 |---|---|---|---|---|---|
 | Local MCP SDK client (not an IDE host) | MCP Python SDK 2.3.0 | Windows; Python 3.12; FastMCP 4.1.6 | Pass; 20 tools discovered over stdio | Partial: revisit mutation via MCP; validate, verify, and revisit readout matched through CLI | `projects/mcp-host-smoke-20261106/`; 2026-11-06. Does not establish Codex UI integration |
 | Codex | — | Current workspace; FastMCP 4.1.6 installed in local `.venv` | Not run | Not run | Requires a live configured Codex host session |
-| Qwen Coder | — | Not available in this workspace | Not run | Not run | Requires access to target host |
+| Qwen Code | 0.25.2 | Windows; launcher confirmed on 2026-11-18 | Not run | Not run | CLI version verified; live model session and native MCP connection pending |
 | SourceCraft | — | Not available in this workspace | Not run | Not run | Requires access to target host |
+
+## File portability preflight
+
+On 2026-11-18, a fresh synthetic pickup-window case was prepared in the active Codex session and copied to another project root. Separate CLI processes resumed at the same stage, loaded instruction bundle 1.1.13, and reproduced the verified quotes, option readiness and CSV sum. An exact import UUID replay and the read-only commands preserved every case file byte for byte. A local FastMCP SDK connection returned matching table and option JSON from the copy. Live host parity and actual human gates remain separate checks.
 
 ## Completion rule
 
