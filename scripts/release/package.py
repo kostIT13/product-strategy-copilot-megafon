@@ -13,7 +13,7 @@ import zipfile
 from scripts.ci.repository import git
 from scripts.release.dependencies import check_lock, export_build_constraints
 
-from product_strategy_agent.domain.release_policy import allowed, REQUIRED
+from product_strategy_agent.domain.release_policy import allowed, REQUIRED, SLOT_EXAMPLE_FILES
 
 
 def version_for(root, tag=None):
@@ -60,7 +60,7 @@ def package(root, output, tag=None, require_clean=False):
         for path in distributions:
             files[f"distributions/{path.name}"] = path.read_bytes()
             (output / path.name).write_bytes(files[f"distributions/{path.name}"])
-    required = REQUIRED
+    required = REQUIRED | SLOT_EXAMPLE_FILES
     if not required <= files.keys():
         raise ValueError("release is missing required tracked files")
     manifest = {"version": version, "commit": git(root, "rev-parse", "HEAD")[0].strip(), "dirty": dirty,
