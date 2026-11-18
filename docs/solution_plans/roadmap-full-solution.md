@@ -101,3 +101,6 @@ Release собирает allowlisted ZIP/wheel/sdist с manifest/SHA-256, про
 
 
 17.11.2026: [P6d advisory controls](../operation-controls.md) реализован: read-only CLI/FastMCP policy различает inspect/case resume, forward recovery, exact UUID replay и новый request; generic cancel/checkpoint execution не поддержаны CLI, native host controls not_verified. Policy не оценивает/не даёт authorization и не исполняет действия. Канон/resume skill обновлены, bundle1.1.1 и9 adapters синхронизированы. Локальные P6a–P6d срезы выполнены, весь P6 и P4/P5/R1/M6/M8 открыты. Далее независимый P7a — inventory research/knowledge/retrieval и baseline/eval protocol до расширений; RAG/provider только при измеримой пользе.
+
+
+18.11.2026: source assessment реализован как файловый service с тонкими CLI/MCP adapters и revision-bound journal. См. [контракт](../source-assessment.md). Далее — содержательная полнота сравнения альтернатив; оценка источника не означает независимую проверку фактов или native acceptance.

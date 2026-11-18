@@ -1,6 +1,6 @@
 # P7c: реестр research-инструментов
 
-Статус 17.11.2026: schema/registry1.0.0, read-only CLI и optional FastMCP реализованы. Это описания поставляемого кода, не permissions enforcement, dispatcher, проверка текущего окружения или native activation. Реестр не открывает кейс и не требует project ID.
+Статус 18.11.2026: schema1, registry1.1.0, read-only CLI и optional FastMCP реализованы. Это описания поставляемого кода, не permissions enforcement, dispatcher, проверка текущего окружения или native activation. Реестр не открывает кейс и не требует project ID.
 
 ```powershell
 psa tools list
@@ -14,6 +14,7 @@ MCP: `psa_research_tools()` возвращает все записи; `psa_resea
 
 | ID | Когда выбирать | Case write / сеть | CLI / MCP |
 | --- | --- | --- | --- |
+| `source-assessment` | Записать суждение после чтения текущего источника | Да / нет | `source assessment`, `source assess` / `psa_source_assessment`, `psa_assess_source` |
 | `local-source-import` | Есть разрешённый выбранный локальный материал | Да / нет | `source add` / `psa_add_source` |
 | `public-web-fetch` | Нужен явно разрешённый GET одной public static страницы | Да / public HTTP(S) | `source fetch` / `psa_fetch_source` |
 | `current-source-search` | Нужны буквальные фрагменты уже импортированных current sources | Нет / нет | `source search` / `psa_search_sources` |
@@ -45,3 +46,5 @@ MCP: `psa_research_tools()` возвращает все записи; `psa_resea
 При изменении tool contract обновлять соответствующее описание/descriptor_version и registry_version, связанные инструкции и meaningful tests. Не добавлять более сильные permissions/limits/benefit на основании одного metadata поля. Bundle1.1.2+ доставляет навигацию через README/workflow и research skill; generated adapters пересобираются штатным sync script. Role profiles и knowledge1.0.0 не менялись.
 
 P7c завершён в этом scope. P7d выполнен: [offline research scenarios и сверка оставшихся criteria P7](offline-research-smoke.md). Далее независимая подготовка P8a перед [P8/R5](evaluation/README.md), без запуска оценочного/native/model run. Измеренная польза всех tools и independent evaluation остаются открытыми, как P4/P5/P6/R1/M6/M8. Этот registry не закрывает весь P7.
+
+Registry 1.1.0 также описывает `source-assessment`: инспекция и запись [оценки источника](source-assessment.md) без fetch/model/gates. Доступность и полномочия из registry не следуют.

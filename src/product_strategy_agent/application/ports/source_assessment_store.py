@@ -1,0 +1,13 @@
+"""Recoverable source-metadata publication through the existing workflow journal."""
+
+from contextlib import AbstractContextManager
+from typing import Protocol
+
+
+class SourceAssessmentStore(Protocol):
+    def access(self, project_id: str) -> AbstractContextManager: ...
+    def replay(self, project_id, command) -> dict | None: ...
+    def capture(self, project_id: str) -> dict: ...
+    def commit_source_assessment(
+        self, project_id, command, snapshot, timestamp
+    ) -> dict: ...

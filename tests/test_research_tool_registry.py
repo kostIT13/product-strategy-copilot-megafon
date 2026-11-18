@@ -46,7 +46,7 @@ class ResearchToolRegistryTests(unittest.TestCase):
             patch("subprocess.Popen", side_effect=AssertionError("no dispatch")),
         ):
             result = service.describe()
-        self.assertEqual(len(result["tools"]), 8)
+        self.assertEqual(len(result["tools"]), 9)
         self.assertEqual(
             {tool["tool_id"] for tool in result["tools"]}, set(get_args(ToolId))
         )

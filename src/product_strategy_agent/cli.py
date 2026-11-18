@@ -48,6 +48,7 @@ from product_strategy_agent.interfaces.cli.subagent_commands import add_subagent
 from product_strategy_agent.interfaces.cli.hook_commands import add_hook_commands, handle_hook_command
 from product_strategy_agent.interfaces.cli.host_commands import add_host_commands, handle_host_command
 from product_strategy_agent.interfaces.cli.research_tool_commands import add_research_tool_commands, handle_research_tool_command
+from product_strategy_agent.interfaces.cli.source_assessment_commands import add_source_assessment_commands, handle_source_assessment_command
 
 STAGES = (
     "intake",
@@ -131,6 +132,7 @@ def build_parser() -> argparse.ArgumentParser:
     source_commands = source.add_subparsers(dest="source_command", required=True)
     add_file_search_command(source_commands)
     add_source_lifecycle_commands(source_commands)
+    add_source_assessment_commands(source_commands)
     for action, help_text in (("add", "import local text/HTML or optional PDF/DOCX/XLSX"), ("fetch", "fetch a web page and extract its text")):
         sub = source_commands.add_parser(action, help=help_text)
         sub.add_argument("project_id")
@@ -354,6 +356,9 @@ def main() -> None:
             return
         if args.command == "source" and args.source_command == "search":
             handle_file_search_command(args)
+            return
+        if args.command == "source" and args.source_command in {"assess", "assessment"}:
+            handle_source_assessment_command(args)
             return
         if args.command == "source" and args.source_command in {"withdraw", "impact"}:
             handle_source_lifecycle_command(args)

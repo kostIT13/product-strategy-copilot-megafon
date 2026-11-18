@@ -20,6 +20,7 @@ class SourceImport(BaseModel):
     input_kind: Literal["local_text", "web_page", "local_document"]
     locator: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=4000)]
     title: Annotated[str, StringConstraints(max_length=4000)] | None = None
+    metadata_policy_version: Literal[1, 2] | None = None
     expected_workflow_version: int | None = Field(default=None, strict=True, ge=0)
 
 
@@ -57,7 +58,7 @@ def plan_source(command, material, text, timestamp, registry, events, current, a
         raise ValueError("unregistered source text already exists; refusing to overwrite it")
     record = {"schema_version": 1, "source_id": identifier, "kind": command.input_kind,
         "title": command.title or material["extracted_title"] or PurePosixPath(urlparse(uri).path.replace("\\", "/")).name or uri,
-        "uri_or_path": uri, "publisher_or_owner": material["publisher"], "published_at": None,
+        "uri_or_path": uri, "publisher_or_owner": material["publisher"] if command.metadata_policy_version in {None, 1} else None, "published_at": None,
         "accessed_at": timestamp, "locator": "paragraphs:1-" + str(max(1, sum(bool(line.strip()) for line in text.decode("utf-8").splitlines()))),
         "reliability": "unassessed", "limitations": [], "status": "extracted", "content_hash": content_hash,
         "extracted_text_path": current_path}
@@ -92,4 +93,10 @@ def plan_source(command, material, text, timestamp, registry, events, current, a
                  "event_type": "source_imported", "source_uri": uri, "current_content_hash": content_hash,
                  "current_text_path": current_path, "imported_at": timestamp}
         result = record
+    if command.metadata_policy_version == 2 and previous and previous.get("source_assessment"):
+        event["assessment_invalidated"] = {
+            "operation_id": previous["source_assessment"]["operation_id"],
+            "reason": "new_import_requires_fresh_source_assessment",
+        }
+        result = {**result, "source_assessment_review_required": True}
     return targets, event, result

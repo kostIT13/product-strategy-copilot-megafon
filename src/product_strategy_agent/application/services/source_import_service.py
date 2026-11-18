@@ -19,6 +19,10 @@ class SourceImportService:
             replay = self.store.replay(project_id, command)
             if replay is not None:
                 return replay
+            if command.metadata_policy_version not in {None, 2}:
+                raise ValueError("new imports require metadata policy v2; v1 is reserved for historical replay")
+            if command.metadata_policy_version is None:
+                command = command.model_copy(update={"metadata_policy_version": 2})
             snapshot = self.store.capture(project_id)
             state = json.loads(snapshot["state"])
             version = state.get("workflow_version", 0)

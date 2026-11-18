@@ -34,6 +34,9 @@ from product_strategy_agent.application.services.research_tool_registry_service 
 from product_strategy_agent.application.services.source_lifecycle_service import (
     SourceLifecycleService,
 )
+from product_strategy_agent.application.services.source_assessment_service import (
+    SourceAssessmentService,
+)
 from product_strategy_agent.cli import init_project
 from product_strategy_agent.coverage import coverage_report
 from product_strategy_agent.domain.projects.source_lifecycle import SourceWithdrawal
@@ -134,6 +137,32 @@ def run():
         source = Path(folder) / "permitted-local-copy.txt"
         source.write_text(data["initial_text"], encoding="utf-8")
         original = add_local_source(case, source)
+        assessments = SourceAssessmentService(FileWorkflowStore(root))
+        inspection = read_only(
+            case, lambda: assessments.inspect(CASE_ID, original["source_id"])
+        )
+        assessment = assessments.record(
+            CASE_ID,
+            dict(
+                operation_id=str(uuid4()),
+                source_id=original["source_id"],
+                expected_workflow_version=inspection["workflow_version"],
+                expected_content_hash=inspection["content_hash"],
+                expected_source_record_hash=inspection["source_record_hash"],
+                assessed_by="Synthetic smoke reviewer",
+                author=None,
+                publisher_or_owner=None,
+                published_at=None,
+                reliability="low",
+                reason="Synthetic fixture, not market evidence",
+                limitations=["Synthetic material"],
+                unknowns=["Author, publisher and date unknown"],
+            ),
+        )
+        require(
+            assessment["source_assessment"]["independently_verified"] is False,
+            "assessment_promoted_to_verified",
+        )
         search = FileSourceSearchService(FileSourceSearchStore(root))
         require(
             read_only(case, lambda: search.search(CASE_ID, data["initial_query"]))[
@@ -152,6 +181,11 @@ def run():
                 "hits"
             ],
             "obsolete_revision_returned",
+        )
+        require(
+            assessments.inspect(CASE_ID, current["source_id"])["assessment_status"]
+            == "unassessed",
+            "reimport_kept_assessment",
         )
         found = read_only(case, lambda: search.search(CASE_ID, data["current_query"]))
         require(len(found["hits"]) == 1, "current_hit_missing_or_ambiguous")

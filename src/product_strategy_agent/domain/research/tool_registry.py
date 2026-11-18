@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 ToolId = Literal[
     "local-source-import",
+    "source-assessment",
     "public-web-fetch",
     "current-source-search",
     "instruction-context",
@@ -33,7 +34,7 @@ class DeclaredLimit(Declaration):
 
 class ResearchTool(Declaration):
     tool_id: ToolId
-    descriptor_version: Literal["1.0.0"] = "1.0.0"
+    descriptor_version: Literal["1.0.0", "1.1.0"] = "1.0.0"
     implementation_contract: str
     cli: tuple[str, ...]
     mcp: tuple[str, ...]
@@ -61,7 +62,7 @@ class DiscoverTools(Declaration):
 
 class ResearchRegistry(Declaration):
     schema_version: Literal[1] = 1
-    registry_version: Literal["1.0.0"] = "1.0.0"
+    registry_version: Literal["1.1.0"] = "1.1.0"
     scope: Literal["shipped_capability_declarations"] = (
         "shipped_capability_declarations"
     )

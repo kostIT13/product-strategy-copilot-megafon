@@ -13,9 +13,12 @@ from product_strategy_agent.domain.projects.workflow_rollback import WorkflowRol
 from product_strategy_agent.domain.projects.source_lifecycle import SourceWithdrawal
 from product_strategy_agent.domain.projects.semantic_review import SemanticReview
 from product_strategy_agent.domain.projects.quality_policy import EnableQualityPolicy
+from product_strategy_agent.domain.projects.source_assessment import SourceAssessment
 
 
 def parse_command(data):
+    if data.get("kind") == "source_assessment":
+        return SourceAssessment.model_validate(data)
     if "kind" not in data:
         return GateApproval.model_validate(data)
     if data["kind"] == "mode_change":
