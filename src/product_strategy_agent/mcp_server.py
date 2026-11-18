@@ -22,6 +22,8 @@ from product_strategy_agent.sources import add_local_source, fetch_web_source
 from product_strategy_agent.validation import validate_project, verify_project
 from product_strategy_agent.workflow import MODE_PROFILES, approve_stage, set_project_mode
 from product_strategy_agent.usage import add_usage, usage_report
+from product_strategy_agent.interfaces.usage_provenance import usage_effort
+from product_strategy_agent.domain.projects.usage_record import DurationCertainty, UsageCategory
 from product_strategy_agent.adapters.persistence.files.revision_context_reader import revision_context, inspect_revision_proposal
 from product_strategy_agent.domain.projects.revision_proposal import RevisionProposal
 from product_strategy_agent.revisit import build_revisit_report, resolve_source_revision
@@ -363,13 +365,25 @@ def create_server() -> Any:
                       duration_ms: int | None = None, cost_amount: str = "", currency: str = "RUB",
                       retry_count: int = 0, cost_certainty: str = "unknown", pricing_as_of: str = "", cost_note: str = "",
                       projects_dir: str = "projects", operation_id: str | None = None,
-                      journal_operation_id: str | None = None, expected_workflow_version: int | None = None) -> dict[str, Any]:
+                      journal_operation_id: str | None = None, expected_workflow_version: int | None = None,
+                      category: UsageCategory | None = None, duration_certainty: DurationCertainty | None = None) -> dict[str, Any]:
         """Append usage without logging request text; unknown values stay unknown."""
         return add_usage(workspace(project_id, projects_dir), provider, model, operation, stage,
                          input_tokens, output_tokens, duration_ms, retry_count, cost_amount=cost_amount or None,
                          currency=currency, cost_certainty=cost_certainty,
                          pricing_as_of=pricing_as_of or None, cost_note=cost_note, operation_id=operation_id,
-                         journal_operation_id=journal_operation_id, expected_workflow_version=expected_workflow_version)
+                         journal_operation_id=journal_operation_id, expected_workflow_version=expected_workflow_version,
+                         category=category, duration_certainty=duration_certainty)
+
+    @server.tool(annotations=READ_LOCAL)
+    def psa_usage_summary(project_id: str, projects_dir: str = "projects") -> dict[str, Any]:
+        """Summarize time and money by reported activity, certainty and currency."""
+        from fastmcp.exceptions import ToolError
+
+        try:
+            return usage_effort(projects_dir, project_id)
+        except (ValueError, OSError):
+            raise ToolError("Usage summary unavailable. Check the case ledger and pending operations.") from None
 
     @server.tool()
     def psa_usage_report(project_id: str, projects_dir: str = "projects") -> dict[str, Any]:

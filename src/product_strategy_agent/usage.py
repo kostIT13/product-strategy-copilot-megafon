@@ -65,6 +65,8 @@ def add_usage(
     *,
     journal_operation_id=None,
     expected_workflow_version=None,
+    category=None,
+    duration_certainty=None,
 ) -> dict[str, Any]:
     project_dir = Path(project_dir).absolute()
     if operation_id is not None and not operation_id.strip():
@@ -101,6 +103,8 @@ def add_usage(
             "pricing_as_of": pricing_as_of,
             "cost_note": cost_note,
             "operation_id": business_id,
+            "category": category,
+            "duration_certainty": duration_certainty,
         },
         journal_id,
         expected_workflow_version,

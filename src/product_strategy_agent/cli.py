@@ -26,6 +26,7 @@ from product_strategy_agent.doctor import doctor_report, format_doctor_report
 from product_strategy_agent.sources import add_local_source, fetch_web_source
 from product_strategy_agent.validation import validate_project, verify_project
 from product_strategy_agent.usage import add_usage, usage_report
+from product_strategy_agent.interfaces.usage_provenance import usage_effort
 from product_strategy_agent.workflow import MODE_PROFILES, NEXT_ACTIONS, WORK_STAGES, approve_stage, set_project_mode
 from product_strategy_agent.adapters.persistence.files.revision_context_reader import revision_context, inspect_revision_proposal
 from product_strategy_agent.domain.projects.revision_proposal import RevisionProposal
@@ -264,6 +265,8 @@ def build_parser() -> argparse.ArgumentParser:
     usage_add.add_argument("--input-tokens", type=int)
     usage_add.add_argument("--output-tokens", type=int)
     usage_add.add_argument("--duration-ms", type=int)
+    usage_add.add_argument("--category", choices=("model", "search", "tool", "retry", "human"))
+    usage_add.add_argument("--duration-certainty", choices=("measured", "estimated"))
     usage_add.add_argument("--retry-count", type=int, default=0)
     usage_add.add_argument("--cost-amount")
     usage_add.add_argument("--currency", default="RUB")
@@ -275,6 +278,9 @@ def build_parser() -> argparse.ArgumentParser:
     usage_report_parser = usage_commands.add_parser("report", help="aggregate recorded usage without mixing estimates and measured costs")
     usage_report_parser.add_argument("project_id")
     usage_report_parser.add_argument("--projects-dir", type=Path, default=Path("projects"))
+    usage_summary_parser = usage_commands.add_parser("summary", help="summarize case time and costs by activity and basis")
+    usage_summary_parser.add_argument("project_id")
+    usage_summary_parser.add_argument("--projects-dir", type=Path, default=Path("projects"))
 
     gate = commands.add_parser("gate", help="approve a workflow stage and advance the project")
     gate_commands = gate.add_subparsers(dest="gate_command", required=True)
@@ -585,8 +591,11 @@ def main() -> None:
                                    args.input_tokens, args.output_tokens, args.duration_ms, args.retry_count,
                                    args.cost_amount, args.currency, args.cost_certainty, args.pricing_as_of,
                                    args.cost_note, args.operation_id, journal_operation_id=args.journal_operation,
-                                   expected_workflow_version=args.expected_workflow_version)
+                                   expected_workflow_version=args.expected_workflow_version, category=args.category,
+                                   duration_certainty=args.duration_certainty)
                 print(f"Recorded {record['event_id']} ({record['operation_id']})")
+            elif args.usage_command == "summary":
+                print(json.dumps(usage_effort(args.projects_dir, args.project_id), ensure_ascii=True, indent=2))
             else:
                 print(json.dumps(usage_report(project_dir), ensure_ascii=False, indent=2))
             return
