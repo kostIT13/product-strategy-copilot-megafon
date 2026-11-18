@@ -38,3 +38,5 @@ Critic: `psa critic-pack ID` подготавливает review, не запу�
 Для импортированной таблицы используй [`psa source table ID --input JSON`](../docs/table-analysis.md). Сохрани SHA-256, фильтры, единицу, период, число числовых строк и число исключений рядом с выводом.
 
 Для интервью используй [гайд и тематический разбор](../docs/interview-analysis.md), затем проверь привязки через `psa interview check ID --input JSON`. Разделяй реальные интервью и синтетические диалоги.
+
+Для явно выбранного [модельного интервью](../docs/model-respondent.md) сформируй бриф через `psa interview prepare-respondent`, проведи диалог в IDE и проверь экспорт через `psa interview export-respondent`. Каждый вывод синтетики свяжи со способом реальной проверки.
