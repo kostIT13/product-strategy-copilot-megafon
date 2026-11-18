@@ -24,6 +24,7 @@ from product_strategy_agent.sources import add_local_source, fetch_web_source
 from product_strategy_agent.validation import validate_project, verify_project
 from product_strategy_agent.usage import add_usage, usage_report
 from product_strategy_agent.workflow import MODE_PROFILES, NEXT_ACTIONS, WORK_STAGES, approve_stage, set_project_mode
+from product_strategy_agent.adapters.persistence.files.revision_context_reader import revision_context
 from product_strategy_agent.revisit import build_revisit_report, resolve_source_revision
 from product_strategy_agent.application.services.instruction_context_service import instruction_context
 from product_strategy_agent.application.services.workspace_service import WorkspaceService
@@ -292,6 +293,10 @@ def build_parser() -> argparse.ArgumentParser:
     revisit_list = revisit_commands.add_parser("list", help="list source changes and dependent work")
     revisit_list.add_argument("project_id")
     revisit_list.add_argument("--projects-dir", type=Path, default=Path("projects"))
+    revisit_context = revisit_commands.add_parser("context", help="show before/after evidence for one revision")
+    revisit_context.add_argument("project_id")
+    revisit_context.add_argument("revision_event_id")
+    revisit_context.add_argument("--projects-dir", type=Path, default=Path("projects"))
     revisit_resolve = revisit_commands.add_parser("resolve", help="record that all dependent claims and decisions were reviewed")
     revisit_resolve.add_argument("project_id")
     revisit_resolve.add_argument("revision_event_id")
@@ -575,6 +580,8 @@ def main() -> None:
                 raise FileNotFoundError(f"Project '{args.project_id}' was not found at {project_dir}")
             if args.revisit_command == "list":
                 print(json.dumps(build_revisit_report(project_dir), ensure_ascii=False, indent=2))
+            elif args.revisit_command == "context":
+                print(json.dumps(revision_context(project_dir, args.revision_event_id), ensure_ascii=True, indent=2))
             else:
                 event = resolve_source_revision(project_dir, args.revision_event_id, args.by, args.reason,
                                                 args.reviewed_claim, args.reviewed_decision,
