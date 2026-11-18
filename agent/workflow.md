@@ -7,7 +7,7 @@
 | intake | В 01_brief.md: вопрос решения, критерии успеха, владелец/срок, ограничения и доступные данные. Задавай вопросы, способные изменить следующий шаг |
 | research_plan | В 02_research-plan.md: вопросы, влияние на выбор, источники/методы, достаточность и лимиты. Показать план человеку |
 | source_collection | `psa source add ID FILE` или явный `psa source fetch ID URL`; `psa source list ID`; прочитать извлечённый текст, сохранить происхождение/ограничения; `psa source assessment ID S-ID` и `psa source assess ID --input JSON` для [оценки текущего источника](../docs/source-assessment.md) |
-| evidence_review | `psa claim add ID --type fact --text TEXT --source S-ID --locator LOCATOR --quote EXACT_QUOTE`; для неизвестного `psa gap add ID --question TEXT --priority high`; fact не используется без проверяемой цитаты |
+| evidence_review | Перед обзором выполни `psa source quality ID` и разбери источники в `used_sources_needing_attention`. `psa claim add ID --type fact --text TEXT --source S-ID --locator LOCATOR --quote EXACT_QUOTE`; для неизвестного `psa gap add ID --question TEXT --priority high`; fact не используется без проверяемой цитаты |
 | options | Записать status_quo, stop и change через `psa option add` с `--benefits`, `--costs`, `--risks`, `--objection`. Выполнить [`psa option check ID`](../docs/option-comparison.md), сравнить допущения и способы проверки, показать варианты человеку |
 | strategy | После указания человека `psa decision add ID --option NAME --option-id O-ID --owner OWNER --rationale TEXT --revisit-when TRIGGER`; затем `psa render ID` создаёт недостающие author drafts, их нужно содержательно заполнить |
 | validation | Заполнить drafts/validation-plan.md; validate/verify/coverage, render и review читаемых результатов |
