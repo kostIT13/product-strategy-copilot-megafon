@@ -7,6 +7,9 @@ from product_strategy_agent.application.services.source_assessment_service impor
     SourceAssessmentService,
 )
 from product_strategy_agent.domain.projects.source_assessment import SourceAssessment
+from product_strategy_agent.application.services.source_quality_service import (
+    inspect_source_quality,
+)
 
 
 def register_source_assessment_tools(server):
@@ -18,6 +21,16 @@ def register_source_assessment_tools(server):
         "idempotentHint": True,
         "openWorldHint": False,
     }
+
+    @server.tool(annotations=read)
+    def psa_source_quality(project_id: str, projects_dir: str = "projects") -> dict:
+        """Report source assessment gaps and invalidations for active evidence."""
+        try:
+            return inspect_source_quality(FileWorkflowStore(projects_dir), project_id)
+        except (ValueError, OSError):
+            raise ToolError(
+                "Source quality summary unavailable. Check case integrity and pending operations."
+            ) from None
 
     @server.tool(annotations=read)
     def psa_source_assessment(

@@ -406,7 +406,7 @@ def main() -> None:
         if args.command == "source" and args.source_command == "search":
             handle_file_search_command(args)
             return
-        if args.command == "source" and args.source_command in {"assess", "assessment"}:
+        if args.command == "source" and args.source_command in {"assess", "assessment", "quality"}:
             handle_source_assessment_command(args)
             return
         if args.command == "source" and args.source_command in {"withdraw", "impact"}:
@@ -659,6 +659,8 @@ def main() -> None:
                 print("Inactive claim history: " + ", ".join(impact["inactive_claim_ids"]))
             if impact["current_decision_needs_review"]:
                 print("Current decision needs human review; inspect: psa claim impact " + args.project_id)
+        if args.command in {"status", "resume"} and stage == "evidence_review":
+            print(f"Source quality: psa source quality {args.project_id} (pass --projects-dir for a custom case root)")
         if args.command == "status":
             mode_name = state.get("mode", "decision_grade")
             if not isinstance(mode_name, str) or mode_name not in MODE_PROFILES:
