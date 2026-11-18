@@ -12,6 +12,9 @@ from typing import Any
 from uuid import UUID
 
 from product_strategy_agent import __version__
+from product_strategy_agent.application.services.decision_summary_service import inspect_decision_summary
+from product_strategy_agent.application.services.validation_plan_service import ValidationPlanService
+from product_strategy_agent.adapters.persistence.files.validation_plan_store import FileValidationPlanStore
 from product_strategy_agent.interfaces.automation_diagnostics import automation_diagnostic
 from product_strategy_agent.interfaces.cli.diagnostic_commands import add_diagnostic_commands, handle_diagnostic_command
 from product_strategy_agent.critic import write_critic_pack
@@ -206,7 +209,11 @@ def build_parser() -> argparse.ArgumentParser:
     coverage.add_argument("--projects-dir", type=Path, default=Path("projects"))
 
     decision = commands.add_parser("decision", help="append a human-owned decision")
-    decision_add = decision.add_subparsers(dest="decision_command", required=True).add_parser("add", help="record a decision")
+    decision_commands = decision.add_subparsers(dest="decision_command", required=True)
+    decision_summary = decision_commands.add_parser("summary", help="show the latest decision and follow-up signals")
+    decision_summary.add_argument("project_id")
+    decision_summary.add_argument("--projects-dir", type=Path, default=Path("projects"))
+    decision_add = decision_commands.add_parser("add", help="record a decision")
     decision_add.add_argument("project_id")
     decision_add.add_argument("--option", required=True)
     decision_add.add_argument("--option-id")
@@ -429,6 +436,15 @@ def main() -> None:
                     if line.strip():
                         record = json.loads(line)
                         print(f"{record['source_id']} [{statuses[record['source_id']]}] {record['title']} — {record['uri_or_path']}")
+            return
+
+        if args.command == "decision" and args.decision_command == "summary":
+            report = inspect_decision_summary(
+                FileWorkflowStore(args.projects_dir),
+                ValidationPlanService(FileValidationPlanStore(args.projects_dir)),
+                args.project_id,
+            )
+            print(json.dumps(report, ensure_ascii=True, indent=2))
             return
 
         if args.command in {"claim", "gap", "decision"}:

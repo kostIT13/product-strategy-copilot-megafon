@@ -4,6 +4,9 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from product_strategy_agent.application.services.decision_summary_service import inspect_decision_summary
+from product_strategy_agent.application.services.validation_plan_service import ValidationPlanService
+from product_strategy_agent.adapters.persistence.files.validation_plan_store import FileValidationPlanStore
 from product_strategy_agent.adapters.persistence.files.workflow_repository import FileWorkflowStore
 from product_strategy_agent.application.services.option_comparison_service import inspect_option_comparison
 from typing import Any
@@ -273,6 +276,20 @@ def create_server() -> Any:
         return add_option(workspace(project_id, projects_dir), name, role, description, benefits, costs, risks,
                           strongest_objection, assumptions, claim_ids, operation_id=operation_id,
                           expected_workflow_version=expected_workflow_version)
+
+    @server.tool(annotations=READ_LOCAL)
+    def psa_decision_summary(project_id: str, projects_dir: str = "projects") -> dict[str, Any]:
+        """Show the latest recorded decision, current measurement draft and follow-up signals."""
+        from fastmcp.exceptions import ToolError
+
+        try:
+            return inspect_decision_summary(
+                FileWorkflowStore(projects_dir),
+                ValidationPlanService(FileValidationPlanStore(projects_dir)),
+                project_id,
+            )
+        except (ValueError, OSError):
+            raise ToolError("Decision summary unavailable. Check case ID, integrity and pending operations.") from None
 
     @server.tool()
     def psa_add_decision(project_id: str, chosen_option: str, owner: str, rationale: str = "",
