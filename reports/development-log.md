@@ -611,3 +611,8 @@ Registry1.1.0, bundle1.1.4, canonical workflow/research skill и9 generated adap
 ## 18.11.2026 20:34 (Asia/Novosibirsk) — черновик пересмотра
 
 Добавлены хеш контекста, авторский JSON с keep/recheck/revise и read-only проверка через CLI/FastMCP. Покрытие зависимостей отражено счётчиками. Проверяются устаревание после правки стратегии и ревизии, посторонние ID и обязательный следующий шаг. Прошли целевой тест, CLI/MCP stdio, offline research smoke, Ruff, docs и sync.
+
+
+## 18.11.2026 20:38 (Asia/Novosibirsk) — поддержка решений
+
+Добавлены CLI decision summary и FastMCP psa_decision_summary. Сводка объединяет последнее решение, текущий план измерений и сигналы внимания. Проверены отсутствие решения и плана, неизвестная база с просроченным измерением, ревизия связанного источника и снятие сигнала после review. CLI/MCP stdio и offline research smoke прошли.

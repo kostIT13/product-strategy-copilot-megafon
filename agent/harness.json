@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "bundle_version": "1.1.7",
+  "bundle_version": "1.1.8",
   "stages": {
     "intake": {
       "skills": [

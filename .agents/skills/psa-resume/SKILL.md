@@ -20,3 +20,5 @@ description: Resume a saved product case after a pause or source revision withou
 Для выбранного UUID diagnostics controls показывает advisory CLI policy, не право выполнить действие: exact UUID replay исторический, новая попытка требует свежего request, pending требует явного recovery после проверки writer. Case resume только читает status; policy не отменяет процесс и не восстанавливает исполняемый checkpoint. Native controls остаются not_verified до host acceptance; имеющееся явное согласие не запрашивай повторно.
 
 Для изменения рекомендации сохрани авторский черновик по docs/revisit.md и выполни `psa revisit check-draft ID SRC-REV-NNNN --input JSON`. При изменившемся контексте сверяй новые материалы и перепроверь черновик. Покажи человеку непокрытые зависимости и предложенные действия.
+
+Если решение уже записано, выполни `psa decision summary ID`. Сверь сигналы пересмотра, состояние базы измерения и срок с ответственным. Метрики относятся к текущему черновику кейса, его соответствие выбранному решению проверяй по содержанию.
