@@ -1,5 +1,7 @@
 # Оценка решения
 
+Для нового прогона M6 подготовлен [протокол по учебному брифу оператора](telecom-m6.md). Исторические результаты ниже относятся к другому кейсу.
+
 ## Текущий P8a: IDE sequential / opt-in automation
 
 [Preparation protocol и offline builder](paired-ide-preparation.md) готовят общие synthetic inputs, отдельный operator key и нейтральный reviewer template без actual outputs/оценок. Это другой comparison, чем исторический обычный чат/CLI ниже. Подготовка не выполняет model/native run и не разрешает расходы/передачу данных. P8b добавляет read-only consistency check owner record, но P4–P6, R1/M8 и independent M6 остаются открытыми.
