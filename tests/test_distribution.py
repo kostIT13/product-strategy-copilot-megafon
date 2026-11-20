@@ -8,10 +8,35 @@ import zipfile
 
 from scripts.release.package import allowed, digest, version_for
 from scripts.release.verify import unpack_checked, verify
-from product_strategy_agent.domain.release_policy import SLOT_EXAMPLE_FILES
+from product_strategy_agent.domain.release_policy import (
+    SLOT_EXAMPLE_FILES,
+    TELECOM_BRIEF,
+    TELECOM_EXAMPLE_FILES,
+)
 
 
 class DistributionChecks(unittest.TestCase):
+    def test_telecom_archive_requires_example_files_and_original_brief(self):
+        from test_release_hooks import fixture
+
+        root = Path(__file__).resolve().parents[1]
+        files = {
+            name: (root / name).read_bytes()
+            for name in TELECOM_EXAMPLE_FILES | {TELECOM_BRIEF}
+        }
+        with TemporaryDirectory() as folder:
+            output = Path(folder)
+            complete = fixture(output / "complete", extra=files)
+            extracted = unpack_checked(complete, output / "extracted")
+            self.assertEqual((extracted / TELECOM_BRIEF).read_bytes(), files[TELECOM_BRIEF])
+            for missing in (TELECOM_BRIEF, "examples/telecom-family/evidence.json"):
+                with self.subTest(missing=missing):
+                    partial = {name: data for name, data in files.items() if name != missing}
+                    archive = fixture(output / "partial", extra=partial)
+                    with self.assertRaisesRegex(ValueError, "incomplete telecom"):
+                        unpack_checked(archive, output / "rejected")
+            self.assertFalse(allowed("projects/telecom-family-demo/state.json"))
+
     def test_slot_archive_accepts_complete_example_and_refuses_partial_or_private_data(self):
         from test_release_hooks import fixture
 

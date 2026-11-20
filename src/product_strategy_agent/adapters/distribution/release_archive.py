@@ -7,7 +7,13 @@ from pathlib import Path, PurePosixPath
 import re
 import stat
 import zipfile
-from product_strategy_agent.domain.release_policy import allowed, REQUIRED, SLOT_EXAMPLE_FILES
+from product_strategy_agent.domain.release_policy import (
+    REQUIRED,
+    SLOT_EXAMPLE_FILES,
+    TELECOM_BRIEF,
+    TELECOM_EXAMPLE_FILES,
+    allowed,
+)
 from product_strategy_agent.domain.automation.handoffs import strict_json
 
 LIMIT = 128 * 1024 * 1024
@@ -106,6 +112,10 @@ def checked_archive(archive):
             raise ValueError("manifest required files or member list mismatch")
         if SLOT_EXAMPLE_FILES.intersection(files) and not SLOT_EXAMPLE_FILES <= files.keys():
             raise ValueError("archive contains an incomplete Slot example")
+        if TELECOM_EXAMPLE_FILES.intersection(files) and not (
+            TELECOM_EXAMPLE_FILES | {TELECOM_BRIEF}
+        ) <= files.keys():
+            raise ValueError("archive contains an incomplete telecom example")
         distributions = []
         for name, checksum in files.items():
             if not isinstance(checksum, str) or not re.fullmatch(

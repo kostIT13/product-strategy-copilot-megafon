@@ -45,5 +45,6 @@ projects/*/sources/
 
 # Local working instance of the explicit synthetic example; recipe lives in examples/.
 projects/slot-workshop-synthetic/
+projects/telecom-family-demo/
 
 .qwen/

@@ -68,6 +68,24 @@ SLOT_EXAMPLE_FILES = frozenset(
     )
 )
 
+TELECOM_EXAMPLE_FILES = frozenset(
+    "examples/telecom-family/" + name
+    for name in (
+        "README.md",
+        "01_brief.md",
+        "02_research-plan.md",
+        "build_case.py",
+        "evidence.json",
+        "analysis/forecast.py",
+        "analysis/options-comparison.md",
+        "analysis/strategy-five-parts.md",
+        "drafts/communication-strategy.md",
+        "drafts/product-strategy.md",
+        "drafts/validation-plan.md",
+    )
+)
+TELECOM_BRIEF = "specs/Пример брифа.pdf"
+
 
 def allowed(name):
     path = PurePosixPath(name)
@@ -82,6 +100,7 @@ def allowed(name):
         and (
             name in ROOT_FILES
             or name in SLOT_EXAMPLE_FILES
+            or name in TELECOM_EXAMPLE_FILES
             or path.parts[0] in TREES
             or harness_file(path)
             or path.parts[:2] in {("projects", "demo"), ("projects", "table-demo")}

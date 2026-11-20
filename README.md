@@ -388,7 +388,7 @@ GitHub Actions (`main`, `feature/**`, PR, вручную):
 
 Модели в CI не вызываются: `LLM_API_KEY` пуст, endpoint — `provider.invalid`, cost map LiteLLM берётся локально. Права — `contents: read`, credentials не сохраняются, `pull_request_target` не используется. [Подробности и известные/portability-нюансы](docs/continuous-integration.md), [дистрибутив](docs/distribution.md).
 
-Синтетические кейсы в репозитории: `projects/demo`, `projects/table-demo` (воспроизводятся в CI), [examples/slot-workshop](examples/slot-workshop/README.md) — полный кейс «Слот» с альтернативами, условными стратегиями, measurement-планом и воспроизводимой сборкой через `build_case.py` без выдуманных human approvals; `projects/revisit-demo-20261106` и `projects/mcp-host-smoke-20261106`. Это учебные артефакты, а не рыночные доказательства.
+Синтетические кейсы `projects/demo` и `projects/table-demo` воспроизводятся в CI. [«Слот»](examples/slot-workshop/README.md) и [«Связь для близких»](examples/telecom-family/README.md) собираются локально из учебных материалов с открытыми согласованиями. Телеком-кейс включает PDF, две условные стратегии и воспроизводимый прогноз. Отдельные сценарии хранятся в `projects/revisit-demo-20261106` и `projects/mcp-host-smoke-20261106`.
 
 ## Данные и безопасность
 
@@ -427,7 +427,7 @@ GitHub Actions (`main`, `feature/**`, PR, вручную):
 Не подтверждено и не заявляется пройденным:
 
 - R1 — фактическая native-загрузка инструкций в реальных IDE (кроме части Codex); live-проверки отложены.
-- M6/R5 — независимая оценка пользы и полный честный замер времени/расходов демонстрации (включая человека и повторы).
+- M6/R5 — [парное сравнение на учебном брифе](docs/evaluation/telecom-m6.md) завершено. Расходы и активное время человека остались неизвестными.
 - P4 native enable/acceptance, диспетчер событий, фактические бюджеты и cancel субагентов.
 - Весь P5/P6 как целое, P8 (парное сравнение «последовательно vs с автоматизацией») и заявленная польза автоматизации.
 - R6 — комплект сдачи: финальный демо-прогон с разрешёнными материалами, видео до 10 минут, PDF со скриншотами, чистый submission-бандл и доступ для жюри. [Аудит соответствия ТЗ](reports/2026-11-17-specs-implementation-audit.md).
