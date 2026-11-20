@@ -6,6 +6,7 @@ import unittest
 
 from product_strategy_agent.adapters.documents.local import LocalDocumentExtractor
 from product_strategy_agent.domain.sources.documents import DocumentExtractionError
+from product_strategy_agent.sources import extract_text
 
 
 class DocumentExtractionTests(unittest.TestCase):
@@ -33,6 +34,14 @@ class DocumentExtractionTests(unittest.TestCase):
         result = LocalDocumentExtractor().extract(self.file("data.csv", b'\xef\xbb\xbfname,value\nA,1'))
         self.assertEqual(result.text, "name,value\nA,1")
         self.assertEqual(result.kind, "dataset")
+
+    def test_local_source_html_keeps_paragraphs_after_blank_lines(self):
+        html = b"<p>First paragraph.</p>\n\n<p>Second paragraph.</p>\n<p>Third paragraph.</p>"
+        text, _ = extract_text(html, "text/html")
+        self.assertEqual(
+            [line for line in text.splitlines() if line],
+            ["First paragraph.", "Second paragraph.", "Third paragraph."],
+        )
 
     def test_wrong_encoding_fails_without_replacement_and_can_be_overridden(self):
         path = self.file("notes.txt", "Привет".encode("cp1251"))
