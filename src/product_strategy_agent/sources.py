@@ -72,7 +72,7 @@ class _PageText(HTMLParser):
         lines = [re.sub(r"\s+", " ", line).strip() for line in "".join(self.parts).splitlines()]
         paragraphs: list[str] = []
         for line in lines:
-            if line and (not paragraphs or paragraphs[-1]):
+            if line:
                 paragraphs.append(line)
             elif paragraphs and paragraphs[-1]:
                 paragraphs.append("")
