@@ -82,6 +82,8 @@ TELECOM_EXAMPLE_FILES = frozenset(
         "drafts/communication-strategy.md",
         "drafts/product-strategy.md",
         "drafts/validation-plan.md",
+        "materials/baseline.csv",
+        "materials/pixel-help-excerpt.html",
     )
 )
 TELECOM_BRIEF = "specs/Пример брифа.pdf"

@@ -1,23 +1,12 @@
 """Reproduce the synthetic annual forecast for the chosen O-003 scenario."""
 
+import csv
 from decimal import Decimal, ROUND_HALF_UP
 import json
+from pathlib import Path
 
 
-BASE = {
-    "gross_profit_rub": 279_000_000,
-    "active_family_groups": 5_000,
-    "connected_family_groups": 8_000,
-    "connected_multi_number_owners": 1_000,
-    "activation_percent": 45,
-}
-TARGET = {
-    "gross_profit_rub": 285_000_000,
-    "active_family_groups": 8_000,
-    "connected_family_groups": 12_000,
-    "connected_multi_number_owners": 2_000,
-    "activation_percent": 60,
-}
+BASELINE_PATH = Path(__file__).resolve().parents[1] / "materials/baseline.csv"
 MARGIN_PER_NUMBER_MONTH = 500
 BASE_Q4_CREATED_GROUPS = 2_000  # Assumption: the brief gives only the rate.
 ASSUMPTIONS = {
@@ -54,32 +43,42 @@ def whole(value):
     return int(Decimal(value).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
 
 
-def forecast(a):
+def read_baseline(path):
+    with path.open(encoding="utf-8", newline="") as stream:
+        rows = list(csv.DictReader(stream))
+    baseline = {row["metric"]: int(row["baseline"]) for row in rows}
+    targets = {row["metric"]: int(row["target"]) for row in rows}
+    if len(baseline) != len(rows):
+        raise ValueError("Each baseline metric must occur exactly once.")
+    return baseline, targets
+
+
+def forecast(a, baseline, targets):
     created = whole(Decimal(a["eligible_unique_impressions"]) * a["incremental_creation_percent"] / 100)
     connected = whole(Decimal(created) * a["invite_accept_percent"] / 100)
     net = connected - a["incremental_disconnects"]
     assert 0 <= a["extra_q4_activated"] <= a["extra_q4_created"] <= created
     q4_total = BASE_Q4_CREATED_GROUPS + a["extra_q4_created"]
-    q4_activated = (BASE_Q4_CREATED_GROUPS * BASE["activation_percent"] // 100
+    q4_activated = (BASE_Q4_CREATED_GROUPS * baseline["activation_percent"] // 100
                     + a["extra_q4_activated"] + a["extra_activated_in_baseline_q4_cohort"])
     activation = (Decimal(q4_activated) * 100 / q4_total).quantize(Decimal("0.01"))
     contribution = [m * MARGIN_PER_NUMBER_MONTH - cost for m, cost in zip(
         a["paid_number_months_by_quarter"], a["direct_expenses_rub_by_quarter"], strict=True
     )]
     values = {
-        "gross_profit_rub": BASE["gross_profit_rub"] + sum(contribution),
-        "active_family_groups": BASE["active_family_groups"]
+        "gross_profit_rub": baseline["gross_profit_rub"] + sum(contribution),
+        "active_family_groups": baseline["active_family_groups"]
         + whole(Decimal(net) * a["active_share_of_net_new_percent"] / 100)
         + a["additional_active_existing"],
-        "connected_family_groups": BASE["connected_family_groups"] + net,
-        "connected_multi_number_owners": BASE["connected_multi_number_owners"],
+        "connected_family_groups": baseline["connected_family_groups"] + net,
+        "connected_multi_number_owners": baseline["connected_multi_number_owners"],
         "activation_percent": activation,
     }
     remaining_to_target_before_month_margin = (
-        TARGET["gross_profit_rub"] - BASE["gross_profit_rub"]
+        targets["gross_profit_rub"] - baseline["gross_profit_rub"]
         + sum(a["direct_expenses_rub_by_quarter"])
     )
-    values_and_gaps = {key: {"value": value, "gap": TARGET[key] - value}
+    values_and_gaps = {key: {"value": value, "gap": targets[key] - value}
                        for key, value in values.items()}
     return {
         "extra_created": created,
@@ -95,5 +94,6 @@ def forecast(a):
 
 
 if __name__ == "__main__":
-    print(json.dumps({name: forecast(a) for name, a in ASSUMPTIONS.items()},
+    baseline, targets = read_baseline(BASELINE_PATH)
+    print(json.dumps({name: forecast(a, baseline, targets) for name, a in ASSUMPTIONS.items()},
                      default=str, ensure_ascii=False, indent=2))
