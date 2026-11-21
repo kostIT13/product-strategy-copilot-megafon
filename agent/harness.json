@@ -1,14 +1,13 @@
 {
   "schema_version": 1,
-  "bundle_version": "1.1.16",
+  "bundle_version": "1.2.0",
   "stages": {
     "intake": {
       "skills": [
-        "psa-research"
+        "psa-intake"
       ],
       "knowledge": [
-        "M-SEGMENT-01",
-        "C-EVIDENCE-01"
+        "M-SEGMENT-01"
       ]
     },
     "research_plan": {
@@ -16,8 +15,7 @@
         "psa-research"
       ],
       "knowledge": [
-        "M-SEGMENT-01",
-        "C-EVIDENCE-01"
+        "M-SEGMENT-01"
       ]
     },
     "source_collection": {
@@ -30,11 +28,10 @@
     },
     "evidence_review": {
       "skills": [
-        "psa-options"
+        "psa-research"
       ],
       "knowledge": [
-        "C-EVIDENCE-01",
-        "M-OPTIONS-01"
+        "C-EVIDENCE-01"
       ]
     },
     "options": {
@@ -42,41 +39,35 @@
         "psa-options"
       ],
       "knowledge": [
-        "M-OPTIONS-01",
-        "C-EVIDENCE-01"
+        "M-OPTIONS-01"
       ]
     },
     "strategy": {
       "skills": [
-        "psa-strategy"
+        "psa-strategy",
+        "psa-communication"
       ],
       "knowledge": [
-        "M-EXPERIMENT-01",
-        "C-STRATEGY-01",
-        "C-CRITIC-01"
+        "M-ECONOMICS-01",
+        "M-COMMUNICATION-01"
       ]
     },
     "validation": {
       "skills": [
-        "psa-strategy"
+        "psa-validation",
+        "psa-critic"
       ],
       "knowledge": [
-        "M-EXPERIMENT-01",
-        "C-STRATEGY-01",
+        "C-METRICS-01",
         "C-CRITIC-01"
       ]
     },
     "completed": {
       "skills": [
-        "psa-resume"
+        "psa-resume",
+        "psa-revisit"
       ],
-      "knowledge": [
-        "C-EVIDENCE-01"
-      ]
+      "knowledge": []
     }
-  },
-  "navigation": [
-    "agent/README.md",
-    "agent/automation.md"
-  ]
+  }
 }

@@ -10,14 +10,14 @@
 | evidence_review | Перед обзором выполни `psa source quality ID` и разбери источники в `used_sources_needing_attention`. `psa claim add ID --type fact --text TEXT --source S-ID --locator LOCATOR --quote EXACT_QUOTE`; для неизвестного `psa gap add ID --question TEXT --priority high`; fact не используется без проверяемой цитаты |
 | options | Записать status_quo, stop и change через `psa option add` с `--benefits`, `--costs`, `--risks`, `--objection`. Выполнить [`psa option check ID`](../docs/option-comparison.md), сравнить допущения и способы проверки, показать варианты человеку |
 | strategy | После указания человека `psa decision add ID --option NAME --option-id O-ID --owner OWNER --rationale TEXT --revisit-when TRIGGER`; затем `psa render ID` создаёт недостающие author drafts, их нужно содержательно заполнить |
-| validation | Заполнить drafts/validation-plan.md; validate/verify/coverage, render и review читаемых результатов |
+| validation | Заполнить drafts/validation-plan.md; проверить измерения, выполнить обязательный [критический разбор](../.agents/skills/psa-critic/SKILL.md), показать его перед смысловой оценкой и отдельным согласованием |
 | completed | Показать решение, основание, ограничения и условие пересмотра; не начинать новое исследование без задачи |
 
 Перед переходом показать человеку результат и команду `psa gate approve ID --stage STAGE --by OWNER --reason TEXT`; выполнять её только по его явной инструкции. Текущий CLI требует gates на каждом этапе; не обходить это ручной правкой state. Не превращать обновлённый целевой план в обещание уже готового свободного перехода.
 
 Авторские стратегии: drafts/product-strategy.md, drafts/communication-strategy.md, drafts/validation-plan.md. После редактирования: `psa render ID`, `psa validate ID`, `psa verify ID`, `psa coverage ID`. Generated файлы не редактировать, флаги discard/adopt не использовать для скрытого обхода integrity.
 
-Critic: `psa critic-pack ID` подготавливает review, не запускает модель. Для явной передачи research/evidence/critic используй [automation](automation.md): prepare/register, bound result и review основным агентом не заменяют выбор человека. Не делегируй автоматически по этапу.
+Перед показом вариантов проверь сильнейшее возражение к каждому. Перед финальным согласованием открой `psa critic-pack ID`, выполни разбор и покажи замечания. Если работаешь в том же чате, обозначь самопроверку. Отдельная [передача рецензенту](automation.md) требует явного поручения.
 
 По согласованной задаче current preflight и bounded hook run доступны отдельно от gate; source notice показывает revisit, release check проверяет integrity без публикации. Прочитай соответствующий [runbook](automation.md), проверь historical/freshness/required_check_passed. Stored pass и actor attribution не подтверждают текущее согласование.
 

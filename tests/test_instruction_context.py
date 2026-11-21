@@ -95,7 +95,7 @@ class InstructionContextTests(unittest.TestCase):
             before = {str(path): path.read_bytes() for path in project.rglob("*") if path.is_file()}
             packet = instruction_context(project, root)
             self.assertEqual(packet["stage"], "intake")
-            self.assertEqual({item["id"] for item in packet["knowledge"]}, {"M-SEGMENT-01", "C-EVIDENCE-01"})
+            self.assertEqual({item["id"] for item in packet["knowledge"]}, {"M-SEGMENT-01"})
             for item in [*packet["instructions"], *packet["knowledge"]]:
                 self.assertEqual(item["text"], (root / item["path"]).read_bytes().decode("utf-8"))
                 self.assertEqual(item["sha256"], hashlib.sha256((root / item["path"]).read_bytes()).hexdigest())
@@ -121,6 +121,32 @@ class InstructionContextTests(unittest.TestCase):
             material.write_text(material.read_text(encoding="utf-8") + "\nChanged guidance\n", encoding="utf-8")
             self.assertNotEqual(second["context_hash"], instruction_context(project, root)["context_hash"])
 
+    def test_current_profiles_deliver_stage_skills_without_loading_optional_guidance(self):
+        expected = {
+            "intake": ("intake",),
+            "research_plan": ("research",),
+            "source_collection": ("research",),
+            "evidence_review": ("research",),
+            "options": ("options",),
+            "strategy": ("strategy", "communication"),
+            "validation": ("validation", "critic"),
+            "completed": ("resume", "revisit"),
+        }
+        with TemporaryDirectory() as folder:
+            root = canon(folder)
+            project = init_project("case", root / "projects")
+            path = project / "state.json"
+            state = json.loads(path.read_bytes())
+            for stage, skills in expected.items():
+                with self.subTest(stage=stage):
+                    path.write_text(json.dumps({**state, "status": stage}), encoding="utf-8")
+                    packet = instruction_context(project, root)
+                    self.assertEqual([item["path"] for item in packet["instructions"]], [
+                        "AGENTS.md", "agent/safety.md",
+                        *(f".agents/skills/psa-{skill}/SKILL.md" for skill in skills),
+                    ])
+                    self.assertNotIn("M-INTERVIEWS-01", {item["id"] for item in packet["knowledge"]})
+
     def test_missing_material_corrupt_state_and_escaped_catalog_fail_closed(self):
         with TemporaryDirectory() as folder:
             root = canon(folder)
@@ -132,7 +158,7 @@ class InstructionContextTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 instruction_context(project, root)
             (root / "knowledge/catalog.json").write_text(json.dumps(catalog), encoding="utf-8")
-            (root / ".agents/skills/psa-research/SKILL.md").unlink()
+            (root / ".agents/skills/psa-intake/SKILL.md").unlink()
             with self.assertRaises(FileNotFoundError):
                 instruction_context(project, root)
             (project / "state.json").write_text('{"schema_version": 99, "status": "intake"}')
@@ -171,6 +197,7 @@ class InstructionContextTests(unittest.TestCase):
             project = init_project("case", Path(folder) / "cases")
             output = subprocess.check_output([sys.executable, "-m", "product_strategy_agent.cli", "context", "case",
                 "--projects-dir", str(project.parent), "--instructions-root", str(ROOT)], cwd=folder)
+            self.assertIn("Продуктовый кейс", output.decode("utf-8"))
             packet = json.loads(output)
             self.assertEqual(packet, instruction_context(project, ROOT))
 

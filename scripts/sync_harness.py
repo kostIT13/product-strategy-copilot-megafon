@@ -25,7 +25,8 @@ def expected_files(root):
     skills = sorted({name for profile in manifest["stages"].values() for name in profile["skills"]})
     if any(not re.fullmatch(r"[a-z0-9-]{1,64}", name) for name in skills):
         raise ValueError("invalid canonical skill name")
-    files = ["AGENTS.md", "agent/harness.json", "agent/workflow.md", "agent/quality.md", "agent/safety.md", "knowledge/catalog.json", "agent/hosts/catalog.json"]
+    files = ["AGENTS.md", "agent/harness.json", "agent/README.md", "agent/workflow.md", "agent/quality.md",
+             "agent/safety.md", "agent/automation.md", "knowledge/catalog.json", "agent/hosts/catalog.json"]
     files += navigation
     files += [f".agents/skills/{name}/SKILL.md" for name in skills]
     role_catalog = json.loads(safe_path(root, "agent/roles/catalog.json").read_text(encoding="utf-8"))
@@ -47,7 +48,7 @@ def expected_files(root):
         "CLAUDE.md": marker + "# Product Strategy Agent\n\n@AGENTS.md\n\nRead agent/README.md for stage-scoped skills and knowledge. No automatic publication or model calls.\n",
         "QWEN.md": marker + "# Product Strategy Agent\n\nRead [AGENTS.md](AGENTS.md) in full, then [agent/README.md](agent/README.md). For a case, run `psa context ID` and read its selected materials. Do not infer consent or native skill loading from this file.\n",
         ".cursor/rules/product-strategy.mdc": '---\ndescription: Product strategy project instructions and workflow\nalwaysApply: true\n---\n\n' + marker + "Read [AGENTS.md](../../AGENTS.md) before working. For product cases read agent/README.md and run psa context ID; use only the selected procedures and retain human gates.\n",
-        ".codex/README.md": marker + "# Codex adapter\n\nCanonical instructions: [AGENTS.md](../AGENTS.md); skills: [.agents/skills](../.agents/skills/psa-research/SKILL.md). For explicit subagent/hook/diagnostics tasks read [automation](../agent/automation.md). This README is not executable configuration and enables no dispatch, hooks or MCP connection. The optional server uses FastMCP stdio; native acceptance/activation remains separate. Start a fresh session, inspect loaded instructions/skills, and follow the [acceptance runbook](../docs/ide-instructions.md). Host loading is not yet verified.\n",
+        ".codex/README.md": marker + "# Codex adapter\n\nRead [AGENTS.md](../AGENTS.md) and use the [skill index](../agent/README.md) if you need to find a procedure. For explicit subagent, hook or diagnostics work read [automation](../agent/automation.md). This README activates no integrations. For context delivery and FastMCP acceptance see the [IDE runbook](../docs/ide-instructions.md).\n",
         ".claude/README.md": marker + "# Claude adapter\n\n[CLAUDE.md](../CLAUDE.md) imports the canon. skills/ contains generated copies of .agents/skills with no independent business rules. For opt-in subagents, local hooks and diagnostics use [automation](../agent/automation.md); these files do not activate native execution. See the [acceptance runbook](../docs/ide-instructions.md); host loading is not yet verified.\n",
     }
     for name in skills:

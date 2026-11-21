@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "bundle_version": "1.0.0",
+  "bundle_version": "1.1.0",
   "path_base": "repository_root",
   "checked_on": "2026-11-08",
   "runtime_integration": "stage_scoped_instruction_context_available",
@@ -180,10 +180,10 @@
       "id": "C-CRITIC-01",
       "path": "knowledge/checklists/critic.md",
       "kind": "checklist",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "origin": "internal_heuristic",
       "author": "Product Strategy Agent project",
-      "checked_on": "2026-11-08",
+      "checked_on": "2026-11-22",
       "source_ids": [
         "PROJECT-CRITIC",
         "PROJECT-SELECTION"
@@ -221,10 +221,82 @@
         "No economic/statistical/legal certification",
         "Does not replace independent review"
       ]
+    },
+    {
+      "id": "M-ECONOMICS-01",
+      "path": "knowledge/methods/economics.md",
+      "kind": "method",
+      "version": "1.0.0",
+      "origin": "internal_heuristic",
+      "author": "Product Strategy Agent project",
+      "checked_on": "2026-11-22",
+      "source_ids": [
+        "PROJECT-PLAN"
+      ],
+      "applicability": [
+        "product value, costs and revenue"
+      ],
+      "limitations": [
+        "Economic effects require case evidence"
+      ]
+    },
+    {
+      "id": "M-COMMUNICATION-01",
+      "path": "knowledge/methods/communication.md",
+      "kind": "method",
+      "version": "1.0.0",
+      "origin": "internal_heuristic",
+      "author": "Product Strategy Agent project",
+      "checked_on": "2026-11-22",
+      "source_ids": [
+        "PROJECT-PLAN"
+      ],
+      "applicability": [
+        "audience, message, proof and channels"
+      ],
+      "limitations": [
+        "Does not prove product capability"
+      ]
+    },
+    {
+      "id": "C-METRICS-01",
+      "path": "knowledge/checklists/metrics.md",
+      "kind": "checklist",
+      "version": "1.0.0",
+      "origin": "internal_heuristic",
+      "author": "Product Strategy Agent project",
+      "checked_on": "2026-11-22",
+      "source_ids": [
+        "PROJECT-PLAN"
+      ],
+      "applicability": [
+        "units, periods, denominators and missing values"
+      ],
+      "limitations": [
+        "Does not establish causality"
+      ]
+    },
+    {
+      "id": "M-INTERVIEWS-01",
+      "path": "knowledge/methods/interviews.md",
+      "kind": "method",
+      "version": "1.0.0",
+      "origin": "internal_heuristic",
+      "author": "Product Strategy Agent project",
+      "checked_on": "2026-11-22",
+      "source_ids": [
+        "PROJECT-PLAN"
+      ],
+      "applicability": [
+        "consented interviews and synthetic hypotheses"
+      ],
+      "limitations": [
+        "Synthetic responses do not establish demand"
+      ]
     }
   ],
   "instruction_harness": {
-    "version": "1.0.0",
+    "version": "1.2.0",
     "delivery": "psa context",
     "host_acceptance": "not_verified",
     "semantic_evaluation": "not_performed"

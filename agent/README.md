@@ -1,22 +1,22 @@
-# Инструкции агента
+# Навигация по инструкциям
 
-Для явно выбранной automation-задачи прочитай [automation](automation.md): роли research/evidence/critic, task/result/review journal, local hooks, diagnostics и host/config lifecycle. Это opt-in scope, не автоматический этап workflow; последовательный путь остаётся базовым.
+1. Прочитай [AGENTS.md](../AGENTS.md). Запусти `psa context ID`. Например, `psa context telecom-family-demo`.
+2. Прочитай правила и материалы текущего этапа из ответа. При необходимости открой [порядок работы](workflow.md), [проверки](quality.md) или [безопасность](safety.md).
+3. Если команда недоступна, покажи ошибку и открой нужные файлы ниже. При запуске из другого каталога укажи `--projects-dir PATH --instructions-root REPO`. Для установленного пакета используй канон из репозитория или ZIP.
 
-Канон правил — [AGENTS.md](../AGENTS.md); тематические документы: [workflow](workflow.md), [quality](quality.md), [safety](safety.md), [automation](automation.md). Skills хранятся в [.agents/skills](../.agents/skills/psa-research/SKILL.md); Claude-копии и тонкие host adapters генерируются `scripts/sync_harness.py`, проверяются с `--check` и не редактируются отдельно. Bundle 1.1.x включает навигацию README/automation в context и canonical hash; роли загружаются только для выбранного handoff.
-
-`psa context ID` возвращает текущий этап и полный текст подходящих skills/knowledge с версиями и SHA-256. Команда только читает файлы. Из установленного wheel без репозитория передай `--instructions-root PATH_TO_REPO`; автономная упаковка всего context в wheel ещё не реализована. Source ZIP включает весь проект; sdist также включает канонические instruction assets, но не заявляется отдельным полным IDE-проектом со всей документацией. Для установленного пакета используй instruction root из репозитория/ZIP.
-
-| Задача | Skill | Методики |
+| Задача | Навык | Методики |
 | --- | --- | --- |
-| Бриф, исследовательские вопросы, источники | [psa-research](../.agents/skills/psa-research/SKILL.md) | M-SEGMENT-01, C-EVIDENCE-01 |
-| Основания, пробелы, альтернативы | [psa-options](../.agents/skills/psa-options/SKILL.md) | M-OPTIONS-01, C-EVIDENCE-01 |
-| Решение, стратегии и эксперимент | [psa-strategy](../.agents/skills/psa-strategy/SKILL.md) | M-EXPERIMENT-01, C-STRATEGY-01, C-CRITIC-01 |
-| Продолжение, изменение источников | [psa-resume](../.agents/skills/psa-resume/SKILL.md) | C-EVIDENCE-01 |
+| Уточни задачу и запиши бриф | [Постановка](../.agents/skills/psa-intake/SKILL.md) | [Сегменты и задачи](../knowledge/methods/segmentation.md) |
+| Спланируй исследование, оцени материалы и основания | [Исследование](../.agents/skills/psa-research/SKILL.md) | [Доказательства](../knowledge/checklists/evidence.md) |
+| Сравни альтернативы и проверь возражения | [Варианты](../.agents/skills/psa-options/SKILL.md) | [Сравнение вариантов](../knowledge/methods/alternatives.md) |
+| Обоснуй выбранный продуктовый подход | [Продуктовая стратегия](../.agents/skills/psa-strategy/SKILL.md) | [Польза и экономика](../knowledge/methods/economics.md) |
+| Проверь сообщение, обещание и канал | [Коммуникационная стратегия](../.agents/skills/psa-communication/SKILL.md) | [Коммуникация](../knowledge/methods/communication.md) |
+| Подготовь проверку эффекта | [План проверки](../.agents/skills/psa-validation/SKILL.md) | [Эксперименты](../knowledge/methods/experiments.md), [метрики](../knowledge/checklists/metrics.md) |
+| Проверь финальные материалы перед согласованием | [Критический разбор](../.agents/skills/psa-critic/SKILL.md) | [Вопросы критика](../knowledge/checklists/critic.md) |
+| Продолжи после паузы | [Возобновление](../.agents/skills/psa-resume/SKILL.md) | История кейса и материалы текущего этапа |
+| Пересмотри выводы при новых данных | [Пересмотр](../.agents/skills/psa-revisit/SKILL.md) | [Доказательства](../knowledge/checklists/evidence.md) |
+| Разбери интервью или подготовь модельного собеседника | [Исследование](../.agents/skills/psa-research/SKILL.md) | [Интервью и синтетика](../knowledge/methods/interviews.md) по задаче |
 
-Отметь реально использованные ID@version и context hash в авторской заметке `analysis/methods-used.md`: задача, применение/ограничения, дата, что изменило вывод. Существование заметки или packet не доказывает поведение модели; фактическая загрузка в IDE и качество на новом кейсе проверяются отдельно по [runbook](../docs/ide-instructions.md).
+Запиши применённые ID методик, версии и хеш пакета в `analysis/methods-used.md`. Укажи, какой вопрос или вывод изменился.
 
-Для SourceCraft и любой среды без проверенного native loader: явно попросить открыть AGENTS.md и выполнить context; формат скрытых settings не придумывать. Файлы .codex/README.md и .claude/README.md — пояснения, а не исполняемая конфигурация. MCP в этом срезе автоматически не регистрируется.
-
-Для выбора research-инструмента доступен read-only [реестр](../docs/research-tool-registry.md): `psa tools list` / `psa tools describe TOOL-ID`, optional MCP `psa_research_tools`. Описания permissions/limits/fallback — данные, не разрешение dispatch/network/write; availability/provenance freshness остаются not_checked. Не загружай весь registry автоматически в каждый case context.
-
-После чтения материала используйте [оценку источника](../docs/source-assessment.md): author/owner/date, reliability, основания, ограничения и неизвестное привязаны к текущей ревизии. Это записанное суждение, не independent verification или gate.
+При выборе инструмента используй `psa tools describe TOOL-ID` из [реестра](../docs/research-tool-registry.md). Описание инструмента не даёт разрешения на его запуск. Проверяй загрузку и перенос по [инструкции для IDE](../docs/ide-instructions.md). Адаптеры обновляй генератором. Детали [автоматизации](automation.md) открывай только по явному поручению.

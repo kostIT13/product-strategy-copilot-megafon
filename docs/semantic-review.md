@@ -6,7 +6,7 @@ psa review record CASE --scope strategy --by OWNER --reason "Основания 
 psa gate approve CASE --stage strategy --by OWNER --semantic-review UUID
 ```
 
-Для плана проверки повторите цикл со scope validation после подготовки measurement plan и render. MCP: `psa_prepare_semantic_review`, `psa_record_semantic_review` и `psa_approve_stage(..., semantic_review_operation=UUID)`. Prepare — read-only. Record и gate выполняются только по явному указанию человека; critic/агент не подставляет своё имя или все true вместо его ответов. Attribution self-reported, не authentication.
+Для плана проверки повторите цикл со scope validation после подготовки плана, render и [критического разбора](../.agents/skills/psa-critic/SKILL.md) по правилам агента. CLI проверяет смысловую оценку человека и действующие условия перехода. MCP: `psa_prepare_semantic_review`, `psa_record_semantic_review` и `psa_approve_stage(..., semantic_review_operation=UUID)`. Prepare читает состояние. Record и gate выполняются по явному указанию человека, с его оценками и именем.
 
 ## Что читает человек
 
