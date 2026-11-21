@@ -6,6 +6,7 @@ import argparse
 from contextlib import ExitStack
 import json
 import re
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -416,8 +417,12 @@ def main() -> None:
             handle_workspace_command(args)
             return
         if args.command == "context":
-            print(json.dumps(instruction_context(project_path(args.project_id, args.projects_dir), args.instructions_root),
-                             ensure_ascii=True, indent=2))
+            packet = instruction_context(project_path(args.project_id, args.projects_dir), args.instructions_root)
+            payload = json.dumps(packet, ensure_ascii=False, indent=2) + "\n"
+            if hasattr(sys.stdout, "buffer"):
+                sys.stdout.buffer.write(payload.encode("utf-8"))
+            else:
+                sys.stdout.write(payload)
             return
         if args.command == "doctor":
             report = doctor_report()

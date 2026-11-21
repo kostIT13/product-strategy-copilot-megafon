@@ -2,8 +2,5 @@ include README.md uv.lock .env.example
 recursive-include knowledge *.md *.json
 include AGENTS.md CLAUDE.md QWEN.md
 recursive-include agent *.md *.json
-include .agents/skills/psa-research/SKILL.md .agents/skills/psa-options/SKILL.md
-include .agents/skills/psa-strategy/SKILL.md .agents/skills/psa-resume/SKILL.md
-include .claude/skills/psa-research/SKILL.md .claude/skills/psa-options/SKILL.md
-include .claude/skills/psa-strategy/SKILL.md .claude/skills/psa-resume/SKILL.md
+include .agents/skills/psa-*/SKILL.md .claude/skills/psa-*/SKILL.md
 include .claude/README.md .codex/README.md .cursor/rules/product-strategy.mdc
