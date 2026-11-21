@@ -1,114 +1,307 @@
 # Product Strategy Agent
 
-Проект-папка для IDE-агента: инструкции, skills, knowledge и проверяемые файловые артефакты продуктового кейса. Основная IDE команды и единственная среда в матрице IDE-приёмки — Codex. Инструкции подключения для других IDE доступны в репозитории, совместимость с ними в текущем цикле не проверяется. Агентный цикл ведёт IDE; `psa` сохраняет данные и проверяет основания. FastMCP stdio — дополнительный интерфейс над теми же сервисами.
+[![Версия 0.1.0](https://img.shields.io/badge/PSA-0.1.0-7C3AED?style=for-the-badge)](pyproject.toml)
+[![Python 3.11 и выше](https://img.shields.io/badge/Python-3.11%2B-2563EB?style=for-the-badge&logo=python&logoColor=white)](pyproject.toml)
+[![uv 0.11.30](https://img.shields.io/badge/uv-0.11.30-9333EA?style=for-the-badge&logo=uv&logoColor=white)](pyproject.toml)
+[![Проверено в Codex](https://img.shields.io/badge/IDE-Codex-0F766E?style=for-the-badge)](docs/codex-demo-guide.md)
+[![FastMCP 4.x по stdio](https://img.shields.io/badge/FastMCP-4.x%20stdio-BE185D?style=for-the-badge)](docs/mcp.md)
+[![Офлайн-демо](https://img.shields.io/badge/Demo-Offline-4D7C0F?style=for-the-badge)](#быстрый-запуск)
 
-**PostgreSQL, SQLAlchemy, Alembic и Docker/Compose удалены из текущего runtime.** Свой LLM API-ключ и SQLite также не нужны для основного пути. Старый код сохранён в Git; пользовательские БД/volumes не удаляются. [Решение R2](docs/legacy-retirement.md).
+**Файловый агент для продуктовых решений в Codex.** Задайте продуктовый вопрос, добавьте материалы и получите варианты с проверяемыми основаниями. После вашего выбора агент готовит продуктовую и коммуникационную стратегии и план измерения эффекта. Codex ведёт диалог, PSA хранит состояние и проверяет материалы, человек выбирает направление и подтверждает переходы.
 
-## Запуск
+[🚀 Быстрый запуск](#быстрый-запуск) · [🎬 Демо в Codex](docs/codex-demo-guide.md) · [🧭 Архитектура](#архитектура) · [📊 Проверенные результаты](#проверенные-результаты) · [📋 ТЗ](specs/case.md)
 
-Нужны Python 3.11+ и uv 0.11.30. Из корня репозитория:
+| За чем вы пришли | С чего начать |
+| --- | --- |
+| Проверить, что проект запускается | [Офлайн-прогон двух кейсов](#быстрый-запуск) |
+| Посмотреть работу агента в Codex | [Телеком-демо](#телеком-демо) и [готовые запросы для записи](docs/codex-demo-guide.md) |
+| Оценить качество решения | [Примеры доказательств](#как-проверить-выводы-демо), [результаты приёмки](#проверенные-результаты) и [аудит ТЗ](reports/2026-11-17-specs-implementation-audit.md) |
+| Подключить инструменты или изменить код | [FastMCP](#fastmcp), [справочник CLI](#команды-cli) и [локальные проверки](#проверки-и-дистрибутив) |
+
+## Быстрый запуск
+
+Откройте корень репозитория как локальный проект в Codex и начните новый чат. Проектные правила находятся в [AGENTS.md](AGENTS.md). Для CLI нужны **Python 3.11+** и **uv 0.11.30**. Основной сценарий использует файловое хранилище и учётную запись Codex. Отдельный API-ключ, `.env`, база данных и контейнеры для него не требуются.
+
+В PowerShell из корня репозитория:
 
 ```powershell
-uv sync --frozen --no-default-groups
-uv run --frozen --no-sync psa doctor
-uv run --frozen --no-sync psa --help
-uv run --frozen --no-sync python -m scripts.ci.demo
+uv sync --locked --no-default-groups
+uv run --no-sync psa doctor
+uv run --no-sync python -m scripts.ci.demo
 ```
 
-`.env` для этого не требуется. `.env.example` описывает общие параметры и отдельный optional model helper; существующий локальный `.env` не переписывайте. Значения usage/cost неизвестного происхождения не считаются нулевыми.
+> [!TIP]
+> Последняя команда воспроизводит два учебных кейса на временных копиях, проверяет цитаты и покрытие, возобновляет кейсы и пересобирает отчёты. После установки зависимостей этот прогон работает офлайн и обходится без вызовов модели. Предупреждение о FastMCP ожидаемо при базовой установке.
 
-При необходимости установите локальные парсеры PDF/DOCX/XLSX и MCP:
+### Телеком-демо
+
+В [учебном брифе](<specs/Пример брифа.pdf>) вымышленный оператор решает, какую помощь со связью исследовать первой. Пример объединяет PDF, производную CSV-таблицу и сохранённую выдержку публичной справки Pixel.
 
 ```powershell
-uv sync --frozen --extra documents --extra mcp
+uv sync --locked --no-default-groups --extra documents
+uv run --no-sync python examples/telecom-family/build_case.py
+uv run --no-sync psa status telecom-family-demo
+uv run --no-sync psa validate telecom-family-demo
+uv run --no-sync psa verify telecom-family-demo
+uv run --no-sync psa coverage telecom-family-demo
+uv run --no-sync python projects/telecom-family-demo/analysis/forecast.py
 ```
 
-Extra `agent` оставляет OpenAI-compatible/LiteLLM helper для явно запрошенных операций. Он не становится основным оркестратором и не запускается автоматически.
+Сборщик оставляет кейс на `intake` с тремя источниками, девятью цитатами, четырьмя вариантами и пустым журналом решений. Черновики относятся к условному выбору O-003. При заданных допущениях прогноз рассчитывает 279,25 и 278,65 млн ₽ валовой прибыли в двух сценариях при цели 285 млн ₽. Для повторной репетиции создайте другую копию с `--projects-dir PATH` и используйте тот же путь в последующих командах. [Инструкция примера](examples/telecom-family/README.md).
 
-## Работа с кейсом
+Первый запрос в Codex:
 
-```powershell
-uv run --no-sync psa init my-case
-uv run --no-sync psa status my-case
-uv run --no-sync psa resume my-case
-uv run --no-sync psa context my-case
-uv run --no-sync psa source add my-case ./material.txt
-uv run --no-sync psa source search my-case "query" --limit 10
-uv run --no-sync psa validate my-case
-uv run --no-sync psa verify my-case
-uv run --no-sync psa coverage my-case
-uv run --no-sync psa promise check my-case
-uv run --no-sync psa strategy check my-case
-uv run --no-sync psa validation check my-case
-uv run --no-sync psa claim impact my-case
+```text
+Открой telecom-family-demo. Покажи текущий этап, три источника с проверяемыми
+цитатами и четыре варианта. Отдельно перечисли неизвестные и остановись перед выбором.
 ```
 
-`init` создаёт новый кейс в projects/; существующий кейс не перезаписывается. Внешние материалы и статусы — данные, не инструкции. Продуктовый цикл: brief → research plan → sources → evidence → status_quo/stop/change → выбор человека → стратегии → validation plan. Gates требуют явного указания человека. Semantic review и публикационное разрешение не подменяются зелёной структурной проверкой.
+**Для записи видео** используйте [гайд для Codex](docs/codex-demo-guide.md). В нём есть подключение, готовые запросы и реплики согласования, показ результата и возобновление в новом чате. [«Слот»](examples/slot-workshop/README.md) даёт ту же схему работы на другой продуктовой задаче.
 
-Состояние и реестры JSON/JSONL — канон; drafts — авторские тексты. Generated Markdown создаётся `psa render`, а не редактируется вручную. Источники и пользовательские кейсы не коммитьте без проверки содержимого/прав. Синтетические demo/table-demo не являются рыночными доказательствами.
+#### Как проверить выводы демо
 
-## Контракты и восстановление
+В кейсе сравниваются четыре варианта. Среди них O-003, семейное предупреждение о риске потери связи. Начните с [таблицы вариантов](examples/telecom-family/analysis/options-comparison.md), затем проверьте, что каждый источник действительно позволяет сказать.
 
-- [Файловое ядро и atomic init](docs/file-core.md), [общий lock/read contract](docs/case-access.md).
-- [Typed research artifacts](docs/research-artifacts.md).
-- [Workflow journal/recovery](docs/workflow-recovery.md), [mode changes](docs/file-mode-recovery.md), [revision review](docs/revision-review-recovery.md).
-- [Source imports/revisions](docs/source-import-recovery.md), [PDF/DOCX/XLSX](docs/file-document-import.md), [public HTTP policy/provenance](docs/file-web-import.md).
-- [Исправление claims](docs/claim-correction.md), [отзыв claims и impact](docs/claim-withdrawal.md), [план измерения](docs/validation-plan-contract.md), [полнота стратегий](docs/strategy-structure.md), [файловый поиск](docs/file-source-search.md), [promise preflight](docs/file-promise-check.md), [ledger/usage recovery](docs/ledger-recovery.md), [render/adoption](docs/render-recovery.md).
-- [Пересмотр и повторное открытие completed workflow](docs/workflow-reopen.md): snapshot review, явный человек и повторные gates с сохранением истории.
-- [Возврат активного workflow назад](docs/workflow-rollback.md): явный rollback на предыдущий этап с сохранением материалов, истории и crash recovery.
-- [Отзыв источников](docs/source-withdrawal.md): сохранение истории, исключение из текущих оснований/поиска и review зависимых решений.
-- [Числовой фрагмент baseline](docs/baseline-numbers.md): явные spans числа/единицы и current citation proof; read-only preflight, смысл проверяется отдельно.
-- [Semantic review](docs/semantic-review.md): явная оценка человека, immutable snapshot audit и выбор current review в quality gate после adoption.
-- [Quality policy](docs/quality-policy.md): новые кейсы требуют review с первого strategy/validation gate; legacy мигрируется явно через policy show/enable.
-- [Проверка расчётов](docs/calculation-check.md): проценты, отношения, процентные пункты и относительное изменение по текущим цитатам, с явными условиями и округлением.
-- [Инвентаризация чисел](docs/numeric-inventory.md): координаты и контекст digit tokens трёх черновиков для ручного review.
-- [Полный синтетический кейс «Слот»](examples/slot-workshop/README.md): исходные материалы, альтернативы, условные стратегии и measurement-план; воспроизводимая сборка без выдуманных human approvals.
-- [IDE instructions/context](docs/ide-instructions.md), [файловый MCP](docs/mcp.md), [knowledge](knowledge/README.md).
-- [Production-план P0–P9](docs/solution_plans/production-readiness.md) и [контракты субагентов/хуков](docs/automation-contracts.md): milestones, trust boundaries и критерии готовности R3.1–R6.
-- [Read-only subagent handoffs](docs/subagent-handoffs.md): CLI/FastMCP, инструкции research/evidence/critic, selected excerpts и snapshots; без автоматического запуска.
+| Материал | Что в нём видно | Как использовать |
+| --- | --- | --- |
+| 📄 [PDF-бриф](<specs/Пример брифа.pdf>), `page:3` | 279 млн ₽ валовой прибыли за плановый год при цели 285 млн ₽ | Зафиксировать учебную базу и разрыв в 6 млн ₽ |
+| 📊 CSV, `paragraph:2` | Те же значения с периодом и единицей измерения | Воспроизвести расчёт. CSV переносит данные из PDF |
+| 🌐 [Снимок справки Pixel](examples/telecom-family/README.md#как-проверить-три-источника) | Телефон умеет уведомлять при достижении выбранного порога расхода данных | Учесть действующую альтернативу. Эффект семейного сигнала остаётся гипотезой |
 
-После interrupted init используйте workspace pending/recover. После interrupted workflow write — `psa workflow pending ID`, затем явный recover точного operation UUID. Replay завершённой операции возвращает исходный результат; неопределённый платный вызов автоматически не повторяется.
+Затем откройте [стратегию из пяти частей](examples/telecom-family/analysis/strategy-five-parts.md) и сверьте её с [расчётом](examples/telecom-family/analysis/forecast.py) и [планом проверки](examples/telecom-family/drafts/validation-plan.md). Так можно проследить путь от исходных чисел до предложения о пилоте и увидеть, какие допущения ещё требуют проверки.
 
-## Разработка и проверки
+> [!IMPORTANT]
+> В свежей копии кейса черновики показывают, как выглядел бы O-003. Выбор и согласования открыты. Подтверждайте каждый переход в чате после просмотра материалов.
+
+### FastMCP
+
+К CLI можно добавить локальный сервер FastMCP 4.x через stdio:
 
 ```powershell
-uv sync --frozen --extra agent --extra documents --extra mcp --group dev
+uv sync --locked --no-default-groups --extra documents --extra mcp
+```
+
+Для Codex укажите интерпретатор среды проекта и команду `-m product_strategy_agent.mcp_server` в локальной `.codex/config.toml`. Начните с четырёх инструментов чтения: `psa_status`, `psa_validate`, `psa_verify` и `psa_coverage`. Пример конфигурации и проверочный запрос находятся в [гайде Codex](docs/codex-demo-guide.md#опционально-подключите-fastmcp). Подробности в [контракте MCP](docs/mcp.md) и [отчёте приёмки](docs/mcp-host-acceptance.md).
+
+## Архитектура
+
+```mermaid
+flowchart TB
+    Human["Человек · выбор и согласования"] --> Host["Codex · диалог и исследование"]
+    Context["AGENTS.md · skills · knowledge"] -.-> Host
+    Host --> CLI["PSA CLI"]
+    Host -. "опционально" .-> MCP["FastMCP · stdio"]
+    CLI --> App["Application · сервисы и порты"]
+    MCP --> App
+    App --> Domain["Domain · правила workflow и доказательств"]
+    App --> Files["Файловые адаптеры · lock и журнал"]
+    App --> Inputs["Адаптеры документов и публичного веба"]
+    Files --> Case[("projects/CASE · JSON и JSONL, материалы, черновики")]
+    classDef human fill:#6b3c17,stroke:#d8a070,color:#fff5e9
+    classDef entry fill:#173a5b,stroke:#73a9d8,color:#edf6ff
+    classDef store fill:#134944,stroke:#6dc4b2,color:#e9fff8
+    class Human human
+    class Host,Context,CLI,MCP entry
+    class Case,Files store
+```
+
+`src/product_strategy_agent/` разделён по ответственности. Интерфейсы принимают команды и вызывают общие application-сервисы. Правила предметной области живут в `domain/`, файловое хранилище, разбор форматов и HTTP — в адаптерах. CLI и MCP используют одно ядро. Опциональный LiteLLM-клиент устанавливается через extra `agent` и используется только для явно запрошенных операций. История выхода из PostgreSQL, Alembic и Docker сохранена в [решении R2](docs/legacy-retirement.md).
+
+## Жизненный цикл кейса
+
+```mermaid
+flowchart LR
+    Intake["Бриф и план"] --> Sources["Источники и основания"]
+    Sources --> Options["Альтернативы"]
+    Options --> Choice{"Человек выбирает"}
+    Choice --> Strategy["Две стратегии"]
+    Strategy --> Validation["План проверки"]
+    Validation --> Done["Завершение"]
+    Done -. "новое основание или условие пересмотра" .-> Sources
+    classDef stage fill:#173a5b,stroke:#73a9d8,color:#edf6ff
+    classDef human fill:#6b3c17,stroke:#d8a070,color:#fff5e9
+    classDef done fill:#134944,stroke:#6dc4b2,color:#e9fff8
+    class Intake,Sources,Options,Strategy,Validation stage
+    class Choice human
+    class Done done
+```
+
+| Этап | Результат | Что проверить перед переходом |
+| --- | --- | --- |
+| `intake` | Вопрос решения, владелец, сроки и ограничения | Бриф и критерии успеха |
+| `research_plan` | Вопросы исследования и допустимые источники | Достаточность плана и свежесть выбранной версии |
+| `source_collection` | Источники, сохранённые тексты, оценки и ревизии | Происхождение, ограничения, `source quality` |
+| `evidence_review` | Утверждения, противоречия и пробелы | Цитаты в пределах локатора, `validate` и `verify` |
+| `options` | Статус-кво, закрытие направления и изменение | Выгоды, затраты, риски, возражения и `option check` |
+| `strategy` | Записанный человеческий выбор, продуктовая и коммуникационная стратегии | Полнота, основания, обещания и смысловая оценка |
+| `validation` | Метрика, база или способ её получить, окно, ответственный, правило остановки | Структура, числовые основания и отдельная смысловая оценка |
+| `completed` | Решение, обоснование и условие возвращения к нему | Итоговые проверки и читаемые артефакты |
+
+Каждый переход требует явного согласования человека. Для новых кейсов `strategy` и `validation` требуют отдельной оценки актуальных материалов по шести критериям. Автоматические проверки показывают состояние и блокировки. Решение сохраняется с владельцем, обоснованием, альтернативами и условием пересмотра. [Правила workflow](agent/workflow.md) · [semantic review](docs/semantic-review.md) · [режимы глубины исследования](docs/modes.md).
+
+## Доказательства и продолжение
+
+```mermaid
+flowchart TB
+    Source["Материал · файл или URL"] --> Snapshot["Снимок · ревизия и SHA-256"]
+    Snapshot --> Claim["Утверждение · тип, точная цитата, локатор"]
+    Claim --> Option["Вариант · основания и допущения"]
+    Option --> Decision["Решение человека · причина и триггер пересмотра"]
+    Decision --> Draft["Стратегии и план измерения"]
+    New["Новая версия источника"] --> Revisit["Пересмотр · затронутые выводы и решения"]
+    Snapshot -.-> Revisit
+    Revisit -. "после оценки" .-> Claim
+    classDef source fill:#173a5b,stroke:#73a9d8,color:#edf6ff
+    classDef review fill:#6b3c17,stroke:#d8a070,color:#fff5e9
+    classDef result fill:#134944,stroke:#6dc4b2,color:#e9fff8
+    class Source,Snapshot,Claim source
+    class Decision,Revisit review
+    class Draft result
+```
+
+- **Ссылки на материал.** Факт требует источник, локатор и цитату. Для PDF используется `page:N`, для XLSX — `cell:'Лист'!B2`, для обычного текста — `paragraph:N` или `line:N`. Факты, интерпретации, гипотезы, прогнозы и синтетика имеют разные типы. Хеш и проверка цитаты подтверждают связь с сохранённым текстом. Истинность утверждения и достаточность оснований оцениваются отдельно. [Импорт документов](docs/file-document-import.md) · [оценка источника](docs/source-assessment.md).
+- **Проверки результата.** `validate` проверяет файлы и связи, `verify` — хеши и цитаты, `coverage` — ссылки на основания и маркеры неопределённости в стратегиях. Отдельные проверки сверяют структуру стратегий, обещания с доступными возможностями продукта и числовые основания плана. [Покрытие](docs/coverage.md) · [обещания](docs/file-promise-check.md) · [план проверки](docs/validation-plan-contract.md) · [расчёты](docs/calculation-check.md).
+- **Продолжение и пересмотр.** В новом чате запустите `psa status`, `psa resume`, `psa context` и `psa decision summary` с тем же ID. Новая ревизия оставляет исходник в истории и показывает затронутые утверждения и решения. Отзыв, исправление, возврат к предыдущему этапу и пересмотр оформляются штатными операциями. [Пересмотр](docs/revisit.md) · [пример](docs/demo-runbook.md) · [исправление](docs/claim-correction.md) · [возобновление завершённого кейса](docs/workflow-reopen.md).
+
+### Запись и восстановление
+
+```mermaid
+sequenceDiagram
+    participant Client as CLI или MCP
+    participant Journal as Журнал кейса
+    participant Files as Файлы кейса
+    Client->>Journal: Блокировка и запись намерения с UUID
+    alt Штатное завершение
+        Journal->>Files: Публикация подготовленных изменений
+        Journal-->>Client: Квитанция завершения
+    else Сбой оставил незавершённую операцию
+        Client->>Journal: Проверка pending и recover по UUID
+        Journal-->>Client: Публикация сохранённого результата или отказ
+    end
+    opt Точный повтор завершённой операции
+        Client->>Journal: Тот же UUID и запрос
+        Journal-->>Client: Исходная квитанция
+    end
+```
+
+Общий OS lock предотвращает конкурирующие записи. При незавершённой операции штатный вход сообщает о блокировке. Восстановление проверяет подготовленные данные и публикует их через журнал, а точный повтор UUID не выполняет прежнюю работу заново. Контракт описан для локальной файловой системы с поддержкой блокировок и атомарной замены. [Доступ и блокировки](docs/case-access.md) · [восстановление](docs/workflow-recovery.md) · [совместимость журнала](docs/journal-version-compatibility.md).
+
+## Что хранится в проекте
+
+```text
+AGENTS.md                 Правила для IDE-агента
+agent/                    Workflow, качество, политика данных, роли и канон доставки
+.agents/skills/           Исследование, варианты, стратегия и возобновление
+knowledge/                Методики и чек-листы с версиями
+src/product_strategy_agent/
+  domain/                 Правила предметной области
+  application/            Сервисы и порты
+  adapters/               Файлы, документы, веб и интеграции
+  interfaces/             Команды и MCP-инструменты
+examples/                 Сборщики учебных кейсов
+docs/ · reports/           Контракты, планы, приёмка и результаты оценок
+projects/CASE/
+  01_brief.md              Авторский бриф
+  02_research-plan.md      Авторский план исследования
+  state.json · events.jsonl
+  sources.jsonl · claims.jsonl · gaps.jsonl · options.jsonl
+  decision-log.jsonl · capabilities.jsonl · usage.jsonl
+  sources/                Сохранённый текст и история ревизий
+  drafts/ · analysis/     Авторские стратегии, план проверки и расчёты
+  .psa/                   Журналы и квитанции
+```
+
+`psa render` строит читаемые `03_evidence.md`, `04_options.md`, `decision.md`, `05_strategy.md` и `06_validation-plan.md` и записывает их контрольные суммы. Исходные тексты редактируют в `drafts/`, реестры меняют через PSA. Git сохраняет байты учебных кейсов по правилам `.gitattributes`. [Файловое ядро](docs/file-core.md) · [контракт render](docs/generated-artifacts.md).
+
+| Что вы хотите узнать | Где посмотреть готовый пример |
+| --- | --- |
+| Откуда взялся вывод и где есть пробелы | [Реестр доказательств](projects/demo/03_evidence.md) |
+| Какие варианты рассматривали и кто принял решение | [Сравнение вариантов](projects/demo/04_options.md) · [запись решения](projects/demo/decision.md) |
+| Что предложено сделать и как измерить результат | [Стратегии](projects/demo/05_strategy.md) · [план проверки](projects/demo/06_validation-plan.md) |
+
+`psa context` выбирает правила, навыки и методики по текущему этапу, возвращает версии и хеши. Инструкции IDE синхронизируются из общего канона через `scripts/sync_harness.py`. Codex — основная среда и единственная среда живой приёмки. Для других IDE сохранены инструкции подключения. [Навигация агента](agent/README.md) · [методическая база](knowledge/README.md) · [матрица IDE](docs/ide-instructions.md).
+
+Навыки проекта покрывают [исследование](.agents/skills/psa-research/SKILL.md), [альтернативы](.agents/skills/psa-options/SKILL.md), [стратегию](.agents/skills/psa-strategy/SKILL.md) и [продолжение после паузы](.agents/skills/psa-resume/SKILL.md).
+
+## Возможности
+
+| Задача | Что доступно |
+| --- | --- |
+| Разобрать документ, таблицу или сайт | PDF, DOCX, XLSX, CSV и локальный HTML. Публичный веб импортируется явным `source fetch`. Поиск работает по локальным проверенным снимкам. [Документы](docs/file-document-import.md) · [таблицы](docs/table-analysis.md) · [веб](docs/file-web-import.md) · [поиск](docs/file-source-search.md) |
+| Провести интервью или проверить гипотезу в диалоге | Анализ локального транскрипта и подготовка модельного респондента в IDE. Ответы вымышленной роли маркируются как синтетика. [Интервью](docs/interview-analysis.md) · [модельный респондент](docs/model-respondent.md) |
+| Разобрать UX и медиа | Привязка наблюдений к области изображения или интервалу аудио и видео. Просмотр и интерпретация выполняются отдельно от проверки метаданных. [UX](docs/ux-review.md) · [медиа и поддержанные форматы](docs/media-review.md) |
+| Проверить измерения и следить за решением | Воспроизводимые расчёты, числовые привязки, базовые показатели и условия пересмотра. [Расчёты](docs/calculation-check.md) · [инвентарь чисел](docs/numeric-inventory.md) · [сводка решения](docs/decision-summary.md) |
+| Делегировать узкую задачу или запустить локальный хук | Роли `research`, `evidence` и `critic` получают выбранные выдержки по явному поручению. Локальные хуки проверяют материалы перед согласованием, показывают обновления источника или проверяют ZIP. [Роли](docs/subagent-handoffs.md) · [журнал](docs/subagent-journal.md) · [хуки](docs/hook-runs.md) · [навигация автоматизации](agent/automation.md) |
+| Проследить работу и затраты | Реестр инструментов и диагностика выбранных операций. Неизвестные расходы и время остаются неизвестными. [Реестр](docs/research-tool-registry.md) · [диагностика](docs/operation-diagnostics.md) · [затраты](docs/usage-provenance.md) |
+
+## Команды CLI
+
+`uv run --no-sync psa --help` показывает доступные группы. Добавьте `--projects-dir PATH` для кейса вне `projects/`. Для `context` из другого каталога укажите `--instructions-root REPO`.
+
+| Область | Основные команды |
+| --- | --- |
+| Кейс и контекст | `init`, `status`, `next`, `resume`, `context`, `doctor` |
+| Источники и исследование | `source add`, `source fetch`, `source search`, `source assessment`, `source quality`, `source table`, `artifact` |
+| Утверждения и выбор | `claim add`, `claim correct`, `claim withdraw`, `gap add`, `option add`, `option check`, `decision add`, `decision summary`, `capability add` |
+| Отчёты и проверка качества | `render`, `validate`, `verify`, `coverage`, `strategy check`, `validation check`, `validation numbers`, `validation calculations`, `promise check`, `critic-pack` |
+| Согласования и пересмотр | `gate approve`, `review prepare`, `review record`, `revisit list`, `revisit context`, `workflow reopen`, `workflow rollback`, `workflow pending`, `workflow recover` |
+| Дополнительные инструменты | `interview`, `ux`, `media`, `usage`, `subagent`, `hook`, `host`, `diagnostics`, `tools` |
+
+## Проверенные результаты
+
+[![M6 13 из 14 у PSA](https://img.shields.io/badge/M6%20PSA-13%2F14-2563EB?style=flat-square)](docs/evaluation/telecom-m6.md)
+[![P8 8 из 8 в последовательном прогоне](https://img.shields.io/badge/P8%20Sequential-8%2F8-7C3AED?style=flat-square)](reports/2026-11-21-p8-tetrad-preregistration.md)
+[![M8 четыре вызова чтения в Codex](https://img.shields.io/badge/M8-Codex%20Read%20Tools-0F766E?style=flat-square)](docs/mcp-host-acceptance.md)
+[![R6 локальная проверка](https://img.shields.io/badge/R6-Local%20Checks-4D7C0F?style=flat-square)](reports/2026-11-21-r6-release-candidate.md)
+
+| Проверка | Наблюдение | Материалы |
+| --- | --- | --- |
+| Полный учебный цикл | В «Слоте» человек выбрал O-003, подтвердил семь этапов и две смысловые оценки. В телеком-кейсе проверены возобновление, пересмотр источника и новое решение. | [«Слот»](reports/2026-11-14-r3-slot-human-acceptance.md) · [репетиция](reports/2026-11-21-telecom-demo-rehearsal.md) |
+| FastMCP в Codex | Четыре вызова чтения из обычного чата Codex и сверка операций записи с CLI через App Server. | [Приёмка M8](docs/mcp-host-acceptance.md) |
+| PSA и обычный чат | Один учебный кейс, оценка в отдельном чате Codex. PSA получил **13/14** за 21 мин 33 с, обычный чат — **11/14** за 16 мин 48 с. | [M6](docs/evaluation/telecom-m6.md) |
+| Последовательная работа и делегирование | Первая фаза «Тетради». Последовательный прогон получил **8/8** за 4 мин 53 с, прогон с `evidence` — **7/8** за 10 мин 7 с и вышел за лимит. Для сдачи выбран последовательный режим. | [P8 и ограничения](reports/2026-11-21-p8-tetrad-preregistration.md) |
+| Установка и демо из дистрибутива | Wheel, sdist, чистая распаковка ZIP, контрольные суммы, офлайн-демо и сканирование секретов проверены локально на кандидате `7fbe196`. | [Проверка R6](reports/2026-11-21-r6-release-candidate.md) |
+
+Оценки M6 и P8 получены на учебных данных отдельным модельным рецензентом. Чистое время модели, активное время человека и стоимость остались неизвестными. Хуки и делегирование остаются опциональными. Автоматические callbacks, принудительные лимиты и отмена роли в хосте остаются вне подтверждённой приёмки.
+
+## Проверки и дистрибутив
+
+Локальные проверки разработки:
+
+```powershell
+uv sync --locked --extra documents --extra mcp --extra agent --group dev
 uv run --no-sync ruff check .
-uv run --no-sync python -m unittest discover -s tests
 uv run --no-sync python scripts/sync_harness.py --check
 uv run --no-sync python -m scripts.ci.docs
+uv run --no-sync python -m scripts.ci.demo
+uv run --no-sync python -m scripts.ci.research_smoke
+uv run --no-sync python -m unittest discover -s tests
 ```
 
-Инструкции — [AGENTS.md](AGENTS.md); планы — [основной](docs/solution_plans/plan-main.md) и [roadmap](docs/solution_plans/roadmap-full-solution.md). Сервисы/ports/adapters разделены по ответственности. Каждая итерация фиксируется в [reports](reports/development-log.md), commit/push — в feature/-ветке.
+| Workflow | Проверяет |
+| --- | --- |
+| [CI](.github/workflows/ci.yml) | Документацию, синхронизацию инструкций, секреты в истории, базовую установку и тесты на Ubuntu и Windows |
+| [Demo](.github/workflows/demo.yml) | Проверку цитат, покрытие, возобновление, повторную сборку артефактов и офлайн research smoke |
+| [Release](.github/workflows/release.yml) | Сборку ZIP, wheel и sdist, контрольные суммы и установку вне исходного дерева |
 
-[CI](docs/continuous-integration.md) проверяет unit, clean base install, docs, sync, native secret scanning и replay демо без моделей. [Дистрибутив](docs/distribution.md) содержит wheel/sdist и архив с hashes. M8 пройден в Codex: вызовы чтения из обычного чата и сравнение операций записи через App Server подтверждены. Независимая оценка M6 остаётся открытой. [Результат M8](docs/mcp-host-acceptance.md). Функциональный R3 пройден на полном синтетическом кейсе «Слот» с явным выбором пользователя, семью gates и двумя semantic reviews; [отчёт](reports/2026-11-14-r3-slot-human-acceptance.md). Это не доказательство спроса/эффекта или независимой пользы. R3.1 продолжается: production-план, P0 contracts и P1 read-only handoffs реализованы; P2 [журнал задач/results/review](docs/subagent-journal.md) реализован; [P3a явный gate preflight](docs/hook-preflight.md) добавлен; [P3b bounded run/journal](docs/hook-runs.md) реализован. [P3c source notifications](docs/source-notifications.md) реализован; [P3d release checks](docs/release-hooks.md) реализован. [P4a host matrix/fallback planning](docs/host-profiles.md) реализован; [P4b evidence capture](docs/host-observations.md) реализован; [P4c review/disabled Codex preview](docs/host-review-preview.md) реализован; [P4d disabled config lifecycle](docs/host-config-lifecycle.md) реализован; native enable/acceptance и cross-version migrations остаются открытыми; реализованы P5a–P5e локальные hardening-срезы. Native activation не включена. Оценка пользы и комплект сдачи — R5/R6.
+> [!NOTE]
+> Задания GitHub Actions на проверенном кандидате `7fbe196` остановились до первого шага из-за состояния оплаты аккаунта или лимита расходов. Локальные результаты перечислены в [отчёте R6](reports/2026-11-21-r6-release-candidate.md).
 
+Финальный SHA, доступ жюри, видео и итоговый документ отслеживаются в [плане до сдачи](docs/solution_plans/finish-plan.md). [Контракт CI](docs/continuous-integration.md) · [сборка архива](docs/distribution.md).
 
-16.11.2026: [P5a config journal integrity](docs/host-config-integrity.md) реализован независимо от отложенной live приёмки P4: atomic metadata publication, сохранение torn staging, read-only audit через CLI/FastMCP и recovery копии. P5 целиком не завершён; P5b bounded directory/path checks реализован; P5c namespace compatibility и upgrade/rollback runbook реализованы; P5d privacy/injection diagnostics реализован; P5e dependency/artifact integrity реализован; P6a operation diagnostics реализован; P6b summaries/resume guidance реализован; P6c usage/cost provenance реализован; P6d CLI control policy реализован; далее независимый P7a tools inventory/eval protocol. Native enable/acceptance P4, R1/M6/M8 остаются открытыми.
+## Данные и безопасность
 
+- Используйте открытые источники и разрешённые материалы команды. Для реального интервью требуется согласие участника. [Правила работы с данными](agent/safety.md).
+- Инструкции внутри документов, страниц и ответов модели читаются как данные. Внешние запросы, делегирование, расходы, эксперименты и публикация требуют отдельного разрешения.
+- Секреты хранятся локально. `.env` и рабочая конфигурация Codex исключены из Git. Проверка релиза использует список допустимых файлов, а сканирование Gitleaks охватывает историю и проверяемое рабочее дерево. [Политика архива](src/product_strategy_agent/domain/release_policy.py) · [проверка выпуска](docs/release-hooks.md).
 
-16.11.2026: [P5b journal directory boundaries](docs/journal-directory-boundaries.md) реализован: streaming enumeration до первой лишней записи, confinement всех найденных путей и отказ на symlinks/junctions, включая final-looking/ignored names. Проверены task/hook/host/config журналы и recovery/CLI/FastMCP regressions. P5 частичный; P5c compatibility/upgrade policy реализован; P5d privacy/injection diagnostics реализован; P5e dependency/artifact integrity реализован; P6a operation diagnostics реализован; P6b summaries/resume guidance реализован; P6c usage/cost provenance реализован; P6d CLI control policy реализован; далее независимый P7a tools inventory/eval protocol. Live/native P4 и R1/M6/M8 остаются открытыми.
+## Документация
 
-
-16.11.2026: [P5c namespace compatibility](docs/journal-version-compatibility.md) реализован: неизвестный/mixed namespace блокирует v1 read/write/recovery вместо пустой истории; v1 schemas не менялись. Проверены byte preservation, совместимый copy replay и CLI/FastMCP refusal. Upgrade/rollback описан без автоматического конвертера; будущая cross-schema migration требует целевой схемы. P5 частичный; P5d privacy/injection diagnostics реализован; P5e dependency/artifact integrity реализован; P6a operation diagnostics реализован; P6b summaries/resume guidance реализован; P6c usage/cost provenance реализован; P6d CLI control policy реализован; далее независимый P7a tools inventory/eval protocol. Live/native P4 и R1/M6/M8 открыты.
-
-
-16.11.2026: [P5d automation privacy](docs/automation-privacy.md) реализован: CLI host/hook/subagent не отражают private I/O paths и encoding/model details; subagent MCP использует safe fallback. Проверены реальные CLI/MCP negatives и selected-material injection corpus без canonical writes/dispatch. Это не LLM semantic eval. P5 частичный; P5e dependency/artifact integrity и сверка рисков реализованы; P6a operation diagnostics реализован; P6b summaries/resume guidance реализован; P6c usage/cost provenance реализован; P6d CLI control policy реализован; далее независимый P7a tools inventory/eval protocol. Live/native P4 и R1/M6/M8 открыты.
-
-
-16.11.2026: [P5e dependency/artifact integrity](docs/dependency-artifact-integrity.md) реализован: stale lock preflight до build/install, locked/hash-constrained setuptools backend и общий bounded asset checker. Реальные wheel/sdist install + demo/base smoke прошли без моделей; локальный development snapshot dirty=true не является финальным release. Сверка оставшихся P5 рисков выполнена; весь P5 и native P4/R1/M6/M8 остаются открытыми. P6a text-free task/result/review/hook diagnostics реализован; существующий usage self-reported с basis=unknown. P6b summaries/resume guidance реализован; P6c usage/cost provenance реализован; P6d CLI control policy реализован; следующий независимый срез — P7a tools inventory/eval protocol; measured/estimated telemetry требует подтверждённого provenance.
-
-
-16.11.2026: [P6a operation diagnostics](docs/operation-diagnostics.md) реализован: CLI/FastMCP read-only metadata для task/result/review/hook, publication отдельно от outcome, captured snapshot/freshness not_checked, private texts исключены. Отсутствующий usage null, явные нули сохранены, self-reported values не повышаются до measured/estimated. Recovery/checks/gates не выполняются. P6 частичный; P6b сводки/подсказки реализован; P6c usage/cost provenance реализован; P6d CLI control policy реализован; далее независимый P7a tools inventory/eval protocol. Host coverage/telemetry/native cancel требуют отдельных срезов; P4/P5/R1/M6/M8 не закрыты.
-
-
-16.11.2026: [P6b selected-operation summaries](docs/operation-summaries.md) реализован: 1–32 явно выбранных ID одного кейса, общий case lock, published/unpublished outcomes разделены, никакой глобальной readiness или usage/cost totals. Fixed read-only guidance не разрешает recovery/dispatch/retry/gates; CLI/FastMCP parity и refusal проверены. P6 частичный; P6c usage/cost provenance inspection реализован; P6d CLI control policy реализован; далее независимый P7a tools inventory/eval protocol, host/native cancel отдельно. P4/P5/R1/M6/M8 открыты.
-
-
-17.11.2026: [P6c usage/cost provenance](docs/usage-provenance.md) реализован: bounded read-only canonical v1 ledger inspection с file/row hashes и redaction. Measured/estimated — recorded declarations, не independent verification; unknown/null/zero сохранены, automatic automation binding/totals отсутствуют. CLI/FastMCP parity и legacy byte/report compatibility проверены. P6 частичный; P6d CLI control policy и сверка P6 реализованы; далее независимый P7a tools inventory/eval protocol. Native controls зависят от отложенной P4; P4/P5/R1/M6/M8 открыты.
-
-
-17.11.2026: instruction bundle и role profiles обновлены до1.1.0. [Навигация агента](agent/README.md) и [automation](agent/automation.md) охватывают opt-in subagents/journal, local hooks и diagnostics; четыре canonical skills и девять generated adapters синхронизированы. Это не native activation/acceptance. [Контракт доставки context](docs/ide-instructions.md).
-
-
-17.11.2026: [P6d advisory controls](docs/operation-controls.md) реализован: read-only CLI/FastMCP policy различает inspect/case resume, forward recovery, exact UUID replay и новый request; generic cancel/checkpoint execution не поддержаны CLI, native host controls not_verified. Policy не оценивает/не даёт authorization и не исполняет действия. Канон/resume skill обновлены, bundle1.1.1 и9 adapters синхронизированы. Локальные P6a–P6d срезы выполнены, весь P6 и P4/P5/R1/M6/M8 открыты. Далее независимый P7a — inventory research/knowledge/retrieval и baseline/eval protocol до расширений; RAG/provider только при измеримой пользе.
+| Область | Где читать подробнее |
+| --- | --- |
+| Пользовательский маршрут | [Гайд Codex](docs/codex-demo-guide.md) · [телеком-демо](examples/telecom-family/README.md) · [«Слот»](examples/slot-workshop/README.md) · [пересмотр](docs/demo-runbook.md) |
+| Правила, процесс и качество | [AGENTS.md](AGENTS.md) · [workflow](agent/workflow.md) · [quality](agent/quality.md) · [семантическая оценка](docs/semantic-review.md) · [полнота стратегий](docs/strategy-structure.md) |
+| Файлы и восстановление | [Источники](docs/source-import-recovery.md) · [реестры](docs/ledger-recovery.md) · [отзыв утверждений](docs/claim-withdrawal.md) · [отзыв источника](docs/source-withdrawal.md) · [rollback](docs/workflow-rollback.md) · [render](docs/render-recovery.md) |
+| Автоматизация и среда | [Контракты](docs/automation-contracts.md) · [диагностика и управление](docs/operation-controls.md) · [профили хостов](docs/host-profiles.md) · [границы журналов](docs/journal-directory-boundaries.md) · [защита данных](docs/automation-privacy.md) |
+| Оценка и сдача | [ТЗ](specs/case.md) · [протоколы оценки](docs/evaluation/README.md) · [аудит ТЗ](reports/2026-11-17-specs-implementation-audit.md) · [план сдачи](docs/solution_plans/finish-plan.md) |
+| Разработка | [Основной план](docs/solution_plans/plan-main.md) · [roadmap R1–R6](docs/solution_plans/roadmap-full-solution.md) · [production-план P0–P9](docs/solution_plans/production-readiness.md) · [журнал](reports/development-log.md) · [диаграммы MVP](diagrams/mvp/README.md) |
