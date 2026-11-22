@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#192324">
+  <title>PSA Workspace — демо агента</title>
+  <link rel="stylesheet" href="workspace.css">
+  <script defer src="scenario.js"></script>
+  <script defer src="workspace.js"></script>
+  <script defer src="advanced-capabilities.js"></script>
+  <script defer src="capabilities.js"></script>
+</head>
+<body>
+  <div class="workspace">
+    <aside class="rail" aria-label="Рабочее пространство">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">✳</span><div><strong>PSA Workspace</strong><small>Product Strategy Agent</small></div></div>
+      <div class="project"><span class="project-icon" aria-hidden="true">▤</span><div><strong>Связь для близких</strong><small>telecom-family-demo</small></div></div>
+      <nav class="rail-section" aria-label="Этапы кейса">
+        <div class="rail-heading">Этапы <span id="progress">0 / 7</span></div>
+        <div id="stages"></div>
+      </nav>
+      <div class="rail-section files">
+        <div class="rail-heading">Файлы кейса</div>
+        <div id="files"></div>
+      </div>
+      <div class="rail-footer"><span class="connection-dot"></span> Локальный учебный режим</div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="breadcrumb">Кейсы <span>/</span> Связь для близких</div>
+        <div class="toolbar">
+          <button id="new-chat" type="button">Новый чат</button>
+          <button id="open-capabilities" type="button">Возможности</button>
+          <button id="research-toggle" class="mobile-only" type="button">Материалы</button>
+          <button id="reset" class="icon-button" type="button" title="Сбросить демо" aria-label="Сбросить демо">↺</button>
+        </div>
+      </header>
+      <div class="chat-area">
+        <div class="chat-content">
+          <div class="hero">
+            <div class="hero-meta"><span class="pill">Интерактивное демо</span><span class="chat-index" id="chat-index">Чат 01</span></div>
+            <h1>Связь для близких<span>.</span></h1>
+            <p>Как помочь клиентам вымышленного оператора вовремя отреагировать на риск перебоя связи?</p>
+          </div>
+          <section class="conversation" id="conversation" aria-label="Диалог с агентом" aria-live="polite"></section>
+          <section class="stage-action" id="stage-action" aria-label="Текущий этап"></section>
+        </div>
+      </div>
+      <div class="composer-wrap">
+        <form id="composer" class="composer">
+          <label class="sr-only" for="message">Сообщение агенту</label>
+          <input id="message" placeholder="Сообщение агенту…" maxlength="500" autocomplete="off">
+          <button type="submit" class="send" aria-label="Отправить сообщение">↑</button>
+        </form>
+        <div class="composer-note">Учебная симуляция · Без модели, сети и записи в кейсы PSA</div>
+      </div>
+    </main>
+
+    <aside id="inspector" class="inspector" aria-label="Материалы кейса">
+      <header class="inspector-heading"><div><span>КЕЙС</span><h2>Материалы</h2></div><button id="close-inspector" type="button" class="mobile-only icon-button" aria-label="Закрыть материалы">×</button></header>
+      <div class="stats"><div><strong>03</strong><span>источника</span></div><div><strong>09</strong><span>цитат</span></div><div><strong>04</strong><span>варианта</span></div></div>
+      <div class="tabs" aria-label="Раздел материалов">
+        <button type="button" data-tab="sources" aria-pressed="true">Источники</button>
+        <button type="button" data-tab="files" aria-pressed="false">Файлы</button>
+        <button type="button" data-tab="journal" aria-pressed="false">Журнал</button>
+      </div>
+      <div id="inspector-content"></div>
+    </aside>
+  </div>
+  <dialog id="preview" aria-labelledby="preview-title"><div class="dialog-header"><h2 id="preview-title"></h2><form method="dialog"><button class="icon-button" aria-label="Закрыть">×</button></form></div><div id="preview-body"></div></dialog>
+  <dialog id="capabilities" aria-labelledby="capabilities-title">
+    <div class="dialog-header"><h2 id="capabilities-title">Возможности агента</h2><form method="dialog"><button class="icon-button" aria-label="Закрыть возможности">×</button></form></div>
+    <p class="muted">Учебные примеры · режим симуляции</p>
+    <nav id="capability-nav" class="tabs" aria-label="Дополнительные сценарии"></nav>
+    <section id="capability-content" aria-live="polite"></section>
+  </dialog>
+  <dialog id="reset-dialog" aria-labelledby="reset-title"><form method="dialog"><h2 id="reset-title">Начать демо заново?</h2><p>Прогресс и чаты этого браузера будут сброшены.</p><div class="dialog-actions"><button value="cancel">Отмена</button><button class="primary" value="reset">Сбросить</button></div></form></dialog>
+</body>
+</html>

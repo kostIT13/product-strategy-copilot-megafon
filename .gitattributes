@@ -1,3 +1,4 @@
 # Case files carry byte-level content/render/journal hashes.
 # Preserve their bytes across checkouts, independently of core.autocrlf/OS.
 /projects/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+/docs/project-description.pdf binary
