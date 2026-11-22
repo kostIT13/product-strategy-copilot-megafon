@@ -113,9 +113,84 @@
     return section;
   }
 
+  function promises() {
+    const section = card("Проверка обещания по возможностям продукта",
+      "Учебная карточка O-003. Сверяем текст уведомления с возможностью и условиями из C-004 и C-006.");
+    const draft = element("p", "demo-note", "Черновик: «Мы автоматически восстановим связь у вашего близкого».");
+    const result = output();
+    const narrow = button("Уточнить обещание", () => {
+      draft.textContent = "Уточнённый текст: «Проверьте, можно ли вручную выделить интернет из общего остатка». Действие зависит от согласия, прав, тарифа и свободного объёма.";
+      result.replaceChildren(
+        element("strong", "", "Обещание ограничено доступным действием"),
+        element("p", "", "Автоматическое восстановление связи исключено. Перед согласованием человек проверяет текст и условия."),
+      );
+      narrow.disabled = true;
+      check.disabled = true;
+    });
+    narrow.disabled = true;
+    const check = button("Проверить обещание", () => {
+      result.replaceChildren(
+        element("strong", "", "Сценарный ответ · обнаружено несоответствие"),
+        element("p", "", "Бриф подтверждает ручное выделение свободного объёма. Автоматическое восстановление связи не подтверждено."),
+      );
+      narrow.disabled = false;
+    }, "primary");
+    const actions = element("div", "actions");
+    actions.append(check, narrow);
+    section.append(draft, element("code", "demo-note", `psa promise check ${scenario.id}`), actions, result);
+    return section;
+  }
+
+  function preflight() {
+    const section = card("Локальный хук перед согласованием",
+      "Учебный снимок этапа validation. В первом варианте плана пропущено окно наблюдения.");
+    const plan = element("p", "demo-note", "Метрика: доля подходящих номеров с ограничением. Окно наблюдения: не указано.");
+    const result = output();
+    let windowAdded = false;
+    const repair = button("Добавить окно и перепроверить", () => {
+      windowAdded = true;
+      plan.textContent = "Метрика: доля подходящих номеров с ограничением. Окно наблюдения: семь дней.";
+      showCheck();
+    });
+    repair.disabled = true;
+
+    function showCheck() {
+      result.replaceChildren(
+        element("strong", "", windowAdded ? "Сценарный ответ · passed" : "Сценарный ответ · blocked"),
+        element("p", "", "Структура и цитаты: пройдены."),
+        element("p", "", windowAdded ? "Требования этапа и материалы для смысловой оценки: пройдены." :
+          "Требования этапа и материалы для смысловой оценки: в плане отсутствует окно."),
+        element("p", "muted", "Переход согласует человек отдельным действием."),
+      );
+      repair.disabled = windowAdded;
+    }
+
+    const actions = element("div", "actions");
+    actions.append(button("Запустить проверку", showCheck, "primary"), repair);
+    section.append(plan, element("code", "demo-note", "before_validation_gate · psa hook check"), actions, result);
+    return section;
+  }
+
+  function impact() {
+    const section = card("Зависимости решения после исправления",
+      "Учебная копия O-003. В ревизии SRC-REV-0001 ставка из C-005 уточнена с 500 до 400 ₽ за оплаченный номеро-месяц.");
+    const result = output();
+    section.append(element("pre", "demo-note", `psa claim impact ${scenario.id}\npsa decision summary ${scenario.id}`),
+      button("Показать затронутые материалы", () => {
+        result.replaceChildren(
+          element("strong", "", "Сценарный ответ · требуется пересмотр"),
+          element("p", "", "C-005: прежняя ставка хранится в истории. Для нового расчёта используется исправленная запись."),
+          element("p", "", "Затронуты сравнение O-003, прогноз прибыли и обоснование D-001. Прогноз нужно пересчитать."),
+          element("p", "", "Ответственный: руководитель направления. Следующий шаг: оценить новый расчёт и подтвердить прежний выбор или выбрать альтернативу."),
+        );
+      }, "primary"), result);
+    return section;
+  }
+
   const examples = [
     ["Модельное интервью", interview], ["UX-разбор", ux],
     ["Расчёт по CSV", forecast], ["FastMCP", fastMcp],
+    ["Обещания продукта", promises], ["Хук проверки", preflight], ["Влияние исправления", impact],
   ];
   const controls = examples.map(([label], index) => button(label, () => select(index)));
   nav.append(...controls);
