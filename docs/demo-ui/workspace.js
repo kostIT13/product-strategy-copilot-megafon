@@ -2,16 +2,19 @@
 
 const key = "psa-workspace-demo-1";
 const $ = (selector) => document.querySelector(selector);
-const welcome = "Открыл учебный кейс telecom-family-demo. Начнём с вопроса решения и брифа. Материалы уже загружены, переходы подтверждаете вы.";
-const fresh = () => ({ stage: 0, option: null, chat: 1, paused: false, revision: 0,
-  events: [{ type: "Подготовка контекста", command: `psa context ${scenario.id}` }],
-  messages: [{ role: "agent", text: welcome }] });
+const startPrompt = "Какое небольшое изменение стоит проверить первым, чтобы клиенты вымышленного оператора успевали отреагировать на риск перебоя связи? Покажи бриф и остановись перед согласованием.";
+const resumePrompt = `Возобнови учебный кейс ${scenario.id}. Покажи сохранённый этап, последнее решение и следующий шаг.`;
+const fresh = () => ({ stage: 0, option: null, chat: 1, started: false, paused: false, awaitingResume: false,
+  revision: 0, events: [], messages: [] });
 
 function load() {
   try {
     const saved = JSON.parse(localStorage.getItem(key));
     if (Number.isInteger(saved?.stage) && scenario.stages[saved.stage] &&
-        Array.isArray(saved.events) && Array.isArray(saved.messages)) return saved;
+        Array.isArray(saved.events) && Array.isArray(saved.messages)) {
+      // The original demo opened the case automatically.
+      return { started: true, awaitingResume: false, ...saved };
+    }
   } catch { /* The demo also works without browser storage. */ }
   return fresh();
 }
@@ -20,6 +23,13 @@ let state = load();
 let tab = "sources";
 const active = () => scenario.stages[state.stage];
 const choice = () => scenario.options.find(({ id }) => id === state.option);
+const decisionId = () => `D-00${state.revision + 1}`;
+
+function fillMessage(text) {
+  const input = $("#message");
+  input.value = text;
+  input.focus();
+}
 
 function element(tag, className, text) {
   const node = document.createElement(tag);
@@ -66,7 +76,7 @@ function content(file) {
     communication: option ? `${option.id}\n\n${option.communication}\n\nУказываем только доступное действие. Ограничения тарифа и полномочий показываем до операции.` : "",
     validation: option ? `Метрика: ${option.metric}\n\nБаза неизвестна. Аналитик собирает её на подходящей когорте и фиксирует знаменатель и исключения. Сравнение с обычным обслуживанием. Отдельно учитываются ошибки, нарушения прав и неизвестные исходы. Остановка при подтверждённом нарушении прав или неправильном исполнении.` : "",
     critic: option ? `Критический разбор · ${option.id}\n\nВозражение: ${option.objection}\n\nСузить обещания до подтверждённых действий. Перед запуском проверить сопоставимость базы, качество событий и границы применимости. ${hypothesis}\n\nРазбор подготовлен для учебного сценария. Смысловую оценку подтверждает человек.` : "",
-    decision: option ? `D-00${state.revision + 1} · ${option.id}\n\n${option.product}\n\nУсловие пересмотра: новые сведения о причинах перебоев, правах доступа или экономике. Выбор относится к учебному сценарию.` : "Решение ещё не принято.",
+    decision: option ? `${decisionId()} · ${option.id}\n\n${option.product}\n\nУсловие пересмотра: новые сведения о причинах перебоев, правах доступа или экономике. Выбор относится к учебному сценарию.` : "Решение ещё не принято.",
   };
   return docs[file];
 }
@@ -158,11 +168,24 @@ function renderStage() {
   const stage = active();
   const panel = $("#stage-action");
   const actions = element("div", "actions");
+  if (!state.started || state.awaitingResume) {
+    const newCase = !state.started;
+    panel.replaceChildren(
+      element("div", "action-label", newCase ? "Начало" : "Новый чат"),
+      element("h2", "", newCase ? "Отправьте запрос агенту" : "Возобновите сохранённый кейс"),
+      element("p", "", newCase ? "Введите продуктовый вопрос или воспользуйтесь примером." :
+        "История предыдущего чата закрыта. Попросите агента прочитать сохранённый этап и решение."),
+      actions,
+    );
+    actions.append(button(newCase ? "Вставить пример запроса" : "Вставить запрос на возобновление",
+      () => fillMessage(newCase ? startPrompt : resumePrompt), "primary"));
+    return;
+  }
   panel.replaceChildren(element("div", "action-label", state.paused ? "Пауза" : stage.id),
     element("h2", "", state.paused ? "Точка продолжения сохранена" : stage.title),
     element("p", "", state.paused ? `Текущий этап: ${stage.name}.` : stage.detail));
   if (state.paused) {
-    actions.append(button("Продолжить", () => resume(false), "primary"));
+    actions.append(button("Новый чат", newChat, "primary"), button("Продолжить здесь", resume));
   } else if (stage.id === "completed") {
     actions.append(button("Открыть решение", () => openFile("decision"), "primary"));
     if (!state.revision) actions.append(button("Показать новые данные", revisit));
@@ -191,10 +214,16 @@ function renderStage() {
   panel.append(actions);
 }
 
-function render() { renderRail(); renderConversation(); renderStage(); renderInspector(); }
+function render() {
+  $("#new-chat").disabled = !state.started || state.awaitingResume;
+  renderRail();
+  renderConversation();
+  renderStage();
+  renderInspector();
+}
 
 function approve(selected) {
-  if (state.paused || state.stage >= 7) return;
+  if (!state.started || state.paused || state.stage >= 7) return;
   const { id, name } = active();
   if (id === "options") state.option = selected;
   say(selected ? `Утверждаю сравнение и выбираю ${selected}.` : `Подтверждаю этап «${name}».`, "user");
@@ -215,18 +244,36 @@ function approve(selected) {
 }
 
 function pause() {
-  if (state.paused) return;
+  if (!state.started || state.paused) return;
   state.paused = true;
   log("Сохранена точка продолжения", `psa status ${scenario.id}`);
-  say(`Остановился на этапе «${active().name}». Можно открыть новый чат и продолжить с этого места.`);
+  const savedChoice = state.option ? ` Сохранён выбор ${decisionId()} / ${state.option}.` : "";
+  say(`Сохранил этап «${active().name}».${savedChoice} Откройте новый чат и отправьте запрос на возобновление.`);
   update();
 }
 
-function resume(newChat) {
-  if (newChat) { state.chat += 1; state.messages = []; }
+function newChat() {
+  if (!state.started || state.awaitingResume) return;
+  state.chat += 1;
+  state.messages = [];
+  state.paused = true;
+  state.awaitingResume = true;
+  $("#message").value = "";
+  update(false);
+  window.scrollTo(0, 0);
+}
+
+function resume() {
+  if (!state.paused) {
+    say(`Кейс уже открыт на этапе «${active().name}».`);
+    return update();
+  }
   state.paused = false;
+  state.awaitingResume = false;
   log("Чтение сохранённого состояния", `psa resume ${scenario.id}`);
-  say(`Восстановил этап «${active().name}».${state.option ? ` Сохранён выбор ${state.option}.` : ""} Следующий шаг: ${active().title.toLowerCase()}. Прежние действия не повторял.`);
+  if (state.option) log("Чтение сохранённого решения", `psa decision summary ${scenario.id}`);
+  const savedChoice = state.option ? `\nСохранённый выбор: ${decisionId()} / ${state.option} · ${choice().name} (decision.md).` : "";
+  say(`Восстановил кейс ${scenario.id}.\nЭтап: ${active().name} (${active().id}).${savedChoice}\nСледующий шаг: ${active().title}.\nПрежние согласования и импорт сохранились в журнале.`);
   update();
 }
 
@@ -256,12 +303,25 @@ $("#composer").onsubmit = (event) => {
   if (!text) return;
   input.value = "";
   say(text, "user");
+  if (!state.started) {
+    state.started = true;
+    log("Получен исходный запрос", `psa status ${scenario.id}`);
+    log("Подготовка контекста", `psa context ${scenario.id}`);
+    say(report("Открыл бриф учебного кейса и выделил вопрос решения.",
+      "01_brief.md, пример брифа PDF", "причины перебоев, подходящий охват и эффект",
+      "Проверьте бриф и согласуйте постановку."));
+    return update();
+  }
+  if (/^(?:продолж(?:и|ить|ай)|возобнов(?:и|ить|ляй))(?:$|[.!,\s])/iu.test(text)) return resume();
+  if (state.awaitingResume) {
+    say("Попросите возобновить кейс, чтобы я прочитал сохранённый этап и решение.");
+    return update();
+  }
   if (/^(стоп|пауза|остановись)(?:$|[.!,:\s])/iu.test(text)) {
     if (!state.paused) return pause();
     say("Кейс уже на паузе. Точка продолжения сохранена.");
     return update();
   }
-  if (/продолж|возобнов/iu.test(text)) return resume(false);
   if (/источник|цитат/iu.test(text)) {
     say("Справа доступны PDF-бриф, производная CSV-таблица и выдержка Pixel. Откройте карточку, чтобы увидеть цитаты и привязки.");
     tab = "sources";
@@ -280,7 +340,7 @@ $("#composer").onsubmit = (event) => {
   update();
 };
 
-$("#new-chat").onclick = () => resume(true);
+$("#new-chat").onclick = newChat;
 $("#research-toggle").onclick = () => $("#inspector").classList.toggle("open");
 $("#close-inspector").onclick = () => $("#inspector").classList.remove("open");
 $("#reset").onclick = () => { $("#reset-dialog").returnValue = ""; $("#reset-dialog").showModal(); };
