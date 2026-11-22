@@ -42,7 +42,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid #678d32; outline-
 .topbar { display: flex; min-height: 62px; gap: 10px; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--stroke); padding: 0 22px; background: var(--paper); }
 .breadcrumb, .toolbar button { font-size: .84rem; }
 .breadcrumb span { color: #a1aaa4; margin: 0 5px; }
-.toolbar { display: flex; align-items: center; gap: 7px; }
+.toolbar { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 7px; }
 .icon-button { font-size: 1.2rem; line-height: 1; display: grid; place-items: center; padding: 6px; width: 34px; height: 34px; }
 .chat-area { flex: 1; }
 .chat-content { width: min(100%, 780px); margin: 0 auto; padding: 29px 27px 25px; }
@@ -103,6 +103,21 @@ dialog::backdrop { background: #192324a8; }
 .dialog-header h2, #reset-dialog h2 { font-size: 1.2rem; }
 #preview-body { white-space: pre-wrap; overflow-wrap: anywhere; padding-top: 12px; }
 .dialog-actions { justify-content: end; margin-top: 14px; }
+#capabilities { width: min(94vw, 860px); }
+#capability-nav { flex-wrap: wrap; margin-top: 12px; }
+.demo-step { display: grid; gap: 12px; }
+.demo-step h3 { font-size: 1.08rem; }
+.demo-note, .demo-output { padding: 12px; border: 1px solid var(--stroke); border-radius: 10px; background: #f4f7ec; }
+.demo-output:empty { display: none; }
+.demo-output p + p { margin-top: 7px; }
+.demo-step .actions { margin-top: 0; }
+.demo-step pre { margin: 0; font-size: .86rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+.mock-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.mock-screen { padding: 12px; border: 1px solid var(--stroke); border-radius: 12px; background: var(--canvas); }
+.mock-screen p { margin: 7px 0; }
+.mock-action { display: block; margin-top: 8px; padding: 7px; border-radius: 7px; background: var(--soft); }
+.mock-pair.marked .mock-action { outline: 2px solid var(--green); outline-offset: 2px; }
+@media (max-width: 480px) { .mock-pair { grid-template-columns: 1fr; } }
 .mobile-only { display: none; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 @media (max-width: 1080px) {
