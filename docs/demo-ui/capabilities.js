@@ -191,14 +191,22 @@
     ["Модельное интервью", interview], ["UX-разбор", ux],
     ["Расчёт по CSV", forecast], ["FastMCP", fastMcp],
     ["Обещания продукта", promises], ["Хук проверки", preflight], ["Влияние исправления", impact],
+    ...advancedCapabilities({ card, output }),
   ];
   const controls = examples.map(([label], index) => button(label, () => select(index)));
   nav.append(...controls);
 
+  function stopMedia() {
+    const player = panel.querySelector("video, audio");
+    if (player && !player.paused) player.pause();
+  }
+
   function select(index) {
+    stopMedia();
     controls.forEach((control, position) => control.setAttribute("aria-pressed", String(position === index)));
     panel.replaceChildren(examples[index][1]());
   }
 
+  dialog.addEventListener("close", stopMedia);
   $("#open-capabilities").onclick = () => { select(0); dialog.showModal(); };
 })();
