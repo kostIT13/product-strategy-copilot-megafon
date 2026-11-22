@@ -1,5 +1,7 @@
 # Product Strategy Agent
 
+Проект команды **bogomol** для хакатона **MGIMO AI CHALLENGE**.
+
 [![Версия 0.1.0](https://img.shields.io/badge/PSA-0.1.0-7C3AED?style=for-the-badge)](pyproject.toml)
 [![Python 3.11 и выше](https://img.shields.io/badge/Python-3.11%2B-2563EB?style=for-the-badge&logo=python&logoColor=white)](pyproject.toml)
 [![uv 0.11.30](https://img.shields.io/badge/uv-0.11.30-9333EA?style=for-the-badge&logo=uv&logoColor=white)](pyproject.toml)
