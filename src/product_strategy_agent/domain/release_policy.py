@@ -27,6 +27,7 @@ def forbidden_path(name):
 
 ROOT_FILES = {
     "README.md",
+    "USAGE.md",
     "pyproject.toml",
     "uv.lock",
     ".env.example",

@@ -9,7 +9,7 @@
 
 **Агент в Codex для руководителя цифрового продукта.** Из продуктового вопроса и исходных материалов PSA собирает доказательства и сравнивает варианты. Руководитель выбирает направление, затем агент готовит две стратегии и план проверки эффекта. Кейс сохраняется на диске, и работу можно продолжить в новом чате.
 
-[▶ Смотреть демо · 4:38](docs/demo-ui/psa-workspace-demo.mp4) · [🚀 Запустить в Codex](#быстрый-запуск) · [📘 Открыть PDF](docs/project-description.pdf) · [📋 Сверить с ТЗ](reports/2026-11-22-final-specs-audit.md)
+[▶ Смотреть демо · 4:38](docs/demo-ui/psa-workspace-demo.mp4) · [🚀 Подключить агента](USAGE.md) · [📘 Открыть PDF](docs/project-description.pdf) · [📋 Сверить с ТЗ](reports/2026-11-22-final-specs-audit.md)
 
 ![PSA Workspace. В центре учебный чат «Связь для близких», слева этапы, справа материалы кейса](docs/project-description-assets/start.jpg)
 
@@ -18,9 +18,11 @@
 | Попробовать | Изучить | Проверить |
 | --- | --- | --- |
 | [Браузерная репетиция](docs/demo-ui/README.md) | [Архитектура и схемы](#архитектура) | [Подтверждённые результаты](#проверенные-результаты) |
-| [Пошаговый гайд Codex](docs/codex-demo-guide.md) | [Описание проекта в Markdown](docs/project-description.md) | [Демонстрационный проект для сдачи](docs/demo-project/) |
+| [Подключение и работа в Codex](USAGE.md) | [Описание проекта в Markdown](docs/project-description.md) | [Демонстрационный проект для сдачи](docs/demo-project/) |
 
 ## Быстрый запуск
+
+Подробное подключение, первый запрос, согласования и восстановление работы описаны в [инструкции пользователя](USAGE.md).
 
 Откройте корень репозитория как локальный проект в Codex и начните новый чат. Проектные правила находятся в [AGENTS.md](AGENTS.md). Для CLI нужны **Python 3.11+** и **uv 0.11.30**. Основной сценарий использует файловое хранилище и учётную запись Codex. Отдельный API-ключ, `.env`, база данных и контейнеры для него не требуются.
 
@@ -321,7 +323,7 @@ uv run --no-sync python -m unittest discover -s tests
 
 | Область | Где читать подробнее |
 | --- | --- |
-| Пользовательский маршрут | [Гайд Codex](docs/codex-demo-guide.md) · [телеком-демо](examples/telecom-family/README.md) · [«Слот»](examples/slot-workshop/README.md) · [пересмотр](docs/demo-runbook.md) |
+| Пользовательский маршрут | [Подключение и работа с агентом](USAGE.md) · [реплики для телеком-демо](docs/codex-demo-guide.md) · [«Слот»](examples/slot-workshop/README.md) · [пересмотр](docs/demo-runbook.md) |
 | Правила, процесс и качество | [AGENTS.md](AGENTS.md) · [workflow](agent/workflow.md) · [quality](agent/quality.md) · [семантическая оценка](docs/semantic-review.md) · [полнота стратегий](docs/strategy-structure.md) |
 | Файлы и восстановление | [Источники](docs/source-import-recovery.md) · [реестры](docs/ledger-recovery.md) · [отзыв утверждений](docs/claim-withdrawal.md) · [отзыв источника](docs/source-withdrawal.md) · [rollback](docs/workflow-rollback.md) · [render](docs/render-recovery.md) |
 | Автоматизация и среда | [Контракты](docs/automation-contracts.md) · [диагностика и управление](docs/operation-controls.md) · [профили хостов](docs/host-profiles.md) · [границы журналов](docs/journal-directory-boundaries.md) · [защита данных](docs/automation-privacy.md) |
