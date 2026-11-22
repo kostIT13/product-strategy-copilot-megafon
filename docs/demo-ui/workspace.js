@@ -41,7 +41,7 @@ function say(text, role = "agent") { state.messages.push({ role, text }); }
 function update(scroll = true) {
   try { localStorage.setItem(key, JSON.stringify(state)); } catch { /* In-memory fallback. */ }
   render();
-  if (scroll) $("#scroll-area").scrollTop = $("#scroll-area").scrollHeight;
+  if (scroll) window.scrollTo(0, document.documentElement.scrollHeight);
 }
 
 function report(completed, sources, unknown, next) {
@@ -289,7 +289,7 @@ $("#reset-dialog").onclose = () => {
   state = fresh();
   tab = "sources";
   update(false);
-  $("#scroll-area").scrollTop = 0;
+  window.scrollTo(0, 0);
 };
 document.querySelectorAll("[data-tab]").forEach((item) => item.onclick = () => { tab = item.dataset.tab; renderInspector(); });
 render();
