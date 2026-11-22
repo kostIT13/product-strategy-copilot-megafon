@@ -1,0 +1,6 @@
+metric,unit,period,baseline,target,pdf_page
+gross_profit_rub,RUB,planning_year,279000000,285000000,3
+active_family_groups,groups,planning_year,5000,8000,3
+connected_family_groups,groups,planning_year,8000,12000,3
+connected_multi_number_owners,owners,planning_year,1000,2000,3
+activation_percent,percent,Q4_creation_cohort_14_days,45,60,3

@@ -18,7 +18,7 @@
 | Попробовать | Изучить | Проверить |
 | --- | --- | --- |
 | [Браузерная репетиция](docs/demo-ui/README.md) | [Архитектура и схемы](#архитектура) | [Подтверждённые результаты](#проверенные-результаты) |
-| [Пошаговый гайд Codex](docs/codex-demo-guide.md) | [Описание проекта в Markdown](docs/project-description.md) | [Материалы и итоговые стратегии кейса](docs/telecom-demo-project.md) |
+| [Пошаговый гайд Codex](docs/codex-demo-guide.md) | [Описание проекта в Markdown](docs/project-description.md) | [Демонстрационный проект для сдачи](docs/demo-project/) |
 
 ## Быстрый запуск
 
@@ -37,7 +37,7 @@ uv run --no-sync python -m scripts.ci.demo
 
 ## Телеком-демо
 
-[Демонстрационный проект «Связь для близких»](docs/telecom-demo-project.md) объединяет задачу руководителя, исходные материалы, сравнение вариантов, обе стратегии и план измерения эффекта.
+[Демонстрационный проект «Связь для близких»](docs/demo-project/) содержит бриф, исходные файлы, продуктовую и коммуникационную стратегии, план измерения и воспроизводимый расчёт.
 
 В [учебном брифе](<specs/Пример брифа.pdf>) вымышленный оператор решает, какую помощь со связью исследовать первой. Агент сопоставляет бриф, производную CSV-таблицу и выдержку из открытой справки Pixel, затем сравнивает четыре направления.
 
@@ -325,6 +325,6 @@ uv run --no-sync python -m unittest discover -s tests
 | Правила, процесс и качество | [AGENTS.md](AGENTS.md) · [workflow](agent/workflow.md) · [quality](agent/quality.md) · [семантическая оценка](docs/semantic-review.md) · [полнота стратегий](docs/strategy-structure.md) |
 | Файлы и восстановление | [Источники](docs/source-import-recovery.md) · [реестры](docs/ledger-recovery.md) · [отзыв утверждений](docs/claim-withdrawal.md) · [отзыв источника](docs/source-withdrawal.md) · [rollback](docs/workflow-rollback.md) · [render](docs/render-recovery.md) |
 | Автоматизация и среда | [Контракты](docs/automation-contracts.md) · [диагностика и управление](docs/operation-controls.md) · [профили хостов](docs/host-profiles.md) · [границы журналов](docs/journal-directory-boundaries.md) · [защита данных](docs/automation-privacy.md) |
-| Материалы для сдачи | [ТЗ](specs/case.md) · [описание проекта PDF](docs/project-description.pdf) · [демонстрационный кейс](docs/telecom-demo-project.md) · [видеозапись](docs/demo-ui/psa-workspace-demo.mp4) |
+| Материалы для сдачи | [ТЗ](specs/case.md) · [описание проекта PDF](docs/project-description.pdf) · [демонстрационный проект](docs/demo-project/) · [видеозапись](docs/demo-ui/psa-workspace-demo.mp4) |
 | Оценка | [Протоколы испытаний](docs/evaluation/README.md) · [итоговый аудит по ТЗ](reports/2026-11-22-final-specs-audit.md) · [план сдачи](docs/solution_plans/finish-plan.md) |
 | Разработка | [Основной план](docs/solution_plans/plan-main.md) · [roadmap R1–R6](docs/solution_plans/roadmap-full-solution.md) · [production-план P0–P9](docs/solution_plans/production-readiness.md) · [журнал](reports/development-log.md) · [диаграммы MVP](diagrams/mvp/README.md) |
